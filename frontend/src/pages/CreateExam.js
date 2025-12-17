@@ -6,8 +6,6 @@ import {
   Plus, 
   Trash2, 
   Save, 
-  Calendar,
-  Clock,
   FileText,
   Check,
   X

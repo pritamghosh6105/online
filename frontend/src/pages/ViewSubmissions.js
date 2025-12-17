@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { submissionAPI, examAPI } from '../api';
 import { 
   FileText, 
-  Users, 
-  Award, 
   Calendar,
   Clock,
-  Eye,
-  Download,
   Filter,
-  Search,
-  Trash2
+  Search
 } from 'lucide-react';
 import { formatDate, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -27,11 +22,7 @@ const ViewSubmissions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedExam]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [submissionsResponse, examsResponse] = await Promise.all([
@@ -46,7 +37,11 @@ const ViewSubmissions = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedExam]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDeleteSubmission = async (submissionId, studentName) => {
     if (window.confirm(`Are you sure you want to delete ${studentName}'s submission? This action cannot be undone.`)) {
