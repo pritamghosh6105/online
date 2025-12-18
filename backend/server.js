@@ -16,6 +16,7 @@ const app = express();
 // Middleware
 const allowedOrigins = [
   'http://localhost:3000',
+  'https://examin-frontend.onrender.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -28,7 +29,8 @@ app.use(cors({
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin)) {
+    // Allow all .onrender.com domains or localhost
+    if (origin.endsWith('.onrender.com') || allowedOrigins.includes(origin)) {
       console.log('Origin allowed:', origin);
       callback(null, true);
     } else {
