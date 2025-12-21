@@ -43,6 +43,7 @@ const createExam = async (req, res) => {
 // @access  Private
 const getExams = async (req, res) => {
   try {
+    const { page = 1, limit = 50, statsOnly = false } = req.query;
     let query = {};
     
     // If student, only show active exams (including upcoming and current)
@@ -54,10 +55,30 @@ const getExams = async (req, res) => {
       };
     }
 
-    const exams = await Exam.find(query)
+    // If only stats are needed (for admin dashboard), return count only
+    if (statsOnly === 'true' && req.user.role === 'admin') {
+      const count = await Exam.countDocuments(query);
+      return res.json({
+        success: true,
+        count,
+        statsOnly: true
+      });
+    }
+
+    // Calculate pagination for admins
+    const skip = req.user.role === 'admin' ? (parseInt(page) - 1) * parseInt(limit) : 0;
+    const total = await Exam.countDocuments(query);
+
+    let examQuery = Exam.find(query)
       .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
+
+    // Apply pagination for admins
+    if (req.user.role === 'admin') {
+      examQuery = examQuery.skip(skip).limit(parseInt(limit));
+    }
+
+    const exams = await examQuery.lean();
 
     // For students, hide correct answers
     if (req.user.role === 'student') {
@@ -82,6 +103,9 @@ const getExams = async (req, res) => {
     res.json({
       success: true,
       count: exams.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
       exams
     });
   } catch (error) {

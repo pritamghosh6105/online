@@ -146,17 +146,34 @@ const getMySubmissions = async (req, res) => {
 // @access  Private (Admin only)
 const getAllSubmissions = async (req, res) => {
   try {
-    const { examId } = req.query;
+    const { examId, page = 1, limit = 50, statsOnly = false } = req.query;
     let query = {};
 
     if (examId) {
       query.exam = examId;
     }
 
+    // If only stats are needed, return count only
+    if (statsOnly === 'true') {
+      const count = await Submission.countDocuments(query);
+      return res.json({
+        success: true,
+        count,
+        statsOnly: true
+      });
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const total = await Submission.countDocuments(query);
+
     const submissions = await Submission.find(query)
-      .populate('student', 'name email')
-      .populate('exam', 'title subject totalMarks duration')
+      .populate('student', 'name email studentId')
+      .populate('exam', 'title subject totalMarks')
+      .select('-answers') // Exclude detailed answers to reduce payload
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
       .lean();
 
     // Filter out submissions with missing student or exam (deleted references)
@@ -165,6 +182,9 @@ const getAllSubmissions = async (req, res) => {
     res.json({
       success: true,
       count: validSubmissions.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
       submissions: validSubmissions
     });
   } catch (error) {
