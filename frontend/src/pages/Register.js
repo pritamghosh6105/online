@@ -27,7 +27,7 @@ const Register = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -70,17 +70,17 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setLoading(true);
     const { confirmPassword, ...registrationData } = formData;
     const result = await register(registrationData);
-    
+
     console.log('Registration result:', result);
     console.log('User data:', result?.user);
     console.log('Student ID:', result?.user?.studentId);
-    
+
     if (result.success && result.user) {
       // Show student ID modal
       if (result.user.studentId) {
@@ -105,7 +105,7 @@ const Register = () => {
       justifyContent: 'center',
       padding: '1rem'
     }}>
-      <div style={{
+      <div className="auth-card" style={{
         backgroundColor: '#ffffff',
         padding: '2rem',
         borderRadius: '0.5rem',
@@ -120,7 +120,7 @@ const Register = () => {
             justifyContent: 'center',
             marginBottom: '1rem'
           }}>
-            <BookOpen style={{ width: '3rem', height: '3rem', color: '#3b82f6' }} />
+            <BookOpen size={44} color="#2563eb" strokeWidth={2.6} />
           </div>
           <h1 style={{
             fontSize: '1.875rem',
@@ -415,7 +415,7 @@ const Register = () => {
             fontSize: '0.875rem'
           }}>
             Already have an account?{' '}
-            <Link 
+            <Link
               to="/student-login"
               style={{
                 color: '#3b82f6',
@@ -469,7 +469,7 @@ const Register = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
-            
+
             <h2 style={{
               fontSize: '1.5rem',
               fontWeight: 'bold',
@@ -478,7 +478,7 @@ const Register = () => {
             }}>
               Registration Successful!
             </h2>
-            
+
             <p style={{
               color: '#6b7280',
               marginBottom: '1.5rem',
@@ -486,7 +486,7 @@ const Register = () => {
             }}>
               Your account has been created. Please save your Student ID below:
             </p>
-            
+
             <div style={{
               backgroundColor: '#f3f4f6',
               padding: '1.5rem',
@@ -518,7 +518,7 @@ const Register = () => {
                 Use this ID to login
               </div>
             </div>
-            
+
             <div style={{
               backgroundColor: '#dbeafe',
               padding: '1rem',
@@ -534,7 +534,7 @@ const Register = () => {
                 📧 An email with your credentials has been sent to <strong>{studentIdData.email}</strong>
               </p>
             </div>
-            
+
             <button
               onClick={() => {
                 setShowStudentIdModal(false);

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { examAPI } from '../api';
-import { 
-  BookOpen, 
-  Plus, 
-  Trash2, 
-  Save, 
+import {
+  BookOpen,
+  Plus,
+  Trash2,
+  Save,
   FileText,
   Check,
   X
@@ -14,7 +14,7 @@ import { toast } from 'react-toastify';
 
 const CreateExam = () => {
   const navigate = useNavigate();
-  
+
   const [examData, setExamData] = useState({
     title: '',
     subject: '',
@@ -23,7 +23,7 @@ const CreateExam = () => {
     endDate: '',
     questions: []
   });
-  
+
   const [currentQuestion, setCurrentQuestion] = useState({
     question: '',
     options: [
@@ -34,7 +34,7 @@ const CreateExam = () => {
     ],
     marks: 1
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -44,7 +44,7 @@ const CreateExam = () => {
       ...prev,
       [name]: value
     }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -61,7 +61,7 @@ const CreateExam = () => {
   const handleOptionChange = (index, value) => {
     setCurrentQuestion(prev => ({
       ...prev,
-      options: prev.options.map((option, i) => 
+      options: prev.options.map((option, i) =>
         i === index ? { ...option, text: value } : option
       )
     }));
@@ -171,7 +171,7 @@ const CreateExam = () => {
     } else if (examData.startDate && examData.endDate) {
       const startDate = new Date(examData.startDate);
       const endDate = new Date(examData.endDate);
-      
+
       if (endDate <= startDate) {
         newErrors.endDate = 'End date must be after start date';
       }
@@ -187,7 +187,7 @@ const CreateExam = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     console.log('=== EXAM CREATION DEBUG ===');
     console.log('Exam Data:', JSON.stringify(examData, null, 2));
     console.log('Title:', examData.title);
@@ -197,7 +197,7 @@ const CreateExam = () => {
     console.log('End Date:', examData.endDate);
     console.log('Questions Count:', examData.questions.length);
     console.log('Questions:', examData.questions);
-    
+
     if (!validateExam()) {
       console.error('Frontend validation failed');
       return;
@@ -287,7 +287,7 @@ const CreateExam = () => {
                 Exam Details
               </h2>
             </div>
-            
+
             <div style={{ padding: '1.5rem' }}>
               <div style={{
                 display: 'grid',
@@ -486,7 +486,7 @@ const CreateExam = () => {
                 Add Question
               </h2>
             </div>
-            
+
             <div style={{ padding: '1.5rem' }}>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{
@@ -527,7 +527,7 @@ const CreateExam = () => {
                   Options (Select the correct answer)
                 </label>
                 {currentQuestion.options.map((option, index) => (
-                  <div 
+                  <div
                     key={index}
                     style={{
                       display: 'flex',
@@ -590,7 +590,7 @@ const CreateExam = () => {
                     )}
                   </div>
                 ))}
-                
+
                 {currentQuestion.options.length < 6 && (
                   <button
                     type="button"
@@ -643,7 +643,7 @@ const CreateExam = () => {
                     }}
                   />
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={addQuestion}
@@ -691,10 +691,10 @@ const CreateExam = () => {
                   Questions ({examData.questions.length})
                 </h2>
               </div>
-              
+
               <div style={{ padding: '1.5rem' }}>
                 {examData.questions.map((question, index) => (
-                  <div 
+                  <div
                     key={index}
                     style={{
                       border: '1px solid #e5e7eb',
@@ -739,7 +739,7 @@ const CreateExam = () => {
                       marginBottom: '0.5rem'
                     }}>
                       {question.options.map((option, optIndex) => (
-                        <div 
+                        <div
                           key={optIndex}
                           style={{
                             display: 'flex',

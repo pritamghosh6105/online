@@ -1,22 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, LogOut, BookOpen } from 'lucide-react';
+import ExaminLogo from './ExaminLogo';
+import { User, LogOut, BookOpen, Menu, X, Award, PlusCircle, FileText } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav style={{
       backgroundColor: '#1f2937',
-      padding: '1rem',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      padding: '0.875rem 1rem',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 50
     }}>
       <div style={{
         maxWidth: '1200px',
@@ -26,30 +35,19 @@ const Navbar = () => {
         alignItems: 'center'
       }}>
         {/* Logo */}
-        <Link 
-          to="/dashboard" 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            textDecoration: 'none',
-            color: '#ffffff',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
-          }}
-        >
-          <BookOpen style={{ marginRight: '0.5rem' }} />
-          Examin
-        </Link>
+        <ExaminLogo size={28} to="/dashboard" textColor="#ffffff" showSubtext={false} />
 
-        {/* Navigation Links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {/* Desktop Navigation Links */}
+        <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link 
             to="/dashboard" 
             style={{
               color: '#d1d5db',
               textDecoration: 'none',
-              padding: '0.5rem 1rem',
+              padding: '0.5rem 0.875rem',
               borderRadius: '0.375rem',
+              fontSize: '0.925rem',
+              fontWeight: '500',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -64,8 +62,10 @@ const Navbar = () => {
               style={{
                 color: '#d1d5db',
                 textDecoration: 'none',
-                padding: '0.5rem 1rem',
+                padding: '0.5rem 0.875rem',
                 borderRadius: '0.375rem',
+                fontSize: '0.925rem',
+                fontWeight: '500',
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -82,8 +82,10 @@ const Navbar = () => {
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
-                  padding: '0.5rem 1rem',
+                  padding: '0.5rem 0.875rem',
                   borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '500',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -96,8 +98,10 @@ const Navbar = () => {
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
-                  padding: '0.5rem 1rem',
+                  padding: '0.5rem 0.875rem',
                   borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '500',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -109,23 +113,25 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* User Menu */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {/* Desktop User Menu */}
+        <div className="desktop-user-menu" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
             color: '#d1d5db',
             fontSize: '0.875rem'
           }}>
-            <User style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-            <span>{user?.name}</span>
+            <User style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.375rem' }} />
+            <span style={{ fontWeight: '500' }}>{user?.name}</span>
             <span style={{
               backgroundColor: user?.role === 'admin' ? '#dc2626' : '#059669',
               color: '#ffffff',
               padding: '0.125rem 0.5rem',
               borderRadius: '9999px',
               fontSize: '0.75rem',
-              marginLeft: '0.5rem'
+              fontWeight: '600',
+              marginLeft: '0.5rem',
+              textTransform: 'uppercase'
             }}>
               {user?.role}
             </span>
@@ -139,20 +145,185 @@ const Navbar = () => {
               backgroundColor: '#dc2626',
               color: '#ffffff',
               border: 'none',
-              padding: '0.5rem 1rem',
+              padding: '0.45rem 0.875rem',
               borderRadius: '0.375rem',
               cursor: 'pointer',
               fontSize: '0.875rem',
+              fontWeight: '500',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#b91c1c'}
             onMouseLeave={(e) => e.target.style.backgroundColor = '#dc2626'}
           >
-            <LogOut style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+            <LogOut style={{ width: '1rem', height: '1rem', marginRight: '0.375rem' }} />
             Logout
           </button>
         </div>
+
+        {/* Mobile Hamburger Button */}
+        <button
+          className="mobile-hamburger-btn"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle navigation menu"
+          style={{
+            display: 'none',
+            background: 'none',
+            border: 'none',
+            color: '#ffffff',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            borderRadius: '0.375rem'
+          }}
+        >
+          {isMobileMenuOpen ? <X style={{ width: '1.5rem', height: '1.5rem' }} /> : <Menu style={{ width: '1.5rem', height: '1.5rem' }} />}
+        </button>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-drawer" style={{
+          backgroundColor: '#111827',
+          marginTop: '0.75rem',
+          padding: '1rem',
+          borderRadius: '0.5rem',
+          border: '1px solid #374151',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.75rem'
+        }}>
+          {/* User badge */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingBottom: '0.75rem',
+            borderBottom: '1px solid #374151'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', color: '#f3f4f6' }}>
+              <User style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem', color: '#3b82f6' }} />
+              <div>
+                <div style={{ fontWeight: '600', fontSize: '0.95rem' }}>{user?.name}</div>
+                <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{user?.email || user?.studentId}</div>
+              </div>
+            </div>
+            <span style={{
+              backgroundColor: user?.role === 'admin' ? '#dc2626' : '#059669',
+              color: '#ffffff',
+              padding: '0.2rem 0.6rem',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>
+              {user?.role}
+            </span>
+          </div>
+
+          {/* Links */}
+          <Link
+            to="/dashboard"
+            onClick={closeMobileMenu}
+            style={{
+              color: '#f3f4f6',
+              textDecoration: 'none',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#1f2937'
+            }}
+          >
+            <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+            Dashboard
+          </Link>
+
+          {user?.role === 'student' && (
+            <Link
+              to="/results"
+              onClick={closeMobileMenu}
+              style={{
+                color: '#f3f4f6',
+                textDecoration: 'none',
+                padding: '0.6rem 0.75rem',
+                borderRadius: '0.375rem',
+                fontSize: '0.95rem',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#1f2937'
+              }}
+            >
+              <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+              My Results
+            </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <>
+              <Link
+                to="/admin/create-exam"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#f3f4f6',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <PlusCircle style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                Create Exam
+              </Link>
+              <Link
+                to="/admin/submissions"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#f3f4f6',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <FileText style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                View Submissions
+              </Link>
+            </>
+          )}
+
+          {/* Logout button in mobile menu */}
+          <button
+            onClick={() => {
+              closeMobileMenu();
+              handleLogout();
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#dc2626',
+              color: '#ffffff',
+              border: 'none',
+              padding: '0.65rem',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.95rem',
+              fontWeight: '600',
+              marginTop: '0.25rem'
+            }}
+          >
+            <LogOut style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.5rem' }} />
+            Logout
+          </button>
+        </div>
+      )}
     </nav>
   );
 };

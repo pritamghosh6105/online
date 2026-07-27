@@ -13,6 +13,7 @@ import ExamResults from './pages/ExamResults';
 import CreateExam from './pages/CreateExam';
 import ViewSubmissions from './pages/ViewSubmissions';
 import LoadingSpinner from './components/LoadingSpinner';
+import Home from './pages/Home';
 
 function App() {
   const { user, loading } = useAuth();
@@ -26,7 +27,13 @@ function App() {
       {user && <Navbar />}
       <main className="main-content">
         <Routes>
-          {/* Public Routes */}
+          {/* Public Landing Home Route */}
+          <Route 
+            path="/" 
+            element={!user ? <Home /> : <Navigate to="/dashboard" />} 
+          />
+
+          {/* Public Auth Routes */}
           <Route 
             path="/login" 
             element={!user ? <StudentLogin /> : <Navigate to="/dashboard" />} 
@@ -99,16 +106,6 @@ function App() {
               user && user.role === 'admin' ? 
               <ViewSubmissions /> : 
               <Navigate to="/dashboard" />
-            } 
-          />
-          
-          {/* Default Route */}
-          <Route 
-            path="/" 
-            element={
-              user ? 
-              <Navigate to="/dashboard" /> : 
-              <Navigate to="/login" />
             } 
           />
           

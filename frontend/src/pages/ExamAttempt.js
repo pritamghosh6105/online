@@ -410,13 +410,13 @@ const ExamAttempt = () => {
         </div>
       </div>
 
-      <div style={{
+      <div className="exam-question-layout" style={{
         maxWidth: '1200px',
         margin: '0 auto',
-        padding: '2rem',
+        padding: '1rem',
         display: 'grid',
-        gridTemplateColumns: '1fr 300px',
-        gap: '2rem'
+        gridTemplateColumns: '1fr',
+        gap: '1.5rem'
       }}>
         {/* Main Content */}
         <div>

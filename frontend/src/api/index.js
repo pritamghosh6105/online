@@ -13,7 +13,10 @@ export const authAPI = {
 
 // Exam API
 export const examAPI = {
-  getExams: () => api.get('/exams'),
+  getExams: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/exams${queryString ? `?${queryString}` : ''}`);
+  },
   getExam: (id) => api.get(`/exams/${id}`),
   createExam: (examData) => api.post('/exams', examData),
   updateExam: (id, examData) => api.put(`/exams/${id}`, examData),
@@ -24,7 +27,18 @@ export const examAPI = {
 export const submissionAPI = {
   submitExam: (submissionData) => api.post('/submissions', submissionData),
   getMySubmissions: () => api.get('/submissions/my'),
-  getAllSubmissions: (examId) => api.get(`/submissions${examId ? `?examId=${examId}` : ''}`),
+  getAllSubmissions: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/submissions${queryString ? `?${queryString}` : ''}`);
+  },
   getSubmission: (id) => api.get(`/submissions/${id}`),
   deleteSubmission: (id) => api.delete(`/submissions/${id}`),
+};
+
+// Schedule API
+export const scheduleAPI = {
+  submitSchedule: (scheduleData) => api.post('/schedules', scheduleData),
+  getSchedules: () => api.get('/schedules'),
+  updateStatus: (id, status) => api.put(`/schedules/${id}`, { status }),
+  deleteSchedule: (id) => api.delete(`/schedules/${id}`),
 };

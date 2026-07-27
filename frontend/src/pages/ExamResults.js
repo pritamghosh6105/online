@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { submissionAPI, examAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  Award, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  TrendingUp, 
+import {
+  Award,
+  Calendar,
+  Clock,
+  FileText,
+  TrendingUp,
   TrendingDown,
   BarChart3,
   Filter,
@@ -83,7 +83,7 @@ const ExamResults = () => {
     // Sort submissions
     filtered.sort((a, b) => {
       let aValue, bValue;
-      
+
       switch (sortBy) {
         case 'date':
           aValue = new Date(a.createdAt);
@@ -119,7 +119,7 @@ const ExamResults = () => {
   const calculateStats = () => {
     // Filter out submissions with null exam references
     const validSubmissions = submissions.filter(sub => sub.exam);
-    
+
     if (validSubmissions.length === 0) {
       return {
         totalExams: 0,
@@ -133,7 +133,7 @@ const ExamResults = () => {
 
     const scores = validSubmissions.map(sub => sub.percentage);
     const passCount = scores.filter(score => score >= 60).length;
-    
+
     // Calculate improvement trend (last 3 vs previous 3)
     let improvementTrend = 'neutral';
     if (validSubmissions.length >= 6) {
@@ -363,11 +363,11 @@ const ExamResults = () => {
                 <p style={{
                   fontSize: '1.5rem',
                   fontWeight: 'bold',
-                  color: stats.improvementTrend === 'improving' ? '#059669' : 
-                        stats.improvementTrend === 'declining' ? '#dc2626' : '#6b7280'
+                  color: stats.improvementTrend === 'improving' ? '#059669' :
+                    stats.improvementTrend === 'declining' ? '#dc2626' : '#6b7280'
                 }}>
                   {stats.improvementTrend === 'improving' ? 'Improving' :
-                   stats.improvementTrend === 'declining' ? 'Declining' : 'Stable'}
+                    stats.improvementTrend === 'declining' ? 'Declining' : 'Stable'}
                 </p>
               </div>
               {stats.improvementTrend === 'improving' ? (
@@ -416,7 +416,7 @@ const ExamResults = () => {
               Filter & Search
             </h2>
           </div>
-          
+
           <div style={{
             padding: '1.5rem',
             display: 'grid',

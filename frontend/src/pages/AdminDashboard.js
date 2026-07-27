@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { examAPI, submissionAPI, authAPI } from '../api';
+import { examAPI, submissionAPI, authAPI, scheduleAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { 
   BookOpen, 
@@ -13,7 +13,10 @@ import {
   Clock,
   Award,
   Key,
-  X
+  X,
+  CheckCircle,
+  Building,
+  Mail
 } from 'lucide-react';
 import { formatDate, formatDuration } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -21,9 +24,12 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const AdminDashboard = () => {
   const [exams, setExams] = useState([]);
   const [submissions, setSubmissions] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [stats, setStats] = useState({ examsCount: 0, submissionsCount: 0, schedulesCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
+  const [showSchedulesModal, setShowSchedulesModal] = useState(false);
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [showAdminListModal, setShowAdminListModal] = useState(false);
@@ -53,17 +59,71 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [examsResponse, submissionsResponse] = await Promise.all([
-        examAPI.getExams(),
-        submissionAPI.getAllSubmissions()
+      // Fetch stats only for initial load (much faster)
+      const [examsStatsResponse, submissionsStatsResponse, schedulesResponse] = await Promise.all([
+        examAPI.getExams({ statsOnly: true }),
+        submissionAPI.getAllSubmissions({ statsOnly: true }),
+        scheduleAPI.getSchedules().catch(() => ({ data: { schedules: [], count: 0 } }))
       ]);
-      setExams(examsResponse.data.exams);
-      setSubmissions(submissionsResponse.data.submissions);
+      
+      setStats({
+        examsCount: examsStatsResponse.data.count || 0,
+        submissionsCount: submissionsStatsResponse.data.count || 0,
+        schedulesCount: schedulesResponse.data.count || schedulesResponse.data.schedules?.length || 0
+      });
+
+      setSchedules(schedulesResponse.data.schedules || []);
+
+      // Fetch limited recent exams for display (only first page)
+      const examsResponse = await examAPI.getExams({ page: 1, limit: 10 });
+      setExams(examsResponse.data.exams || []);
+      
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSchedules = async () => {
+    try {
+      const res = await scheduleAPI.getSchedules();
+      setSchedules(res.data.schedules || []);
+      setStats(prev => ({ ...prev, schedulesCount: res.data.count || res.data.schedules?.length || 0 }));
+    } catch (err) {
+      console.error('Error fetching schedules:', err);
+    }
+  };
+
+  const handleUpdateScheduleStatus = async (id, status) => {
+    try {
+      await scheduleAPI.updateStatus(id, status);
+      fetchSchedules();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('Failed to update status');
+    }
+  };
+
+  const handleDeleteSchedule = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this scheduled test request?')) return;
+    try {
+      await scheduleAPI.deleteSchedule(id);
+      fetchSchedules();
+    } catch (err) {
+      console.error('Error deleting schedule:', err);
+      alert('Failed to delete scheduled test request');
+    }
+  };
+
+  const fetchStudentData = async () => {
+    try {
+      // Fetch submissions only when student modal is opened
+      const submissionsResponse = await submissionAPI.getAllSubmissions({ page: 1, limit: 100 });
+      setSubmissions(submissionsResponse.data.submissions || []);
+    } catch (error) {
+      console.error('Error fetching student data:', error);
     }
   };
 
@@ -235,290 +295,191 @@ const AdminDashboard = () => {
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
-        {/* Header */}
-        <div style={{
-          marginBottom: '2rem'
-        }}>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
-          }}>
-            Admin Dashboard
-          </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '1rem'
-          }}>
-            Manage exams and monitor student submissions
-          </p>
+        {/* Hero Header Banner */}
+        <div className="admin-hero-banner">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.15)', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', backdropFilter: 'blur(4px)' }}>
+                ✨ ADMIN CONTROL CENTER
+              </div>
+              <h1 style={{ fontSize: '1.65rem', fontWeight: '800', margin: 0, letterSpacing: '-0.025em' }}>
+                Welcome back, {user?.name || 'Admin'}
+              </h1>
+              <p style={{ color: '#c7d2fe', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: 0 }}>
+                Manage examinations, monitor real-time submissions, and manage system admins.
+              </p>
+            </div>
+            <div>
+              <Link
+                to="/admin/create-exam"
+                className="admin-action-btn"
+                style={{ backgroundColor: '#ffffff', color: '#1e1b4b', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+              >
+                <Plus style={{ width: '1.1rem', height: '1.1rem' }} />
+                Create Exam
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+        {/* Stats Cards Grid */}
+        <div className="responsive-grid" style={{ marginBottom: '2rem' }}>
+          {/* Card 1: Total Exams */}
+          <div className="admin-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
                   Total Exams
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
-                }}>
-                  {exams.length}
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  {stats.examsCount}
                 </p>
               </div>
-              <BookOpen style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                color: '#3b82f6'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                <BookOpen style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
 
+          {/* Card 2: Total Students */}
           <div 
-            onClick={() => setShowStudentModal(true)}
-            style={{
-              backgroundColor: '#ffffff',
-              padding: '1.5rem',
-              borderRadius: '0.5rem',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e5e7eb',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
+            className="admin-stat-card"
+            onClick={() => {
+              setShowStudentModal(true);
+              if (submissions.length === 0) {
+                fetchStudentData();
+              }
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-              e.currentTarget.style.borderColor = '#059669';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-              e.currentTarget.style.borderColor = '#e5e7eb';
-            }}
+            style={{ cursor: 'pointer' }}
           >
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
                   Total Students
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
-                }}>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   {totalStudents}
                 </p>
-                <p style={{
-                  color: '#059669',
-                  fontSize: '0.75rem',
-                  marginTop: '0.25rem',
-                  fontWeight: '500'
-                }}>
-                  Click to view details
+                <p style={{ color: '#059669', fontSize: '0.775rem', marginTop: '0.375rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span>Click to view breakdown</span> →
                 </p>
               </div>
-              <Users style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                color: '#059669'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                <Users style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
 
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+          {/* Card 3: Total Submissions */}
+          <div className="admin-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
                   Total Submissions
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
-                }}>
-                  {submissions.length}
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  {stats.submissionsCount}
                 </p>
               </div>
-              <FileText style={{
-                width: '2.5rem',
-                height: '2.5rem',
-                color: '#f59e0b'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <FileText style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Scheduled Tests & Demos */}
+          <div 
+            className="admin-stat-card"
+            onClick={() => {
+              setShowSchedulesModal(true);
+              fetchSchedules();
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                  Scheduled Tests
+                </p>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  {stats.schedulesCount || schedules.length}
+                </p>
+                <p style={{ color: '#7c3aed', fontSize: '0.775rem', marginTop: '0.375rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span>Click to view scheduled requests</span> →
+                </p>
+              </div>
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c3aed' }}>
+                <Calendar style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e5e7eb',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            padding: '1.5rem',
-            borderBottom: '1px solid #e5e7eb'
-          }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 'bold',
-              color: '#1f2937'
-            }}>
-              Quick Actions
+        <div className="admin-table-card" style={{ marginBottom: '2rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+              ⚡ Quick Actions
             </h2>
+            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '500' }}>Admin Shortcuts</span>
           </div>
-          <div style={{
-            padding: '1.5rem',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '1rem'
-          }}>
+          <div style={{ padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
             <Link
               to="/admin/create-exam"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '1rem',
-                backgroundColor: '#3b82f6',
-                color: '#ffffff',
-                borderRadius: '0.375rem',
-                textDecoration: 'none',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+              className="admin-action-btn"
+              style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
             >
-              <Plus style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
+              <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
               Create New Exam
             </Link>
             <Link
               to="/admin/submissions"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '1rem',
-                backgroundColor: '#059669',
-                color: '#ffffff',
-                borderRadius: '0.375rem',
-                textDecoration: 'none',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#047857'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#059669'}
+              className="admin-action-btn"
+              style={{ backgroundColor: '#059669', color: '#ffffff' }}
             >
-              <Eye style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
+              <Eye style={{ width: '1.25rem', height: '1.25rem' }} />
               View Submissions
             </Link>
+            <button
+              onClick={() => {
+                setShowSchedulesModal(true);
+                fetchSchedules();
+              }}
+              className="admin-action-btn"
+              style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}
+            >
+              <Calendar style={{ width: '1.25rem', height: '1.25rem' }} />
+              Scheduled Test Requests ({schedules.length})
+            </button>
             
-            {/* Only show these buttons to main admin */}
+            {/* Main Admin Only Tools */}
             {isMainAdmin && (
               <>
                 <button
                   onClick={() => setShowCredentialsModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    backgroundColor: '#8b5cf6',
-                    color: '#ffffff',
-                    borderRadius: '0.375rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '1rem',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#7c3aed'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#8b5cf6'}
+                  className="admin-action-btn"
+                  style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}
                 >
-                  <Key style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
+                  <Key style={{ width: '1.25rem', height: '1.25rem' }} />
                   Change Credentials
                 </button>
                 <button
                   onClick={() => setShowAddAdminModal(true)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    backgroundColor: '#f59e0b',
-                    color: '#ffffff',
-                    borderRadius: '0.375rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '1rem',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#d97706'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#f59e0b'}
+                  className="admin-action-btn"
+                  style={{ backgroundColor: '#d97706', color: '#ffffff' }}
                 >
-                  <Plus style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
-                  Add Multiple Admin
+                  <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
+                  Add New Admin
                 </button>
                 <button
                   onClick={() => {
                     setShowAdminListModal(true);
                     fetchAdmins();
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '1rem',
-                    backgroundColor: '#ec4899',
-                    color: '#ffffff',
-                    borderRadius: '0.375rem',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: '1rem',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#db2777'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#ec4899'}
+                  className="admin-action-btn"
+                  style={{ backgroundColor: '#db2777', color: '#ffffff' }}
                 >
-                  <Users style={{ width: '1.25rem', height: '1.25rem', marginRight: '0.5rem' }} />
+                  <Users style={{ width: '1.25rem', height: '1.25rem' }} />
                   View All Admins
                 </button>
               </>
@@ -527,23 +488,54 @@ const AdminDashboard = () => {
         </div>
 
         {/* Recent Exams */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '0.5rem',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #e5e7eb'
-        }}>
+        <div className="admin-table-card">
           <div style={{
-            padding: '1.5rem',
-            borderBottom: '1px solid #e5e7eb'
+            padding: '1.25rem 1.5rem',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.5rem',
+            flexWrap: 'nowrap'
           }}>
-            <h2 style={{
-              fontSize: '1.25rem',
-              fontWeight: 'bold',
-              color: '#1f2937'
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', minWidth: 0 }}>
+              <div style={{
+                width: '2.25rem',
+                height: '2.25rem',
+                borderRadius: '0.5rem',
+                background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#2563eb',
+                flexShrink: 0
+              }}>
+                <BookOpen style={{ width: '1.25rem', height: '1.25rem' }} />
+              </div>
+              <h2 style={{
+                fontSize: '1.1rem',
+                fontWeight: '700',
+                color: '#0f172a',
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                Managed Exams
+              </h2>
+            </div>
+            <span style={{
+              fontSize: '0.75rem',
+              color: '#475569',
+              fontWeight: '600',
+              backgroundColor: '#f1f5f9',
+              padding: '0.3rem 0.75rem',
+              borderRadius: '9999px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
             }}>
-              Your Exams
-            </h2>
+              Showing {exams.length} exam(s)
+            </span>
           </div>
 
           <div style={{ padding: '1.5rem' }}>
@@ -553,7 +545,7 @@ const AdminDashboard = () => {
                 border: '1px solid #fecaca',
                 color: '#dc2626',
                 padding: '1rem',
-                borderRadius: '0.375rem',
+                borderRadius: '0.5rem',
                 marginBottom: '1rem'
               }}>
                 {error}
@@ -563,40 +555,57 @@ const AdminDashboard = () => {
             {exams.length === 0 ? (
               <div style={{
                 textAlign: 'center',
-                padding: '3rem',
-                color: '#6b7280'
+                padding: '3.5rem 1.5rem',
+                backgroundColor: '#f8fafc',
+                borderRadius: '0.75rem',
+                border: '2px dashed #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
-                <BookOpen style={{
-                  width: '3rem',
-                  height: '3rem',
-                  margin: '0 auto 1rem',
-                  color: '#d1d5db'
-                }} />
+                <div style={{
+                  width: '4.5rem',
+                  height: '4.5rem',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#2563eb',
+                  marginBottom: '1.25rem',
+                  boxShadow: '0 8px 16px -4px rgba(37, 99, 235, 0.15)'
+                }}>
+                  <BookOpen style={{ width: '2.25rem', height: '2.25rem' }} />
+                </div>
                 <h3 style={{
-                  fontSize: '1.125rem',
-                  fontWeight: '500',
+                  fontSize: '1.2rem',
+                  fontWeight: '700',
+                  color: '#0f172a',
                   marginBottom: '0.5rem'
                 }}>
                   No exams created yet
                 </h3>
-                <p style={{ marginBottom: '1rem' }}>
-                  Create your first exam to get started.
+                <p style={{
+                  color: '#64748b',
+                  fontSize: '0.925rem',
+                  maxWidth: '320px',
+                  lineHeight: '1.5',
+                  marginBottom: '1.5rem'
+                }}>
+                  Create your first exam to publish questions and monitor student progress.
                 </p>
                 <Link
                   to="/admin/create-exam"
+                  className="admin-action-btn"
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    backgroundColor: '#3b82f6',
+                    backgroundColor: '#2563eb',
                     color: '#ffffff',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '0.375rem',
-                    textDecoration: 'none',
-                    fontSize: '0.875rem',
-                    fontWeight: '500'
+                    padding: '0.75rem 1.5rem',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
                   }}
                 >
-                  <Plus style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+                  <Plus style={{ width: '1.25rem', height: '1.25rem' }} />
                   Create Your First Exam
                 </Link>
               </div>
@@ -1782,6 +1791,217 @@ const AdminDashboard = () => {
                             </tr>
                           );
                         })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Scheduled Test Requests Modal */}
+        {showSchedulesModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}>
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '1.25rem',
+              maxWidth: '900px',
+              width: '100%',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden'
+            }}>
+              {/* Header */}
+              <div style={{
+                padding: '1.25rem 1.75rem',
+                borderBottom: '1px solid #E2E8F0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: '#F8FAFC'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{
+                    width: '2.5rem',
+                    height: '2.5rem',
+                    borderRadius: '0.625rem',
+                    backgroundColor: '#F3E8FF',
+                    color: '#7C3AED',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Calendar style={{ width: '1.35rem', height: '1.35rem' }} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#0F172A', margin: 0 }}>
+                      Scheduled Test Requests & Demos
+                    </h3>
+                    <p style={{ fontSize: '0.825rem', color: '#64748B', margin: 0 }}>
+                      Institutional bookings submitted from the landing page
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSchedulesModal(false)}
+                  style={{
+                    border: 'none',
+                    background: '#F1F5F9',
+                    borderRadius: '50%',
+                    width: '2.25rem',
+                    height: '2.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748B'
+                  }}
+                >
+                  <X style={{ width: '1.2rem', height: '1.2rem' }} />
+                </button>
+              </div>
+
+              {/* Body Content */}
+              <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+                {schedules.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
+                    <Calendar style={{ width: '3rem', height: '3rem', margin: '0 auto 1rem', opacity: 0.4, color: '#7C3AED' }} />
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', marginBottom: '0.35rem' }}>No Scheduled Test Requests Yet</h4>
+                    <p style={{ fontSize: '0.875rem' }}>When visitors submit the "Schedule Test" modal on the homepage, their institutional booking details will appear here.</p>
+                  </div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
+                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Applicant & Contact</th>
+                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Institution</th>
+                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Preferred Date & Type</th>
+                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Status</th>
+                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', textAlign: 'center' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {schedules.map((item) => (
+                          <tr key={item._id || item.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                            <td style={{ padding: '1rem' }}>
+                              <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>{item.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
+                                <Mail style={{ width: '0.8rem', height: '0.8rem' }} />
+                                {item.email}
+                              </div>
+                            </td>
+                            <td style={{ padding: '1rem' }}>
+                              <div style={{ fontWeight: '600', color: '#334155', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <Building style={{ width: '0.85rem', height: '0.85rem', color: '#7C3AED' }} />
+                                {item.institution}
+                              </div>
+                            </td>
+                            <td style={{ padding: '1rem' }}>
+                              <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.875rem' }}>{item.date}</div>
+                              <span style={{
+                                fontSize: '0.7rem',
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '9999px',
+                                backgroundColor: '#EFF6FF',
+                                color: '#2563EB',
+                                fontWeight: '700',
+                                textTransform: 'capitalize',
+                                display: 'inline-block',
+                                marginTop: '0.25rem'
+                              }}>
+                                {item.testType || 'University'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem' }}>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                fontWeight: '700',
+                                padding: '0.3rem 0.75rem',
+                                borderRadius: '9999px',
+                                textTransform: 'capitalize',
+                                backgroundColor: 
+                                  item.status === 'confirmed' ? '#DCFCE7' :
+                                  item.status === 'contacted' ? '#DBEAFE' :
+                                  item.status === 'completed' ? '#E0E7FF' : '#FEF3C7',
+                                color: 
+                                  item.status === 'confirmed' ? '#15803D' :
+                                  item.status === 'contacted' ? '#1D4ED8' :
+                                  item.status === 'completed' ? '#4338CA' : '#B45309'
+                              }}>
+                                {item.status || 'Pending'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                                {item.status !== 'confirmed' && (
+                                  <button
+                                    onClick={() => handleUpdateScheduleStatus(item._id || item.id, 'confirmed')}
+                                    style={{
+                                      padding: '0.35rem 0.65rem',
+                                      backgroundColor: '#10B981',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      borderRadius: '0.375rem',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Confirm
+                                  </button>
+                                )}
+                                {item.status !== 'contacted' && (
+                                  <button
+                                    onClick={() => handleUpdateScheduleStatus(item._id || item.id, 'contacted')}
+                                    style={{
+                                      padding: '0.35rem 0.65rem',
+                                      backgroundColor: '#2563EB',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      borderRadius: '0.375rem',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Contacted
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteSchedule(item._id || item.id)}
+                                  style={{
+                                    padding: '0.35rem 0.5rem',
+                                    backgroundColor: '#FEF2F2',
+                                    color: '#DC2626',
+                                    border: '1px solid #FECACA',
+                                    borderRadius: '0.375rem',
+                                    fontSize: '0.75rem',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Trash2 style={{ width: '0.85rem', height: '0.85rem' }} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>

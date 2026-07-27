@@ -10,6 +10,7 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const examRoutes = require('./routes/exams');
 const submissionRoutes = require('./routes/submissions');
+const scheduleRoutes = require('./routes/schedules');
 
 const app = express();
 
@@ -54,6 +55,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 app.use('/api/auth', authRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

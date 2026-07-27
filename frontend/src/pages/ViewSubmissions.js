@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { submissionAPI, examAPI } from '../api';
-import { 
-  FileText, 
+import {
+  FileText,
   Calendar,
   Clock,
   Filter,
@@ -14,7 +14,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const ViewSubmissions = () => {
   const [searchParams] = useSearchParams();
   const examId = searchParams.get('examId');
-  
+
   const [submissions, setSubmissions] = useState([]);
   const [exams, setExams] = useState([]);
   const [selectedExam, setSelectedExam] = useState(examId || '');
@@ -26,8 +26,8 @@ const ViewSubmissions = () => {
     try {
       setLoading(true);
       const [submissionsResponse, examsResponse] = await Promise.all([
-        submissionAPI.getAllSubmissions(selectedExam),
-        examAPI.getExams()
+        submissionAPI.getAllSubmissions({ examId: selectedExam, limit: 100 }),
+        examAPI.getExams({ limit: 100 })
       ]);
       setSubmissions(submissionsResponse.data.submissions);
       setExams(examsResponse.data.exams);
@@ -59,15 +59,15 @@ const ViewSubmissions = () => {
   const filteredSubmissions = submissions.filter(submission => {
     // Filter out submissions with null exam references first
     if (!submission.exam) return false;
-    
+
     const studentName = submission.student.name.toLowerCase();
     const studentEmail = submission.student.email.toLowerCase();
     const examTitle = submission.exam.title.toLowerCase();
     const search = searchTerm.toLowerCase();
-    
-    return studentName.includes(search) || 
-           studentEmail.includes(search) || 
-           examTitle.includes(search);
+
+    return studentName.includes(search) ||
+      studentEmail.includes(search) ||
+      examTitle.includes(search);
   });
 
   if (loading) {
@@ -127,7 +127,7 @@ const ViewSubmissions = () => {
               Filters
             </h2>
           </div>
-          
+
           <div style={{
             padding: '1.5rem',
             display: 'grid',
@@ -333,7 +333,7 @@ const ViewSubmissions = () => {
                   </thead>
                   <tbody>
                     {filteredSubmissions.map((submission) => (
-                      <tr 
+                      <tr
                         key={submission._id}
                         style={{
                           borderBottom: '1px solid #e5e7eb'

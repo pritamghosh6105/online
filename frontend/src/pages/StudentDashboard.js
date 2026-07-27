@@ -156,177 +156,100 @@ const StudentDashboard = () => {
           maxWidth: '1200px',
           margin: '0 auto'
         }}>
-        {/* Header */}
-        <div style={{
-          marginBottom: '1.5rem'
-        }}>
-          <h1 style={{
-            fontSize: 'clamp(1.5rem, 5vw, 2rem)',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
-          }}>
-            Welcome back, {user?.name}!
-          </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: 'clamp(0.875rem, 3vw, 1rem)'
-          }}>
-            Here are the available exams for you to attempt.
-          </p>
+        {/* Hero Header Banner */}
+        <div className="student-hero-banner">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.15)', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', backdropFilter: 'blur(4px)' }}>
+                🎓 STUDENT PORTAL
+              </div>
+              <h1 style={{ fontSize: '1.65rem', fontWeight: '800', margin: 0, letterSpacing: '-0.025em' }}>
+                Welcome back, {user?.name || 'Student'}!
+              </h1>
+              <p style={{ color: '#93c5fd', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: 0 }}>
+                {user?.studentId ? `Student ID: ${user.studentId} • ` : ''}View upcoming exams & check results.
+              </p>
+            </div>
+            <div>
+              <Link
+                to="/results"
+                className="student-action-btn"
+                style={{ backgroundColor: '#ffffff', color: '#0f172a', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+              >
+                <Award style={{ width: '1.1rem', height: '1.1rem', color: '#2563eb' }} />
+                My Results
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Enhanced Stats Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-          gap: '0.75rem',
-          marginBottom: '1.5rem'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <div style={{ flex: 1 }}>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)',
-                  marginBottom: '0.5rem'
-                }}>
+        {/* Enhanced Stats Cards Grid */}
+        <div className="responsive-grid" style={{ marginBottom: '2rem' }}>
+          {/* Total Exams */}
+          <div className="student-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
                   Total Exams
                 </p>
-                <p style={{
-                  fontSize: 'clamp(1.5rem, 5vw, 2rem)',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
-                }}>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   {stats.totalExams || 0}
                 </p>
               </div>
-              <BookOpen style={{
-                width: 'clamp(1.5rem, 5vw, 2rem)',
-                height: 'clamp(1.5rem, 5vw, 2rem)',
-                color: '#3b82f6',
-                flexShrink: 0
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                <BookOpen style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
 
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+          {/* Pending Exams */}
+          <div className="student-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
-                  Pending
+                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                  Pending Exams
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: '#1f2937'
-                }}>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   {stats.pendingExams || 0}
                 </p>
               </div>
-              <Timer style={{
-                width: '2rem',
-                height: '2rem',
-                color: '#f59e0b'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <Timer style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
 
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+          {/* Average Score */}
+          <div className="student-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
                   Average Score
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: getGradeColor(stats.averageScore || 0)
-                }}>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: getGradeColor(stats.averageScore || 0), margin: 0 }}>
                   {stats.averageScore || 0}%
                 </p>
               </div>
-              <TrendingUp style={{
-                width: '2rem',
-                height: '2rem',
-                color: '#8b5cf6'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9333ea' }}>
+                <TrendingUp style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
 
-          {/* Removed Best Score card */}
-
-          <div style={{
-            backgroundColor: '#ffffff',
-            padding: '1.5rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
+          {/* Current Grade */}
+          <div className="student-stat-card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p style={{
-                  color: '#6b7280',
-                  fontSize: '0.875rem',
-                  marginBottom: '0.5rem'
-                }}>
-                  Current Grade
+                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
+                  Overall Grade
                 </p>
-                <p style={{
-                  fontSize: '2rem',
-                  fontWeight: 'bold',
-                  color: getGradeColor(stats.averageScore || 0)
-                }}>
+                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: getGradeColor(stats.averageScore || 0), margin: 0 }}>
                   {stats.grade || 'N/A'}
                 </p>
               </div>
-              <Star style={{
-                width: '2rem',
-                height: '2rem',
-                color: '#f59e0b'
-              }} />
+              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                <Star style={{ width: '1.75rem', height: '1.75rem' }} />
+              </div>
             </div>
           </div>
         </div>
