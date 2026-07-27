@@ -108,13 +108,22 @@ button, input, select, textarea {
 }
 
 @media (max-width: 768px) {
+  /* Universal Mobile Alignment & Overflow Fixes */
+  section, header, footer, main, article {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+
   button, input, select, textarea {
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
     min-height: 44px; /* Touch-friendly tap targets */
+    max-width: 100% !important;
   }
   
   .container {
     padding: 0.75rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Navigation Mobile Responsive Rules */
@@ -126,14 +135,16 @@ button, input, select, textarea {
     display: block !important;
   }
 
-  /* Full width forms on mobile */
+  /* Full width forms and modals on mobile */
   .auth-card, .form-container, .modal-content {
-    width: 95% !important;
-    max-width: 95% !important;
-    padding: 1.25rem !important;
+    width: 94% !important;
+    max-width: 94% !important;
+    padding: 1.15rem !important;
     margin: 0.5rem auto !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
     border-radius: 0.875rem !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
   }
 
   /* Dashboard Grid and Action Buttons Mobile */

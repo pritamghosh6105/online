@@ -217,7 +217,7 @@ const Home = () => {
         margin: '0 auto',
         padding: '5rem 2rem 3rem',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '4rem',
         alignItems: 'center',
         position: 'relative',
@@ -724,7 +724,7 @@ const Home = () => {
         {/* 3 Scroll-Triggered / Animated White Glassmorphism Bento Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '2rem'
         }}>
           {/* Card 1: AI Proctoring (Rotating Shield Icon) */}
@@ -867,7 +867,7 @@ const Home = () => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: '2.5rem'
         }}>
           {/* Student Portal Card */}
