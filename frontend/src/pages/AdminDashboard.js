@@ -24,12 +24,10 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const AdminDashboard = () => {
   const [exams, setExams] = useState([]);
   const [submissions, setSubmissions] = useState([]);
-  const [schedules, setSchedules] = useState([]);
-  const [stats, setStats] = useState({ examsCount: 0, submissionsCount: 0, schedulesCount: 0 });
+  const [stats, setStats] = useState({ examsCount: 0, submissionsCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
-  const [showSchedulesModal, setShowSchedulesModal] = useState(false);
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [showAdminListModal, setShowAdminListModal] = useState(false);
@@ -50,29 +48,51 @@ const AdminDashboard = () => {
   });
   const [credentialsError, setCredentialsError] = useState('');
   const [addAdminError, setAddAdminError] = useState('');
+  const [pendingAdmins, setPendingAdmins] = useState([]);
   const { user } = useAuth();
 
   useEffect(() => {
     fetchData();
+    fetchPendingAdmins();
   }, []);
+
+  const fetchPendingAdmins = async () => {
+    try {
+      const res = await authAPI.getPendingAdmins();
+      if (res.data?.success) {
+        setPendingAdmins(res.data.pendingAdmins || []);
+      }
+    } catch (err) {
+      console.error('Error fetching pending admins:', err);
+    }
+  };
+
+  const handleApproveAdmin = async (adminId) => {
+    try {
+      const res = await authAPI.approveAdmin(adminId);
+      if (res.data?.success) {
+        alert(res.data.message || 'Admin approved successfully!');
+        fetchPendingAdmins();
+      }
+    } catch (err) {
+      console.error('Error approving admin:', err);
+      alert('Failed to approve admin');
+    }
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
       // Fetch stats only for initial load (much faster)
-      const [examsStatsResponse, submissionsStatsResponse, schedulesResponse] = await Promise.all([
+      const [examsStatsResponse, submissionsStatsResponse] = await Promise.all([
         examAPI.getExams({ statsOnly: true }),
-        submissionAPI.getAllSubmissions({ statsOnly: true }),
-        scheduleAPI.getSchedules().catch(() => ({ data: { schedules: [], count: 0 } }))
+        submissionAPI.getAllSubmissions({ statsOnly: true })
       ]);
       
       setStats({
         examsCount: examsStatsResponse.data.count || 0,
-        submissionsCount: submissionsStatsResponse.data.count || 0,
-        schedulesCount: schedulesResponse.data.count || schedulesResponse.data.schedules?.length || 0
+        submissionsCount: submissionsStatsResponse.data.count || 0
       });
-
-      setSchedules(schedulesResponse.data.schedules || []);
 
       // Fetch limited recent exams for display (only first page)
       const examsResponse = await examAPI.getExams({ page: 1, limit: 10 });
@@ -83,37 +103,6 @@ const AdminDashboard = () => {
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSchedules = async () => {
-    try {
-      const res = await scheduleAPI.getSchedules();
-      setSchedules(res.data.schedules || []);
-      setStats(prev => ({ ...prev, schedulesCount: res.data.count || res.data.schedules?.length || 0 }));
-    } catch (err) {
-      console.error('Error fetching schedules:', err);
-    }
-  };
-
-  const handleUpdateScheduleStatus = async (id, status) => {
-    try {
-      await scheduleAPI.updateStatus(id, status);
-      fetchSchedules();
-    } catch (err) {
-      console.error('Error updating status:', err);
-      alert('Failed to update status');
-    }
-  };
-
-  const handleDeleteSchedule = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this scheduled test request?')) return;
-    try {
-      await scheduleAPI.deleteSchedule(id);
-      fetchSchedules();
-    } catch (err) {
-      console.error('Error deleting schedule:', err);
-      alert('Failed to delete scheduled test request');
     }
   };
 
@@ -322,6 +311,60 @@ const AdminDashboard = () => {
           </div>
         </div>
 
+        {/* Pending Sub-Admin Approvals Banner (Super Admin view) */}
+        {pendingAdmins.length > 0 && (
+          <div style={{
+            backgroundColor: '#fffbeb',
+            border: '1px solid #fef3c7',
+            borderRadius: '0.75rem',
+            padding: '1.25rem',
+            marginBottom: '1.5rem',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#92400e', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Building size={18} /> Pending Institution / School Admin Approvals ({pendingAdmins.length})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {pendingAdmins.map((admin) => (
+                <div key={admin.id} style={{
+                  backgroundColor: '#ffffff',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid #fde68a',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem'
+                }}>
+                  <div>
+                    <span style={{ fontWeight: '600', color: '#1f2937' }}>{admin.name}</span>
+                    <span style={{ color: '#6b7280', fontSize: '0.85rem', marginLeft: '0.5rem' }}>({admin.email})</span>
+                    <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '500', marginTop: '0.2rem' }}>
+                      🏫 Institution: <strong>{admin.institution || 'Not specified'}</strong>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleApproveAdmin(admin.id)}
+                    style={{
+                      backgroundColor: '#16a34a',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '0.375rem',
+                      fontWeight: '600',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Approve Institution Admin
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards Grid */}
         <div className="responsive-grid" style={{ marginBottom: '2rem' }}>
           {/* Card 1: Total Exams */}
@@ -386,33 +429,6 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Card 4: Scheduled Tests & Demos */}
-          <div 
-            className="admin-stat-card"
-            onClick={() => {
-              setShowSchedulesModal(true);
-              fetchSchedules();
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
-                  Scheduled Tests
-                </p>
-                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-                  {stats.schedulesCount || schedules.length}
-                </p>
-                <p style={{ color: '#7c3aed', fontSize: '0.775rem', marginTop: '0.375rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <span>Click to view scheduled requests</span> →
-                </p>
-              </div>
-              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7c3aed' }}>
-                <Calendar style={{ width: '1.75rem', height: '1.75rem' }} />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Quick Actions */}
@@ -440,17 +456,6 @@ const AdminDashboard = () => {
               <Eye style={{ width: '1.25rem', height: '1.25rem' }} />
               View Submissions
             </Link>
-            <button
-              onClick={() => {
-                setShowSchedulesModal(true);
-                fetchSchedules();
-              }}
-              className="admin-action-btn"
-              style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}
-            >
-              <Calendar style={{ width: '1.25rem', height: '1.25rem' }} />
-              Scheduled Test Requests ({schedules.length})
-            </button>
             
             {/* Main Admin Only Tools */}
             {isMainAdmin && (
@@ -1800,216 +1805,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Scheduled Test Requests Modal */}
-        {showSchedulesModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}>
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '1.25rem',
-              maxWidth: '900px',
-              width: '100%',
-              maxHeight: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              overflow: 'hidden'
-            }}>
-              {/* Header */}
-              <div style={{
-                padding: '1.25rem 1.75rem',
-                borderBottom: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: '#F8FAFC'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    borderRadius: '0.625rem',
-                    backgroundColor: '#F3E8FF',
-                    color: '#7C3AED',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Calendar style={{ width: '1.35rem', height: '1.35rem' }} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: '#0F172A', margin: 0 }}>
-                      Scheduled Test Requests & Demos
-                    </h3>
-                    <p style={{ fontSize: '0.825rem', color: '#64748B', margin: 0 }}>
-                      Institutional bookings submitted from the landing page
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowSchedulesModal(false)}
-                  style={{
-                    border: 'none',
-                    background: '#F1F5F9',
-                    borderRadius: '50%',
-                    width: '2.25rem',
-                    height: '2.25rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#64748B'
-                  }}
-                >
-                  <X style={{ width: '1.2rem', height: '1.2rem' }} />
-                </button>
-              </div>
 
-              {/* Body Content */}
-              <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
-                {schedules.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
-                    <Calendar style={{ width: '3rem', height: '3rem', margin: '0 auto 1rem', opacity: 0.4, color: '#7C3AED' }} />
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', marginBottom: '0.35rem' }}>No Scheduled Test Requests Yet</h4>
-                    <p style={{ fontSize: '0.875rem' }}>When visitors submit the "Schedule Test" modal on the homepage, their institutional booking details will appear here.</p>
-                  </div>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead>
-                        <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0' }}>
-                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Applicant & Contact</th>
-                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Institution</th>
-                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Preferred Date & Type</th>
-                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>Status</th>
-                          <th style={{ padding: '0.85rem 1rem', fontSize: '0.75rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', textAlign: 'center' }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {schedules.map((item) => (
-                          <tr key={item._id || item.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                            <td style={{ padding: '1rem' }}>
-                              <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.9rem' }}>{item.name}</div>
-                              <div style={{ fontSize: '0.8rem', color: '#2563EB', display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.2rem' }}>
-                                <Mail style={{ width: '0.8rem', height: '0.8rem' }} />
-                                {item.email}
-                              </div>
-                            </td>
-                            <td style={{ padding: '1rem' }}>
-                              <div style={{ fontWeight: '600', color: '#334155', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                <Building style={{ width: '0.85rem', height: '0.85rem', color: '#7C3AED' }} />
-                                {item.institution}
-                              </div>
-                            </td>
-                            <td style={{ padding: '1rem' }}>
-                              <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '0.875rem' }}>{item.date}</div>
-                              <span style={{
-                                fontSize: '0.7rem',
-                                padding: '0.15rem 0.5rem',
-                                borderRadius: '9999px',
-                                backgroundColor: '#EFF6FF',
-                                color: '#2563EB',
-                                fontWeight: '700',
-                                textTransform: 'capitalize',
-                                display: 'inline-block',
-                                marginTop: '0.25rem'
-                              }}>
-                                {item.testType || 'University'}
-                              </span>
-                            </td>
-                            <td style={{ padding: '1rem' }}>
-                              <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: '700',
-                                padding: '0.3rem 0.75rem',
-                                borderRadius: '9999px',
-                                textTransform: 'capitalize',
-                                backgroundColor: 
-                                  item.status === 'confirmed' ? '#DCFCE7' :
-                                  item.status === 'contacted' ? '#DBEAFE' :
-                                  item.status === 'completed' ? '#E0E7FF' : '#FEF3C7',
-                                color: 
-                                  item.status === 'confirmed' ? '#15803D' :
-                                  item.status === 'contacted' ? '#1D4ED8' :
-                                  item.status === 'completed' ? '#4338CA' : '#B45309'
-                              }}>
-                                {item.status || 'Pending'}
-                              </span>
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'center' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                                {item.status !== 'confirmed' && (
-                                  <button
-                                    onClick={() => handleUpdateScheduleStatus(item._id || item.id, 'confirmed')}
-                                    style={{
-                                      padding: '0.35rem 0.65rem',
-                                      backgroundColor: '#10B981',
-                                      color: '#FFFFFF',
-                                      border: 'none',
-                                      borderRadius: '0.375rem',
-                                      fontSize: '0.75rem',
-                                      fontWeight: '600',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Confirm
-                                  </button>
-                                )}
-                                {item.status !== 'contacted' && (
-                                  <button
-                                    onClick={() => handleUpdateScheduleStatus(item._id || item.id, 'contacted')}
-                                    style={{
-                                      padding: '0.35rem 0.65rem',
-                                      backgroundColor: '#2563EB',
-                                      color: '#FFFFFF',
-                                      border: 'none',
-                                      borderRadius: '0.375rem',
-                                      fontSize: '0.75rem',
-                                      fontWeight: '600',
-                                      cursor: 'pointer'
-                                    }}
-                                  >
-                                    Contacted
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => handleDeleteSchedule(item._id || item.id)}
-                                  style={{
-                                    padding: '0.35rem 0.5rem',
-                                    backgroundColor: '#FEF2F2',
-                                    color: '#DC2626',
-                                    border: '1px solid #FECACA',
-                                    borderRadius: '0.375rem',
-                                    fontSize: '0.75rem',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  <Trash2 style={{ width: '0.85rem', height: '0.85rem' }} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

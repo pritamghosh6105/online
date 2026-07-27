@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe, getAdmins, changeCredentials, addAdmin, deleteAdmin } = require('../controllers/authController');
+const { register, login, getMe, getAdmins, getApprovedInstitutions, getPendingAdmins, approveAdmin, changeCredentials, addAdmin, deleteAdmin } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -20,8 +20,11 @@ const registerValidation = [
     .withMessage('Password must be at least 6 characters long'),
   body('role')
     .optional()
-    .isIn(['student', 'admin'])
-    .withMessage('Role must be either student or admin')
+    .isIn(['student', 'admin', 'superadmin'])
+    .withMessage('Role must be student, admin or superadmin'),
+  body('institution')
+    .optional()
+    .trim()
 ];
 
 const loginValidation = [
@@ -66,6 +69,9 @@ const addAdminValidation = [
 ];
 
 // Routes
+router.get('/institutions/approved', getApprovedInstitutions);
+router.get('/pending-admins', protect, getPendingAdmins);
+router.put('/approve-admin/:id', protect, approveAdmin);
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/me', protect, getMe);

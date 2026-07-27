@@ -18,6 +18,7 @@ const createExam = async (req, res) => {
 
     const examData = {
       ...req.body,
+      institution: req.user.institution || req.body.institution || '',
       createdBy: req.user.id
     };
 
@@ -46,12 +47,25 @@ const getExams = async (req, res) => {
     const { page = 1, limit = 50, statsOnly = false } = req.query;
     let query = {};
     
-    // If student, only show active exams (including upcoming and current)
+    // If student, only show active exams for their institution
     if (req.user.role === 'student') {
       const now = new Date();
       query = {
         isActive: true,
         endDate: { $gte: now } // Show exams that haven't ended yet
+      };
+
+      // Filter by student's registered institution if set
+      if (req.user.institution) {
+        query.institution = req.user.institution;
+      }
+    } else if (req.user.role === 'admin' && req.user.institution) {
+      // Sub-admins view exams for their institution or created by them
+      query = {
+        $or: [
+          { institution: req.user.institution },
+          { createdBy: req.user.id }
+        ]
       };
     }
 

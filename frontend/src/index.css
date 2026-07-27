@@ -110,8 +110,13 @@ button, input, select, textarea {
 @media (max-width: 768px) {
   button, input, select, textarea {
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+    min-height: 44px; /* Touch-friendly tap targets */
   }
   
+  .container {
+    padding: 0.75rem !important;
+  }
+
   /* Navigation Mobile Responsive Rules */
   .desktop-nav, .desktop-user-menu {
     display: none !important;
@@ -123,27 +128,64 @@ button, input, select, textarea {
 
   /* Full width forms on mobile */
   .auth-card, .form-container, .modal-content {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 95% !important;
+    max-width: 95% !important;
     padding: 1.25rem !important;
-    margin: 0 auto !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    margin: 0.5rem auto !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 0.875rem !important;
+  }
+
+  /* Dashboard Grid and Action Buttons Mobile */
+  .admin-stat-card, .student-stat-card {
+    padding: 1rem !important;
+  }
+
+  .admin-action-btn, .student-action-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.875rem !important;
   }
 
   /* Exam attempt mobile adjustments */
   .exam-question-layout {
     display: flex !important;
     flex-direction: column !important;
+    padding: 0.5rem !important;
   }
 
   .exam-sidebar {
     width: 100% !important;
     order: -1;
+    margin-bottom: 1rem !important;
+  }
+
+  .question-card-container {
+    padding: 1.15rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  .exam-header-bar {
+    padding: 0.75rem 1rem !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  .exam-header-timer {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .grid-stat-2col-mobile {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
   }
 
   /* Compact Hero Header Banner on mobile */
   .admin-hero-banner, .student-hero-banner {
-    padding: 1rem 1.15rem !important;
+    padding: 1.15rem !important;
     border-radius: 0.75rem !important;
     margin-bottom: 1.25rem !important;
     box-shadow: 0 4px 12px -2px rgba(0,0,0,0.15) !important;
@@ -151,12 +193,13 @@ button, input, select, textarea {
 
   .admin-hero-banner h1, .student-hero-banner h1 {
     font-size: 1.25rem !important;
+    line-height: 1.3 !important;
   }
 
   .admin-hero-banner p, .student-hero-banner p {
-    font-size: 0.8rem !important;
+    font-size: 0.825rem !important;
     margin-top: 0.2rem !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
   }
 
   .hero-badge {
@@ -165,22 +208,33 @@ button, input, select, textarea {
     margin-bottom: 0.35rem !important;
   }
 
-  .admin-action-btn, .student-action-btn {
-    padding: 0.45rem 0.85rem !important;
-    font-size: 0.825rem !important;
-  }
-
   /* Heading mobile scaling */
   h1 {
-    font-size: 1.5rem !important;
+    font-size: 1.4rem !important;
   }
 
   h2 {
-    font-size: 1.25rem !important;
+    font-size: 1.2rem !important;
   }
 
   h3 {
-    font-size: 1.1rem !important;
+    font-size: 1.05rem !important;
+  }
+
+  /* Touch Scrollable Tab Bars */
+  .tab-bar-scrollable {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  /* Full screen width tables with smooth touch scrolling */
+  table {
+    display: block !important;
+    overflow-x: auto !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 }
 

@@ -2,9 +2,14 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import StudentDashboard from './StudentDashboard';
 import AdminDashboard from './AdminDashboard';
+import SuperAdminDashboard from './SuperAdminDashboard';
 
 const Dashboard = () => {
   const { user } = useAuth();
+
+  if (user?.role === 'superadmin' || user?.email === 'admin@examin.com') {
+    return <SuperAdminDashboard />;
+  }
 
   if (user?.role === 'student') {
     return <StudentDashboard />;

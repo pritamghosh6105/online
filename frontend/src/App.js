@@ -12,8 +12,12 @@ import ExamAttempt from './pages/ExamAttempt';
 import ExamResults from './pages/ExamResults';
 import CreateExam from './pages/CreateExam';
 import ViewSubmissions from './pages/ViewSubmissions';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
 import Home from './pages/Home';
+
+// Check if user is admin or superadmin
+const isAdmin = (u) => u && (u.role === 'admin' || u.role === 'superadmin' || u.email === 'admin@examin.com');
 
 function App() {
   const { user, loading } = useAuth();
@@ -56,6 +60,16 @@ function App() {
             path="/dashboard" 
             element={user ? <Dashboard /> : <Navigate to="/login" />} 
           />
+
+          {/* Super Admin Route */}
+          <Route 
+            path="/super-admin" 
+            element={
+              user && (user.role === 'superadmin' || user.email === 'admin@examin.com') ? 
+              <SuperAdminDashboard /> : 
+              <Navigate to="/dashboard" />
+            } 
+          />
           
           {/* Student Routes */}
           <Route 
@@ -87,7 +101,7 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              user && user.role === 'admin' ? 
+              isAdmin(user) ? 
               <AdminDashboard /> : 
               <Navigate to="/dashboard" />
             } 
@@ -95,7 +109,7 @@ function App() {
           <Route 
             path="/admin/create-exam" 
             element={
-              user && user.role === 'admin' ? 
+              isAdmin(user) ? 
               <CreateExam /> : 
               <Navigate to="/dashboard" />
             } 
@@ -103,7 +117,7 @@ function App() {
           <Route 
             path="/admin/submissions" 
             element={
-              user && user.role === 'admin' ? 
+              isAdmin(user) ? 
               <ViewSubmissions /> : 
               <Navigate to="/dashboard" />
             } 

@@ -15,32 +15,33 @@ const router = express.Router();
 const examValidation = [
   body('title')
     .trim()
-    .isLength({ min: 3, max: 100 })
-    .withMessage('Title must be between 3 and 100 characters'),
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Title must be between 1 and 200 characters'),
   body('subject')
     .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Subject must be between 2 and 50 characters'),
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Subject must be between 1 and 100 characters'),
   body('duration')
     .isInt({ min: 1 })
     .withMessage('Duration must be at least 1 minute'),
   body('startDate')
-    .isISO8601()
-    .withMessage('Start date must be a valid date'),
+    .notEmpty()
+    .withMessage('Start date is required'),
   body('endDate')
-    .isISO8601()
-    .withMessage('End date must be a valid date'),
+    .notEmpty()
+    .withMessage('End date is required'),
   body('questions')
     .isArray({ min: 1 })
     .withMessage('At least one question is required'),
   body('questions.*.question')
     .trim()
-    .isLength({ min: 5 })
-    .withMessage('Question must be at least 5 characters long'),
+    .isLength({ min: 1 })
+    .withMessage('Question text is required'),
   body('questions.*.options')
-    .isArray({ min: 2, max: 6 })
-    .withMessage('Each question must have between 2 and 6 options'),
+    .isArray({ min: 2, max: 10 })
+    .withMessage('Each question must have at least 2 options'),
   body('questions.*.marks')
+    .optional()
     .isInt({ min: 1 })
     .withMessage('Marks must be at least 1')
 ];

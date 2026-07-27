@@ -75,7 +75,7 @@ const Navbar = () => {
             </Link>
           )}
           
-          {user?.role === 'admin' && (
+          {(user?.role === 'admin' || user?.role === 'superadmin' || user?.email === 'admin@examin.com') && (
             <>
               <Link 
                 to="/admin/create-exam" 
@@ -124,7 +124,7 @@ const Navbar = () => {
             <User style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.375rem' }} />
             <span style={{ fontWeight: '500' }}>{user?.name}</span>
             <span style={{
-              backgroundColor: user?.role === 'admin' ? '#dc2626' : '#059669',
+              backgroundColor: (user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? '#7c3aed' : user?.role === 'admin' ? '#dc2626' : '#059669',
               color: '#ffffff',
               padding: '0.125rem 0.5rem',
               borderRadius: '9999px',
@@ -133,7 +133,7 @@ const Navbar = () => {
               marginLeft: '0.5rem',
               textTransform: 'uppercase'
             }}>
-              {user?.role}
+              {(user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? 'SUPER ADMIN' : user?.role}
             </span>
           </div>
           
@@ -207,7 +207,7 @@ const Navbar = () => {
               </div>
             </div>
             <span style={{
-              backgroundColor: user?.role === 'admin' ? '#dc2626' : '#059669',
+              backgroundColor: (user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? '#7c3aed' : user?.role === 'admin' ? '#dc2626' : '#059669',
               color: '#ffffff',
               padding: '0.2rem 0.6rem',
               borderRadius: '9999px',
@@ -215,7 +215,7 @@ const Navbar = () => {
               fontWeight: '600',
               textTransform: 'uppercase'
             }}>
-              {user?.role}
+              {(user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? 'SUPER ADMIN' : user?.role}
             </span>
           </div>
 

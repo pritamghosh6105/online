@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       'Please provide a valid email'
     ]
   },
@@ -32,8 +32,19 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'admin'],
+    enum: ['student', 'admin', 'superadmin'],
     default: 'student'
+  },
+  institution: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  isApproved: {
+    type: Boolean,
+    default: function() {
+      return this.role !== 'admin'; // Students and superadmins are auto-approved; sub-admins require approval
+    }
   },
   isActive: {
     type: Boolean,

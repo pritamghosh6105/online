@@ -113,6 +113,102 @@ const sendAdminCredentialsEmail = async (email, name, adminId, password) => {
   }
 };
 
+// @desc    Get all approved institutions
+// @route   GET /api/auth/institutions/approved
+// @access  Public
+const getApprovedInstitutions = async (req, res) => {
+  try {
+    // Find approved admins with an institution name
+    const approvedUsers = await User.find({
+      role: { $in: ['admin', 'superadmin'] },
+      isApproved: true,
+      institution: { $ne: '' }
+    }).select('institution').lean();
+
+    const rawInstitutions = approvedUsers.map(u => u.institution).filter(Boolean);
+    const institutions = [...new Set(rawInstitutions)];
+
+    res.json({
+      success: true,
+      institutions
+    });
+  } catch (error) {
+    console.error('Get approved institutions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching institutions'
+    });
+  }
+};
+
+// @desc    Get pending sub-admins
+// @route   GET /api/auth/pending-admins
+// @access  Private (Admin / SuperAdmin)
+const getPendingAdmins = async (req, res) => {
+  try {
+    const pendingAdmins = await User.find({
+      role: 'admin',
+      isApproved: false
+    }).select('name email institution studentId createdAt').lean();
+
+    res.json({
+      success: true,
+      pendingAdmins: pendingAdmins.map(admin => ({
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        institution: admin.institution,
+        studentId: admin.studentId,
+        createdAt: admin.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get pending admins error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching pending admins'
+    });
+  }
+};
+
+// @desc    Approve sub-admin
+// @route   PUT /api/auth/approve-admin/:id
+// @access  Private (Admin / SuperAdmin)
+const approveAdmin = async (req, res) => {
+  try {
+    const admin = await User.findById(req.params.id);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin not found'
+      });
+    }
+
+    admin.isApproved = true;
+    await admin.save();
+
+    console.log(`✅ Admin approved: ${admin.name} (${admin.institution})`);
+
+    res.json({
+      success: true,
+      message: `Admin for ${admin.institution || 'institution'} approved successfully`,
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        institution: admin.institution,
+        isApproved: admin.isApproved
+      }
+    });
+  } catch (error) {
+    console.error('Approve admin error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while approving admin'
+    });
+  }
+};
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -128,7 +224,7 @@ const register = async (req, res) => {
       });
     }
 
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, institution } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -145,12 +241,17 @@ const register = async (req, res) => {
       studentId = await generateStudentId();
     }
 
+    // Sub-admins require approval, students and superadmin auto-approved
+    const isApproved = role === 'admin' ? false : true;
+
     // Create user
     const user = await User.create({
       name,
       email,
       password,
       role: role || 'student',
+      institution: institution ? institution.trim() : '',
+      isApproved,
       studentId
     });
 
@@ -175,13 +276,17 @@ const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: role === 'admin' 
+        ? 'Admin account registered successfully. Pending Super Admin approval.' 
+        : 'User registered successfully',
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        institution: user.institution,
+        isApproved: user.isApproved,
         studentId: user.studentId
       }
     });
@@ -231,6 +336,14 @@ const login = async (req, res) => {
       });
     }
 
+    // Check if admin is approved
+    if (user.role === 'admin' && !user.isApproved) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your institution/admin account is pending Super Admin approval. Please contact the administrator.'
+      });
+    }
+
     // Generate token
     const token = generateToken(user._id);
 
@@ -243,6 +356,8 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        institution: user.institution,
+        isApproved: user.isApproved,
         studentId: user.studentId
       }
     });
@@ -269,6 +384,8 @@ const getMe = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        institution: user.institution,
+        isApproved: user.isApproved,
         createdAt: user.createdAt
       }
     });
@@ -518,6 +635,9 @@ module.exports = {
   login,
   getMe,
   getAdmins,
+  getApprovedInstitutions,
+  getPendingAdmins,
+  approveAdmin,
   changeCredentials,
   addAdmin,
   deleteAdmin

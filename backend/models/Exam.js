@@ -55,6 +55,11 @@ const examSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  institution: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   isActive: {
     type: Boolean,
     default: true

@@ -1,25 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { BookOpen, User, Mail, Lock, Eye, EyeOff, Building } from 'lucide-react';
 import { validateEmail } from '../utils/helpers';
+import { authAPI } from '../api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    institution: '',
+    role: 'student'
   });
+  const [approvedInstitutions, setApprovedInstitutions] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showStudentIdModal, setShowStudentIdModal] = useState(false);
   const [studentIdData, setStudentIdData] = useState(null);
+  const [customInstitution, setCustomInstitution] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        const response = await authAPI.getApprovedInstitutions();
+        if (response.data?.success) {
+          setApprovedInstitutions(response.data.institutions || []);
+        }
+      } catch (err) {
+        console.error('Error fetching approved institutions:', err);
+      }
+    };
+    fetchInstitutions();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -238,6 +257,89 @@ const Register = () => {
                 marginTop: '0.25rem'
               }}>
                 {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Institution Field */}
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              color: '#374151',
+              marginBottom: '0.5rem'
+            }}>
+              Institution / School Name
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Building style={{
+                position: 'absolute',
+                left: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                width: '1rem',
+                height: '1rem',
+                color: '#9ca3af'
+              }} />
+              {approvedInstitutions.length > 0 && !customInstitution ? (
+                <select
+                  name="institution"
+                  value={formData.institution}
+                  onChange={(e) => {
+                    if (e.target.value === '__other__') {
+                      setCustomInstitution(true);
+                      setFormData(prev => ({ ...prev, institution: '' }));
+                    } else {
+                      handleChange(e);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                    border: `1px solid ${errors.institution ? '#dc2626' : '#d1d5db'}`,
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    backgroundColor: '#fff'
+                  }}
+                >
+                  <option value="">-- Select Approved Institution --</option>
+                  {approvedInstitutions.map((inst, i) => (
+                    <option key={i} value={inst}>{inst}</option>
+                  ))}
+                  <option value="__other__">+ Register New Institution Name</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  name="institution"
+                  value={formData.institution}
+                  onChange={handleChange}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                    border: `1px solid ${errors.institution ? '#dc2626' : '#d1d5db'}`,
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    outline: 'none'
+                  }}
+                  placeholder="Enter School or Institution Name"
+                />
+              )}
+            </div>
+            {approvedInstitutions.length > 0 && customInstitution && (
+              <button
+                type="button"
+                onClick={() => setCustomInstitution(false)}
+                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.75rem', marginTop: '0.25rem', cursor: 'pointer' }}
+              >
+                ← Back to approved list
+              </button>
+            )}
+            {errors.institution && (
+              <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                {errors.institution}
               </p>
             )}
           </div>

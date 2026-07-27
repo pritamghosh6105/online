@@ -167,7 +167,9 @@ const StudentDashboard = () => {
                 Welcome back, {user?.name || 'Student'}!
               </h1>
               <p style={{ color: '#93c5fd', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: 0 }}>
-                {user?.studentId ? `Student ID: ${user.studentId} • ` : ''}View upcoming exams & check results.
+                {user?.studentId ? `Student ID: ${user.studentId} • ` : ''}
+                {user?.institution ? `🏫 School: ${user.institution} • ` : ''}
+                View upcoming exams & check results.
               </p>
             </div>
             <div>

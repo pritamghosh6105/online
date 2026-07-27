@@ -218,13 +218,13 @@ const CreateExam = () => {
       if (Array.isArray(serverErrors) && serverErrors.length > 0) {
         console.error('Server validation errors:', serverErrors);
         const newErrors = {};
+        const errorList = serverErrors.map(err => `• ${err.path || err.param || 'field'}: ${err.msg || err.message}`).join('\n');
         serverErrors.forEach(err => {
-          // err.param might be like 'title' or 'questions.0.question'
-          // We'll map it directly so existing inputs can read the message if named accordingly.
-          newErrors[err.param] = err.msg || err.message || 'Invalid value';
+          newErrors[err.param || err.path] = err.msg || err.message || 'Invalid value';
         });
         setErrors(prev => ({ ...prev, ...newErrors }));
-        toast.error(error.response?.data?.message || 'Validation failed');
+        alert(`❌ Exam Validation Failed:\n\n${errorList}`);
+        toast.error('Exam validation failed. Please check the inputs.');
       } else {
         toast.error(error.response?.data?.message || 'Failed to create exam');
       }
