@@ -312,55 +312,56 @@ const Home = () => {
           {/* Portal Quick Access Links */}
           <div style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            flexWrap: 'wrap',
+            flexDirection: 'column',
+            gap: '0.65rem',
             paddingTop: '1.5rem',
             borderTop: '1px solid #E2E8F0'
           }}>
-            <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Portals:
+            <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Quick Access Portals:
             </span>
-            <Link
-              to="/student-login"
-              className="glass-pill"
-              style={{
-                padding: '0.45rem 0.95rem',
-                fontSize: '0.85rem',
-                color: '#2563EB',
-                textDecoration: 'none',
-                fontWeight: '700',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                transition: 'all 0.2s',
-                backgroundColor: '#EFF6FF',
-                borderColor: '#BFDBFE'
-              }}
-            >
-              <GraduationCap style={{ width: '1rem', height: '1rem' }} />
-              Student Login
-            </Link>
-            <Link
-              to="/admin-login"
-              className="glass-pill"
-              style={{
-                padding: '0.45rem 0.95rem',
-                fontSize: '0.85rem',
-                color: '#4F46E5',
-                textDecoration: 'none',
-                fontWeight: '700',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                transition: 'all 0.2s',
-                backgroundColor: '#EEF2FF',
-                borderColor: '#C7D2FE'
-              }}
-            >
-              <Lock style={{ width: '0.9rem', height: '0.9rem' }} />
-              Admin Portal
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <Link
+                to="/student-login"
+                className="glass-pill"
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  fontSize: '0.85rem',
+                  color: '#2563EB',
+                  textDecoration: 'none',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s',
+                  backgroundColor: '#EFF6FF',
+                  borderColor: '#BFDBFE'
+                }}
+              >
+                <GraduationCap style={{ width: '1rem', height: '1rem' }} />
+                Student Login
+              </Link>
+              <Link
+                to="/admin-login"
+                className="glass-pill"
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  fontSize: '0.85rem',
+                  color: '#4F46E5',
+                  textDecoration: 'none',
+                  fontWeight: '700',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s',
+                  backgroundColor: '#EEF2FF',
+                  borderColor: '#C7D2FE'
+                }}
+              >
+                <Lock style={{ width: '0.9rem', height: '0.9rem' }} />
+                Admin Portal
+              </Link>
+            </div>
           </div>
         </div>
 
