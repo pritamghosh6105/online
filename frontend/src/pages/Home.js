@@ -176,15 +176,16 @@ const Home = () => {
           </div>
 
           {/* Action CTAs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Link
               to="/student-login"
               style={{
                 color: '#334155',
                 textDecoration: 'none',
-                fontSize: '0.9rem',
+                fontSize: '0.875rem',
                 fontWeight: '600',
-                padding: '0.6rem 1.1rem'
+                padding: '0.5rem 0.75rem',
+                whiteSpace: 'nowrap'
               }}
             >
               Sign In
@@ -193,17 +194,18 @@ const Home = () => {
               to="/register"
               className="cta-magnetic-btn"
               style={{
-                padding: '0.65rem 1.35rem',
+                padding: '0.5rem 0.95rem',
                 borderRadius: '0.625rem',
-                fontSize: '0.9rem',
+                fontSize: '0.875rem',
                 fontWeight: '700',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                textDecoration: 'none'
+                gap: '0.4rem',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap'
               }}
             >
-              <UserPlus style={{ width: '1rem', height: '1rem' }} />
+              <UserPlus style={{ width: '0.9rem', height: '0.9rem' }} />
               Register
             </Link>
           </div>
@@ -242,13 +244,13 @@ const Home = () => {
 
           {/* Headline with Typewriter Text Effect */}
           <h1 style={{
-            fontSize: '3.4rem',
+            fontSize: 'clamp(2rem, 5vw, 3.4rem)',
             fontWeight: '900',
             lineHeight: '1.15',
             letterSpacing: '-0.035em',
-            marginBottom: '1.5rem',
+            marginBottom: '1rem',
             color: '#0F172A',
-            minHeight: '130px'
+            minHeight: 'auto'
           }}>
             <span style={{
               background: 'linear-gradient(135deg, #0F172A 30%, #334155 100%)',
@@ -264,21 +266,21 @@ const Home = () => {
             fontSize: '1.15rem',
             color: '#475569',
             lineHeight: '1.65',
-            marginBottom: '2.5rem',
+            marginBottom: '2rem',
             maxWidth: '580px'
           }}>
             Conduct secure, high-stakes online examinations with AI automated proctoring, live student identity verification, and instant grade evaluation.
           </p>
 
           {/* Hero CTAs */}
-          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '3rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
             <button
               onClick={() => setShowStartModal(true)}
               className="cta-magnetic-btn"
               style={{
-                padding: '0.95rem 2rem',
+                padding: '0.85rem 1.75rem',
                 borderRadius: '0.75rem',
-                fontSize: '1.05rem',
+                fontSize: '1rem',
                 fontWeight: '700',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -293,9 +295,9 @@ const Home = () => {
               onClick={() => setShowScheduleModal(true)}
               className="cta-outline-fill-btn"
               style={{
-                padding: '0.95rem 2rem',
+                padding: '0.85rem 1.75rem',
                 borderRadius: '0.75rem',
-                fontSize: '1.05rem',
+                fontSize: '1rem',
                 fontWeight: '700',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -311,8 +313,9 @@ const Home = () => {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
-            paddingTop: '1.75rem',
+            gap: '0.75rem',
+            flexWrap: 'wrap',
+            paddingTop: '1.5rem',
             borderTop: '1px solid #E2E8F0'
           }}>
             <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>

@@ -447,6 +447,25 @@ button, input, select, textarea {
   animation: floatBadge 5s ease-in-out 1s infinite;
 }
 
+@media (max-width: 768px) {
+  .animate-float-badge-1 {
+    top: -10px !important;
+    left: 0px !important;
+    padding: 0.45rem 0.75rem !important;
+  }
+  
+  .animate-float-badge-2 {
+    bottom: -10px !important;
+    right: 0px !important;
+    padding: 0.45rem 0.75rem !important;
+  }
+
+  .animate-float-laptop {
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
 /* Pulsing Security Checkmark & Glow */
 @keyframes pulseGlow {
   0% {
