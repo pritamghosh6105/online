@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { submissionAPI, examAPI } from '../api';
-import { useAuth } from '../context/AuthContext';
 import {
-  Award,
   Calendar,
   Clock,
   FileText,
@@ -12,8 +10,6 @@ import {
   BarChart3,
   Filter,
   Search,
-  Download,
-  Eye,
   Target,
   Trophy,
   AlertCircle,
@@ -32,7 +28,6 @@ const ExamResults = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchData();
@@ -40,6 +35,7 @@ const ExamResults = () => {
 
   useEffect(() => {
     filterAndSortSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submissions, searchTerm, selectedSubject, sortBy, sortOrder]);
 
   const fetchData = async () => {

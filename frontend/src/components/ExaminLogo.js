@@ -4,15 +4,16 @@ import { BookOpen } from 'lucide-react';
 
 const ExaminLogo = ({ size = 32, showSubtext = true, to = '/', textColor = '#0F172A' }) => {
   return (
-    <Link to={to} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+    <Link to={to} className="examin-logo-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
       <BookOpen 
         size={size} 
         color="#2563eb" 
         strokeWidth={2.6}
+        className="examin-logo-icon"
         style={{ flexShrink: 0 }}
       />
       <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-        <span style={{ 
+        <span className="examin-logo-title" style={{ 
           fontSize: `${size * 0.72}px`, 
           fontWeight: '800', 
           color: textColor, 
@@ -21,7 +22,7 @@ const ExaminLogo = ({ size = 32, showSubtext = true, to = '/', textColor = '#0F1
           Examin
         </span>
         {showSubtext && (
-          <span style={{ 
+          <span className="examin-logo-subtext" style={{ 
             fontSize: '0.625rem', 
             color: '#2563eb', 
             fontWeight: '700', 

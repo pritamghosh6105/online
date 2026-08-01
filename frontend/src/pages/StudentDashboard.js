@@ -8,15 +8,12 @@ import {
   Calendar, 
   Play, 
   Users, 
-  CheckCircle, 
   Award,
   TrendingUp,
   Target,
-  AlertCircle,
   Star,
   BarChart3,
-  Timer,
-  Trophy
+  Timer
 } from 'lucide-react';
 import { formatDate, formatDuration, getExamStatus, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -450,7 +447,6 @@ const StudentDashboard = () => {
           const now = new Date();
           const upcomingExams = exams.filter(exam => {
             const startDate = new Date(exam.startDate);
-            const endDate = new Date(exam.endDate);
             const isSubmitted = submissions.some(sub => sub.exam && sub.exam._id === exam._id);
             return !isSubmitted && startDate > now && exam.isActive;
           }).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
@@ -486,7 +482,6 @@ const StudentDashboard = () => {
                 }}>
                   {upcomingExams.map((exam) => {
                     const startDate = new Date(exam.startDate);
-                    const endDate = new Date(exam.endDate);
                     
                     // Calculate days until exam by comparing calendar dates
                     const today = new Date();

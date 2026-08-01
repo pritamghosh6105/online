@@ -26,7 +26,7 @@ const SuperAdminDashboard = () => {
   const [allExams, setAllExams] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {

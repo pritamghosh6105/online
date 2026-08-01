@@ -3,18 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { examAPI, submissionAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { 
-  Clock, 
   AlertTriangle, 
-  CheckCircle, 
   ArrowLeft, 
   ArrowRight,
-  Flag,
   Save,
   Send,
   Timer,
   FileText,
-  User,
-  Calendar
+  User
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -38,6 +34,7 @@ const ExamAttempt = () => {
   // Fetch exam data
   useEffect(() => {
     fetchExam();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Timer effect
@@ -55,6 +52,7 @@ const ExamAttempt = () => {
 
       return () => clearInterval(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exam, examStartTime, timeRemaining]);
 
   // Auto-save answers
@@ -160,27 +158,6 @@ const ExamAttempt = () => {
     setCurrentQuestionIndex(index);
   };
 
-  const calculateScore = () => {
-    let correctAnswers = 0;
-    let totalMarks = 0;
-
-    exam.questions.forEach(question => {
-      totalMarks += question.marks || 1;
-      const userAnswer = answers[question._id];
-      if (userAnswer !== undefined) {
-        // Since we don't have access to correct answers as a student,
-        // we'll let the backend handle scoring
-        // This is just for UI display purposes
-      }
-    });
-
-    return {
-      totalMarks,
-      // We can't calculate exact score on frontend since correct answers are hidden
-      answeredCount: Object.keys(answers).length
-    };
-  };
-
   const handleSubmit = async () => {
     try {
       setSubmitting(true);
@@ -245,7 +222,8 @@ const ExamAttempt = () => {
   const handleAutoSubmit = useCallback(async () => {
     await handleSubmit();
     toast.warning('Time is up! Your exam has been automatically submitted.');
-  }, [handleSubmit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);

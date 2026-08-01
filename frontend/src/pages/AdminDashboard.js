@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { examAPI, submissionAPI, authAPI, scheduleAPI } from '../api';
+import { examAPI, submissionAPI, authAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { 
   BookOpen, 
@@ -14,9 +14,7 @@ import {
   Award,
   Key,
   X,
-  CheckCircle,
-  Building,
-  Mail
+  Building
 } from 'lucide-react';
 import { formatDate, formatDuration } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -178,7 +176,7 @@ const AdminDashboard = () => {
 
     try {
       // API call to update credentials
-      const response = await authAPI.changeCredentials({
+      await authAPI.changeCredentials({
         oldAdminId: credentialsForm.currentAdminId,
         currentPassword: credentialsForm.currentPassword,
         newStudentId: credentialsForm.newStudentId,
@@ -230,7 +228,7 @@ const AdminDashboard = () => {
 
     try {
       // API call to create new admin
-      const response = await authAPI.addAdmin({
+      await authAPI.addAdmin({
         name: addAdminForm.name,
         adminId: addAdminForm.adminId,
         email: addAdminForm.email,

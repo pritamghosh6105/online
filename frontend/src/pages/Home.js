@@ -19,7 +19,9 @@ import {
   X,
   Send,
   Zap,
-  ChevronRight
+  ChevronRight,
+  Linkedin,
+  Mail
 } from 'lucide-react';
 
 const Home = () => {
@@ -227,28 +229,15 @@ const Home = () => {
       }}>
         {/* Left Hero Content */}
         <div>
-          {/* Badge */}
-          <div className="glass-pill" style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            padding: '0.35rem 0.9rem',
-            marginBottom: '1.5rem',
-            border: '1px solid #CBD5E1'
-          }}>
-            <span className="pulse-green-checkmark" style={{ width: '8px', height: '8px', backgroundColor: '#10B981' }} />
-            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#2563EB' }}>
-              AI Proctoring & 256-Bit Encrypted Engine
-            </span>
-          </div>
+
 
           {/* Headline with Typewriter Text Effect */}
-          <h1 style={{
-            fontSize: 'clamp(2rem, 5vw, 3.4rem)',
+          <h1 className="hero-typewriter-heading" style={{
+            fontSize: 'clamp(2.2rem, 6vw, 3.5rem)',
             fontWeight: '900',
-            lineHeight: '1.15',
+            lineHeight: '1.2',
             letterSpacing: '-0.035em',
-            marginBottom: '1rem',
+            marginBottom: '1.25rem',
             color: '#0F172A',
             minHeight: 'auto'
           }}>
@@ -1328,35 +1317,115 @@ const Home = () => {
         </div>
       )}
 
-      {/* Footer / Trust Section */}
+      {/* White Centered Footer */}
       <footer style={{
         width: '100%',
-        backgroundColor: '#F8FAFC',
-        padding: '3.5rem 2rem 2.5rem',
+        backgroundColor: '#FFFFFF',
+        color: '#1E293B',
         borderTop: '1px solid #E2E8F0',
-        color: '#64748B',
-        fontSize: '0.875rem'
+        fontFamily: 'inherit'
       }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '1400px',
-          margin: '0 auto',
+        {/* Main Footer Section */}
+        <div className="footer-main-container" style={{
+          padding: '3.5rem 1.5rem 2.5rem',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.5rem'
+          justifyContent: 'center',
+          textAlign: 'center'
         }}>
-          <ExaminLogo size={28} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontSize: '0.85rem' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#059669', fontWeight: '700' }}>
-              <span className="pulse-green-checkmark" style={{ width: '6px', height: '6px', backgroundColor: '#059669' }} />
-              All Systems Operational
-            </span>
-            <span>•</span>
-            <span style={{ color: '#64748B' }}>© {new Date().getFullYear()} Examin Platform. All rights reserved.</span>
+          {/* Social Icons Row */}
+          <div className="footer-social-row" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginBottom: '2rem',
+            flexWrap: 'wrap'
+          }}>
+            {[
+              { icon: Mail, label: 'Email', href: 'mailto:pg9810487@gmail.com', external: false },
+              { icon: Linkedin, label: 'LinkedIn', href: 'https://www.linkedin.com/in/pritam-ghosh-3487a6296/', external: true }
+            ].map((item, idx) => {
+              const IconComp = item.icon;
+              return (
+                <a
+                  key={idx}
+                  href={item.href}
+                  className="footer-social-btn"
+                  target={item.external ? '_blank' : undefined}
+                  rel={item.external ? 'noopener noreferrer' : undefined}
+                  aria-label={item.label}
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#1E293B',
+                    textDecoration: 'none',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px) scale(1.08)';
+                    e.currentTarget.style.backgroundColor = '#2563EB';
+                    e.currentTarget.style.borderColor = '#2563EB';
+                    e.currentTarget.style.color = '#FFFFFF';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.backgroundColor = '#F1F5F9';
+                    e.currentTarget.style.borderColor = '#E2E8F0';
+                    e.currentTarget.style.color = '#1E293B';
+                  }}
+                >
+                  <IconComp size={20} strokeWidth={2.2} />
+                </a>
+              );
+            })}
           </div>
+
+          {/* Navigation Links */}
+          <div className="footer-nav-row" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2rem',
+            flexWrap: 'wrap',
+            marginBottom: '1rem'
+          }}>
+            <a href="#top" className="footer-nav-link" style={{ color: '#475569', textDecoration: 'none', fontSize: '1.05rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#2563EB'} onMouseLeave={(e) => e.target.style.color = '#475569'}>
+              Home
+            </a>
+            <a href="#features" className="footer-nav-link" style={{ color: '#475569', textDecoration: 'none', fontSize: '1.05rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#2563EB'} onMouseLeave={(e) => e.target.style.color = '#475569'}>
+              Features
+            </a>
+            <a href="#portals" className="footer-nav-link" style={{ color: '#475569', textDecoration: 'none', fontSize: '1.05rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#2563EB'} onMouseLeave={(e) => e.target.style.color = '#475569'}>
+              Access Portals
+            </a>
+            <button onClick={() => setShowScheduleModal(true)} className="footer-nav-link" style={{ background: 'none', border: 'none', color: '#475569', fontSize: '1.05rem', fontWeight: '500', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#2563EB'} onMouseLeave={(e) => e.target.style.color = '#475569'}>
+              Contact Us
+            </button>
+            <a href="#institutions" className="footer-nav-link" style={{ color: '#475569', textDecoration: 'none', fontSize: '1.05rem', fontWeight: '500', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#2563EB'} onMouseLeave={(e) => e.target.style.color = '#475569'}>
+              Partners
+            </a>
+          </div>
+        </div>
+
+        {/* Bottom Copyright Strip */}
+        <div className="footer-copyright-strip" style={{
+          backgroundColor: '#F8FAFC',
+          padding: '1.15rem 1.5rem',
+          textAlign: 'center',
+          fontSize: '0.875rem',
+          color: '#64748B',
+          borderTop: '1px solid #E2E8F0'
+        }}>
+          Copyright © {new Date().getFullYear()}; Designed for <span style={{ color: '#0F172A', fontWeight: '700' }}>Examin Online Examination System</span>
         </div>
       </footer>
     </div>

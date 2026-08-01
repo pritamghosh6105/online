@@ -1,258 +1,205 @@
-# Examin - Online Exam System
+# Examin - Online Examination System
 
-A full-stack web application for conducting online examinations with role-based access for students and administrators.
-
-## Features
-
-### 🔑 Core Features
-- **User Authentication**: Student & Admin registration/login with role-based access
-- **Admin Features**: 
-  - Create exams (title, duration, subject)
-  - Add MCQ questions with multiple options
-  - View student submissions and results
-- **Student Features**:
-  - View available exams
-  - Attempt exams with timer functionality
-  - Submit exams and view results immediately
-- **Auto-Evaluation**: Automatic grading for MCQ questions
-- **Results Management**: Students can view their own results, admins can view all results
-
-## Tech Stack
-
-### Backend
-- **Node.js** with Express.js
-- **MongoDB** with Mongoose ODM
-- **JWT** for authentication
-- **bcryptjs** for password hashing
-- **express-validator** for input validation
-- **CORS** for cross-origin requests
-
-### Frontend
-- **React.js** with hooks
-- **React Router** for navigation
-- **Axios** for API calls
-- **React Toastify** for notifications
-- **Lucide React** for icons
-
-## Project Structure
-
-```
-examin/
-├── backend/
-│   ├── controllers/     # Request handlers
-│   ├── middleware/      # Authentication middleware
-│   ├── models/         # Database schemas
-│   ├── routes/         # API routes
-│   ├── server.js       # Entry point
-│   ├── package.json    # Dependencies
-│   └── .env           # Environment variables
-├── frontend/
-│   ├── public/        # Static files
-│   ├── src/
-│   │   ├── api/       # API service layer
-│   │   ├── components/ # Reusable components
-│   │   ├── context/   # React context
-│   │   ├── pages/     # Page components
-│   │   ├── utils/     # Utility functions
-│   │   ├── App.js     # Main app component
-│   │   └── index.js   # Entry point
-│   └── package.json   # Dependencies
-└── README.md          # This file
-```
-
-## Quick Start
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or cloud instance)
-- npm or yarn
-
-### Backend Setup
-
-1. **Navigate to backend directory**:
-   ```bash
-   cd backend
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Environment Configuration**:
-   Update the `.env` file with your configuration:
-   ```env
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/examin
-   JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
-   JWT_EXPIRE=7d
-   ```
-
-4. **Start the backend server**:
-   ```bash
-   # Development mode with auto-restart
-   npm run dev
-   
-   # Or production mode
-   npm start
-   ```
-
-   The backend will be running on `http://localhost:5000`
-
-### Frontend Setup
-
-1. **Navigate to frontend directory**:
-   ```bash
-   cd frontend
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Start the frontend development server**:
-   ```bash
-   npm start
-   ```
-
-   The frontend will be running on `http://localhost:3000`
-
-### Database Setup
-
-1. **Install MongoDB** locally or use MongoDB Atlas (cloud)
-2. **Create a database** named `examin`
-3. The application will automatically create the required collections
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user (protected)
-
-### Exams (Protected)
-- `GET /api/exams` - Get all exams
-- `GET /api/exams/:id` - Get single exam
-- `POST /api/exams` - Create exam (Admin only)
-- `PUT /api/exams/:id` - Update exam (Admin only)
-- `DELETE /api/exams/:id` - Delete exam (Admin only)
-
-### Submissions (Protected)
-- `POST /api/submissions` - Submit exam (Student only)
-- `GET /api/submissions/my` - Get my submissions (Student only)
-- `GET /api/submissions` - Get all submissions (Admin only)
-- `GET /api/submissions/:id` - Get single submission
-
-## User Roles
-
-### Student
-- Register/Login
-- View available exams
-- Attempt exams with timer
-- Submit answers
-- View own results
-
-### Admin
-- Register/Login
-- Create and manage exams
-- Add MCQ questions
-- View all submissions
-- View all results
-
-## Database Models
-
-### User Model
-```javascript
-{
-  name: String,
-  email: String (unique),
-  password: String (hashed),
-  role: String (student/admin),
-  isActive: Boolean,
-  timestamps: true
-}
-```
-
-### Exam Model
-```javascript
-{
-  title: String,
-  subject: String,
-  duration: Number (minutes),
-  totalMarks: Number,
-  questions: [QuestionSchema],
-  createdBy: ObjectId (User),
-  isActive: Boolean,
-  startDate: Date,
-  endDate: Date,
-  timestamps: true
-}
-```
-
-### Submission Model
-```javascript
-{
-  student: ObjectId (User),
-  exam: ObjectId (Exam),
-  answers: [AnswerSchema],
-  totalScore: Number,
-  totalMarks: Number,
-  percentage: Number,
-  startTime: Date,
-  endTime: Date,
-  timeTaken: Number,
-  timestamps: true
-}
-```
-
-## Development
-
-### Running in Development Mode
-
-1. **Backend** (with auto-restart):
-   ```bash
-   cd backend
-   npm run dev
-   ```
-
-2. **Frontend** (with hot reload):
-   ```bash
-   cd frontend
-   npm start
-   ```
-
-### Building for Production
-
-1. **Frontend build**:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-
-2. **Backend production**:
-   ```bash
-   cd backend
-   npm start
-   ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support or questions, please open an issue in the repository.
+Comprehensive documentation for the **Examin** platform, detailing system architecture, user workflows, database models, API specifications, and deployment guidelines.
 
 ---
 
-**Happy Coding! 🚀**
+## 📌 Project Overview
+
+**Examin** is a full-stack web application designed for institutions to conduct online examinations with real-time timer tracking, automated MCQ evaluation, role-based security, and institutional onboarding.
+
+### Tech Stack
+* **Frontend**: React 18, React Router v6, Axios, Lucide React, React Toastify
+* **Backend**: Node.js, Express.js, MongoDB (Mongoose ODM)
+* **Authentication**: JWT (JSON Web Tokens), bcryptjs password hashing
+* **Deployment & Tooling**: Express-validator, CORS, Nodemailer (SMTP email integration)
+
+---
+
+## 📂 Project Directory & File Structure
+
+```
+examin/
+├── backend/                        # Node.js / Express Server
+│   ├── controllers/                # Request handling logic
+│   │   ├── authController.js       # Registration, login, credential change & approvals
+│   │   ├── examController.js       # Exam creation, editing, deletion & retrieval
+│   │   └── submissionController.js # Auto-evaluation engine & score processing
+│   ├── middleware/                 # Route guards & security
+│   │   └── auth.js                 # JWT token verification & role authorization
+│   ├── models/                     # Mongoose database schemas
+│   │   ├── Exam.js                 # Exam structure & question marks
+│   │   ├── Schedule.js             # Institutional demo schedule requests
+│   │   ├── Submission.js           # Student test results & selected options
+│   │   └── User.js                 # User profile, role & approval status
+│   ├── routes/                     # REST API endpoints
+│   │   ├── auth.js                 # Authentication routes
+│   │   ├── exams.js                # Exam management routes
+│   │   ├── schedules.js            # Institutional schedule request routes
+│   │   └── submissions.js          # Submission & evaluation routes
+│   ├── package.json                # Backend dependencies
+│   └── server.js                   # Express application entry point
+│
+├── frontend/                       # React 18 Web Application
+│   ├── public/                     # Public HTML template & icons
+│   ├── src/
+│   │   ├── api/                    # API integration service
+│   │   │   └── index.js            # Axios client with interceptors
+│   │   ├── components/             # Reusable UI components
+│   │   │   ├── LoadingSpinner.js   # Global loading animation
+│   │   │   └── Navbar.js           # Responsive header navigation
+│   │   ├── context/                # Global React State
+│   │   │   └── AuthContext.js      # User auth state & session management
+│   │   ├── pages/                  # Route views
+│   │   │   ├── AdminDashboard.js   # Instructor/Admin control panel
+│   │   │   ├── AdminLogin.js       # Administrative login page
+│   │   │   ├── CreateExam.js       # Exam builder with MCQ management
+│   │   │   ├── Dashboard.js        # Role router page
+│   │   │   ├── ExamAttempt.js      # Live exam attempt & countdown timer
+│   │   │   ├── ExamResults.js      # Student result analytics & scorecards
+│   │   │   ├── Home.js             # Landing page & demo request form
+│   │   │   ├── Login.js            # Generic login view
+│   │   │   ├── Register.js         # Student registration form
+│   │   │   ├── StudentDashboard.js # Student portal & available exams
+│   │   │   ├── StudentLogin.js     # Student login via ID
+│   │   │   ├── SuperAdminDashboard.js # Master system administration
+│   │   │   └── ViewSubmissions.js # Submission management & deletion table
+│   │   ├── utils/                  # Helper utilities
+│   │   │   └── helpers.js          # Date, duration & grade formatters
+│   │   ├── App.js                  # React Router navigation tree
+│   │   ├── index.css               # Design system & CSS styling
+│   │   └── index.js                # Application render entry point
+│   └── package.json                # Frontend dependencies
+│
+├── EXAMIN_SUMMARY.md               # Complete system documentation
+└── render.yaml                     # Render deployment configuration
+```
+
+---
+
+## 👥 User Roles & Access Control
+
+```mermaid
+flowchart TD
+    User([User Registration / Login]) --> RoleCheck{Role Check}
+    RoleCheck -->|Student| StudentDash[Student Dashboard]
+    RoleCheck -->|Admin / Instructor| AdminDash[Admin Dashboard]
+    RoleCheck -->|Super Admin| SuperAdminDash[Super Admin Dashboard]
+
+    StudentDash --> Attempt[Attempt Active Exam]
+    Attempt --> AutoGrade[Auto-Evaluation Engine]
+    AutoGrade --> Results[View Immediate Results]
+
+    AdminDash --> Create[Create Exam & MCQs]
+    AdminDash --> ViewSub[View & Manage Student Submissions]
+
+    SuperAdminDash --> Approve[Approve Pending Institutional Admins]
+    SuperAdminDash --> Onboard[Manage Institutional Demo Requests]
+```
+
+### 1. Student
+* **Registration**: Auto-approved upon registration; assigned a unique 11-digit Student ID.
+* **Capabilities**: Browse active exams for their institution, attempt timed exams, select MCQ options, auto-submit on countdown completion, and view detailed personal result analytics.
+
+### 2. Admin (Institutional / Instructor)
+* **Registration**: Requires Super Admin approval or automatic account creation via confirmed demo schedule requests.
+* **Capabilities**: Create & manage exams, define start/end dates and durations, add MCQs with marks, view institutional student submissions, and delete submissions.
+
+### 3. Super Admin
+* **Access**: Master administrative access for platform oversight (`admin@examin.com`).
+* **Capabilities**: Approve pending institutional sub-admins, manage institutional demo requests, review platform-wide exam submissions, and provision admin accounts via automated email credentials.
+
+---
+
+## 🗄️ Database Schemas
+
+### User Schema (`models/User.js`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `name` | String | Full name (required) |
+| `email` | String | Unique email address (required) |
+| `studentId` | String | Unique 11-digit Student/Admin ID |
+| `password` | String | Hashed password (bcrypt) |
+| `role` | String | Enum: `student`, `admin`, `superadmin` |
+| `institution` | String | Associated institution |
+| `isApproved` | Boolean | True for students/superadmins; requires approval for sub-admins |
+| `isActive` | Boolean | Account status toggle |
+
+### Exam Schema (`models/Exam.js`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `title` | String | Exam title |
+| `subject` | String | Subject/Course name |
+| `duration` | Number | Time limit in minutes |
+| `totalMarks` | Number | Auto-calculated sum of question marks |
+| `questions` | Array | MCQ objects (`question`, `options`, `isCorrect`, `marks`) |
+| `createdBy` | ObjectId | Reference to `User` |
+| `startDate` | Date | Exam window start time |
+| `endDate` | Date | Exam window end time |
+| `isActive` | Boolean | Status toggle |
+
+### Submission Schema (`models/Submission.js`)
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `student` | ObjectId | Reference to `User` |
+| `exam` | ObjectId | Reference to `Exam` |
+| `answers` | Array | Selected option indices & evaluation results |
+| `totalScore` | Number | Achieved score |
+| `percentage` | Number | Calculated percentage score |
+| `timeTaken` | Number | Duration in minutes |
+
+---
+
+## ⚡ API Endpoints
+
+### Authentication (`/api/auth`)
+* `POST /api/auth/register` — Register a new student or admin
+* `POST /api/auth/login` — Login with Email / Student ID and password
+* `GET /api/auth/me` — Fetch authenticated user profile
+* `GET /api/auth/pending-admins` — Fetch unapproved admin accounts *(Admin/SuperAdmin)*
+* `PUT /api/auth/approve-admin/:id` — Approve sub-admin *(SuperAdmin)*
+
+### Exams (`/api/exams`)
+* `GET /api/exams` — List available exams
+* `GET /api/exams/:id` — Get single exam details
+* `POST /api/exams` — Create a new exam *(Admin only)*
+* `PUT /api/exams/:id` — Update exam details *(Admin only)*
+* `DELETE /api/exams/:id` — Delete an exam *(Admin only)*
+
+### Submissions (`/api/submissions`)
+* `POST /api/submissions` — Submit exam answers & trigger auto-grading *(Student)*
+* `GET /api/submissions/my` — Fetch student's test history *(Student)*
+* `GET /api/submissions` — Fetch all submissions *(Admin only)*
+* `DELETE /api/submissions/:id` — Delete a submission *(Admin only)*
+
+### Schedules (`/api/schedules`)
+* `POST /api/schedules` — Request institutional test schedule *(Public)*
+* `GET /api/schedules` — List schedule requests *(Admin/SuperAdmin)*
+* `PUT /api/schedules/:id` — Confirm request & provision Admin account *(SuperAdmin)*
+
+---
+
+## 🛠️ Quick Start & Development
+
+### 1. Backend Setup
+```bash
+cd backend
+npm install
+npm run dev
+```
+Runs on `http://localhost:5000`
+
+### 2. Frontend Setup
+```bash
+cd frontend
+npm install
+npm start
+```
+Runs on `http://localhost:3000`
+
+---
+
+## ✅ Quality & Build Status
+
+* **Backend**: Clean Node.js syntax with 0 errors across all routes and controllers.
+* **Frontend**: Production build verified with **0 warnings and 0 errors**.

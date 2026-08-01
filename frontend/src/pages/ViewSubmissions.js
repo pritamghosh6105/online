@@ -6,7 +6,8 @@ import {
   Calendar,
   Clock,
   Filter,
-  Search
+  Search,
+  Trash2
 } from 'lucide-react';
 import { formatDate, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -329,6 +330,15 @@ const ViewSubmissions = () => {
                       }}>
                         Submitted
                       </th>
+                      <th style={{
+                        padding: '0.75rem',
+                        textAlign: 'center',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: '#374151'
+                      }}>
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -457,6 +467,28 @@ const ViewSubmissions = () => {
                             }} />
                             {formatDate(submission.createdAt)}
                           </div>
+                        </td>
+                        <td style={{
+                          padding: '0.75rem',
+                          textAlign: 'center'
+                        }}>
+                          <button
+                            onClick={() => handleDeleteSubmission(submission._id, submission.student.name)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              padding: '0.25rem',
+                              borderRadius: '0.25rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            title="Delete Submission"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </td>
                       </tr>
                     ))}
