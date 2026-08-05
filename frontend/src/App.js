@@ -14,6 +14,7 @@ import CreateExam from './pages/CreateExam';
 import ViewSubmissions from './pages/ViewSubmissions';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
+import Home from './pages/Home';
 import QuestionBank from './pages/QuestionBank';
 import LiveMonitoring from './pages/LiveMonitoring';
 import PricingPlans from './pages/PricingPlans';
