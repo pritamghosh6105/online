@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { submissionAPI, examAPI } from '../api';
+import { submissionAPI, examAPI, certificateAPI } from '../api';
 import {
   Calendar,
   Clock,
@@ -13,10 +13,13 @@ import {
   Target,
   Trophy,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Award,
+  Sparkles
 } from 'lucide-react';
 import { formatDate, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
+import CertificateModal from '../components/CertificateModal';
 
 const ExamResults = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -28,6 +31,8 @@ const ExamResults = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [selectedCert, setSelectedCert] = useState(null);
+  const [certLoading, setCertLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -52,6 +57,20 @@ const ExamResults = () => {
       setError('Failed to load your results');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewCertificate = async (submissionId) => {
+    try {
+      setCertLoading(true);
+      const res = await certificateAPI.getCertificate(submissionId);
+      if (res.data.certificate) {
+        setSelectedCert(res.data.certificate);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Certificate not available for this exam result.');
+    } finally {
+      setCertLoading(false);
     }
   };
 
@@ -776,6 +795,52 @@ const ExamResults = () => {
                           {submission.percentage >= 60 ? 'Passed' : 'Failed'}
                         </div>
                       </div>
+
+                      {/* Rank & Certificate Button */}
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
+                        {submission.rank && (
+                          <span style={{ fontSize: '0.8rem', fontWeight: 700, backgroundColor: '#fef3c7', color: '#92400e', padding: '4px 10px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Trophy style={{ width: '12px', height: '12px' }} /> Rank #{submission.rank}
+                          </span>
+                        )}
+
+                        {submission.percentage >= (submission.exam?.passingMarks || 40) && (
+                          <button 
+                            onClick={() => handleViewCertificate(submission._id)}
+                            disabled={certLoading}
+                            style={{
+                              backgroundColor: '#2563eb',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '4px 12px',
+                              borderRadius: '6px',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <Award style={{ width: '14px', height: '14px' }} /> Certificate
+                          </button>
+                        )}
+                      </div>
+
+                      {/* AI Performance Breakdown */}
+                      {submission.aiPerformanceSummary && (
+                        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0', fontSize: '0.8rem', color: '#475569', textAlign: 'left' }}>
+                          <span style={{ color: '#7c3aed', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                            <Sparkles style={{ width: '12px', height: '12px' }} /> AI Insights:
+                          </span>
+                          {submission.aiPerformanceSummary.strengths?.[0] && (
+                            <div style={{ color: '#059669' }}>• {submission.aiPerformanceSummary.strengths[0]}</div>
+                          )}
+                          {submission.aiPerformanceSummary.recommendations?.[0] && (
+                            <div style={{ color: '#2563eb' }}>• {submission.aiPerformanceSummary.recommendations[0]}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -806,6 +871,11 @@ const ExamResults = () => {
           </Link>
         </div>
       </div>
+
+      {/* Certificate Modal */}
+      {selectedCert && (
+        <CertificateModal certificate={selectedCert} onClose={() => setSelectedCert(null)} />
+      )}
     </div>
   );
 };

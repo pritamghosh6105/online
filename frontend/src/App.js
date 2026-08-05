@@ -14,7 +14,10 @@ import CreateExam from './pages/CreateExam';
 import ViewSubmissions from './pages/ViewSubmissions';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
-import Home from './pages/Home';
+import QuestionBank from './pages/QuestionBank';
+import LiveMonitoring from './pages/LiveMonitoring';
+import PricingPlans from './pages/PricingPlans';
+import CertificateVerify from './pages/CertificateVerify';
 
 // Check if user is admin or superadmin
 const isAdmin = (u) => u && (u.role === 'admin' || u.role === 'superadmin' || u.email === 'admin@examin.com');
@@ -36,6 +39,10 @@ function App() {
             path="/" 
             element={!user ? <Home /> : <Navigate to="/dashboard" />} 
           />
+
+          {/* Public Certificate Verification */}
+          <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
+          <Route path="/pricing" element={<PricingPlans />} />
 
           {/* Public Auth Routes */}
           <Route 
@@ -103,6 +110,22 @@ function App() {
             element={
               isAdmin(user) ? 
               <AdminDashboard /> : 
+              <Navigate to="/dashboard" />
+            } 
+          />
+          <Route 
+            path="/admin/question-bank" 
+            element={
+              isAdmin(user) ? 
+              <QuestionBank /> : 
+              <Navigate to="/dashboard" />
+            } 
+          />
+          <Route 
+            path="/admin/live-monitoring" 
+            element={
+              isAdmin(user) ? 
+              <LiveMonitoring /> : 
               <Navigate to="/dashboard" />
             } 
           />

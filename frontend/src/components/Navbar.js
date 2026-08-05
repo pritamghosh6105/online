@@ -55,6 +55,20 @@ const Navbar = () => {
           >
             Dashboard
           </Link>
+
+          <Link 
+            to="/pricing" 
+            style={{
+              color: '#38bdf8',
+              textDecoration: 'none',
+              padding: '0.5rem 0.875rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.925rem',
+              fontWeight: '600'
+            }}
+          >
+            Plans & Pricing
+          </Link>
           
           {user?.role === 'student' && (
             <Link 
@@ -77,6 +91,34 @@ const Navbar = () => {
           
           {(user?.role === 'admin' || user?.role === 'superadmin' || user?.email === 'admin@examin.com') && (
             <>
+              <Link 
+                to="/admin/question-bank" 
+                style={{
+                  color: '#d1d5db',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0.875rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '500'
+                }}
+              >
+                Question Bank
+              </Link>
+
+              <Link 
+                to="/admin/live-monitoring" 
+                style={{
+                  color: '#ef4444',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0.875rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '600'
+                }}
+              >
+                Live Feed
+              </Link>
+
               <Link 
                 to="/admin/create-exam" 
                 style={{
@@ -107,7 +149,7 @@ const Navbar = () => {
                 onMouseEnter={(e) => e.target.style.color = '#ffffff'}
                 onMouseLeave={(e) => e.target.style.color = '#d1d5db'}
               >
-                View Submissions
+                Submissions
               </Link>
             </>
           )}

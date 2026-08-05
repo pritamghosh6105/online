@@ -65,6 +65,25 @@ const submissionSchema = new mongoose.Schema({
   isSubmitted: {
     type: Boolean,
     default: true
+  },
+  proctorLogs: {
+    tabSwitches: { type: Number, default: 0 },
+    copyPasteAttempts: { type: Number, default: 0 },
+    faceVerified: { type: Boolean, default: true },
+    suspiciousFlags: [{ timestamp: Date, reason: String }]
+  },
+  rank: {
+    type: Number,
+    default: null
+  },
+  certificateId: {
+    type: String,
+    default: null
+  },
+  aiPerformanceSummary: {
+    strengths: [String],
+    weaknesses: [String],
+    recommendations: [String]
   }
 }, {
   timestamps: true

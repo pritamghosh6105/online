@@ -23,6 +23,7 @@ const ExamAttempt = () => {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [examStep, setExamStep] = useState('instructions'); // 'instructions', 'face-verify', 'active'
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -30,6 +31,47 @@ const ExamAttempt = () => {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
+
+  // Proctoring State
+  const [tabSwitches, setTabSwitches] = useState(0);
+  const [copyPasteAttempts, setCopyPasteAttempts] = useState(0);
+  const [faceVerified, setFaceVerified] = useState(true);
+
+  // Tab switching detection listener
+  useEffect(() => {
+    if (examStep === 'active') {
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          setTabSwitches(prev => {
+            const updated = prev + 1;
+            toast.warn(`⚠️ Proctor Warning: Tab switch detected! (Violation ${updated}/3)`, { autoClose: 4000 });
+            return updated;
+          });
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+  }, [examStep]);
+
+  // Copy / Paste block listener
+  useEffect(() => {
+    if (examStep === 'active') {
+      const handleCopyPaste = (e) => {
+        e.preventDefault();
+        setCopyPasteAttempts(prev => prev + 1);
+        toast.error('🚫 Copying/Pasting text is prohibited during proctored exams!');
+      };
+
+      document.addEventListener('copy', handleCopyPaste);
+      document.addEventListener('paste', handleCopyPaste);
+      return () => {
+        document.removeEventListener('copy', handleCopyPaste);
+        document.removeEventListener('paste', handleCopyPaste);
+      };
+    }
+  }, [examStep]);
 
   // Fetch exam data
   useEffect(() => {
@@ -39,7 +81,7 @@ const ExamAttempt = () => {
 
   // Timer effect
   useEffect(() => {
-    if (exam && examStartTime && timeRemaining > 0) {
+    if (exam && examStartTime && timeRemaining > 0 && examStep === 'active') {
       const timer = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
@@ -53,11 +95,11 @@ const ExamAttempt = () => {
       return () => clearInterval(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exam, examStartTime, timeRemaining]);
+  }, [exam, examStartTime, timeRemaining, examStep]);
 
-  // Auto-save answers
+  // Auto-save answers every 30 seconds
   useEffect(() => {
-    if (Object.keys(answers).length > 0) {
+    if (Object.keys(answers).length > 0 && examStep === 'active') {
       setAutoSaveStatus('saving');
       const saveTimer = setTimeout(() => {
         localStorage.setItem(`exam_${id}_answers`, JSON.stringify(answers));
@@ -66,12 +108,12 @@ const ExamAttempt = () => {
 
       return () => clearTimeout(saveTimer);
     }
-  }, [answers, id]);
+  }, [answers, id, examStep]);
 
   // Allow opening new tabs but warn on page refresh/close
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      const message = 'Your exam is in progress. Your answers are saved.';
+      const message = 'Your exam is in progress. Your answers are auto-saved.';
       e.returnValue = message;
       return message;
     };
@@ -185,7 +227,12 @@ const ExamAttempt = () => {
           selectedOption: parseInt(answers[questionId])
         })),
         startTime: examStartTime.toISOString(),
-        endTime: endTime.toISOString()
+        endTime: endTime.toISOString(),
+        proctorLogs: {
+          tabSwitches,
+          copyPasteAttempts,
+          faceVerified
+        }
       };
 
       console.log('Submitting exam with data:', submissionData);

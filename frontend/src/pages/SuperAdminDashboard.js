@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { authAPI, examAPI, scheduleAPI } from '../api';
+import { authAPI, examAPI, scheduleAPI, superAdminAPI } from '../api';
 import { 
   ShieldCheck, 
   Building, 
@@ -14,17 +14,24 @@ import {
   UserCheck,
   AlertTriangle,
   Calendar,
-  Mail
+  Mail,
+  BarChart2,
+  FileSpreadsheet,
+  Download,
+  Activity,
+  Award
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const SuperAdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('analytics');
   const [pendingAdmins, setPendingAdmins] = useState([]);
   const [approvedAdmins, setApprovedAdmins] = useState([]);
   const [approvedInstitutions, setApprovedInstitutions] = useState([]);
   const [allExams, setAllExams] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -38,12 +45,14 @@ const SuperAdminDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const [pendingRes, adminsRes, instRes, examsRes, schedulesRes] = await Promise.all([
+      const [pendingRes, adminsRes, instRes, examsRes, schedulesRes, analyticsRes, auditRes] = await Promise.all([
         authAPI.getPendingAdmins().catch(() => ({ data: { pendingAdmins: [] } })),
         authAPI.getAdmins().catch(() => ({ data: { admins: [] } })),
         authAPI.getApprovedInstitutions().catch(() => ({ data: { institutions: [] } })),
         examAPI.getExams().catch(() => ({ data: { exams: [] } })),
-        scheduleAPI.getSchedules().catch(() => ({ data: { schedules: [] } }))
+        scheduleAPI.getSchedules().catch(() => ({ data: { schedules: [] } })),
+        superAdminAPI.getAnalytics().catch(() => ({ data: { analytics: null } })),
+        superAdminAPI.getAuditLogs().catch(() => ({ data: { logs: [] } }))
       ]);
 
       setPendingAdmins(pendingRes.data.pendingAdmins || []);
@@ -51,20 +60,29 @@ const SuperAdminDashboard = () => {
       setApprovedInstitutions(instRes.data.institutions || []);
       setAllExams(examsRes.data.exams || []);
       setSchedules(schedulesRes.data.schedules || []);
-
-      // Default to 'schedules' if schedules exist, or 'pending'
-      if ((pendingRes.data.pendingAdmins || []).length > 0) {
-        setActiveTab('pending');
-      } else if ((schedulesRes.data.schedules || []).length > 0) {
-        setActiveTab('schedules');
-      } else {
-        setActiveTab('approved');
-      }
+      setAnalytics(analyticsRes.data.analytics);
+      setAuditLogs(auditRes.data.logs || []);
     } catch (err) {
       console.error('Error loading superadmin data:', err);
       setError('Failed to load Super Admin dashboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadBackup = async () => {
+    try {
+      const res = await superAdminAPI.getBackup();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(res.data.backup, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `examin_system_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      alert('✅ Platform database backup JSON downloaded successfully!');
+    } catch (err) {
+      alert('Failed to download system backup');
     }
   };
 

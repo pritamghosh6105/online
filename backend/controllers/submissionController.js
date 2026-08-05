@@ -16,7 +16,7 @@ const submitExam = async (req, res) => {
       });
     }
 
-    const { examId, answers, startTime, endTime } = req.body;
+    const { examId, answers, startTime, endTime, proctorLogs } = req.body;
 
     // Check if exam exists
     const exam = await Exam.findById(examId);
@@ -52,6 +52,8 @@ const submitExam = async (req, res) => {
     // Calculate scores
     let totalScore = 0;
     const processedAnswers = [];
+    let correctCount = 0;
+    let incorrectCount = 0;
 
     for (const answer of answers) {
       const question = exam.questions.id(answer.questionId);
@@ -60,6 +62,9 @@ const submitExam = async (req, res) => {
       const selectedOption = question.options[answer.selectedOption];
       const isCorrect = selectedOption ? selectedOption.isCorrect : false;
       const marksObtained = isCorrect ? question.marks : 0;
+
+      if (isCorrect) correctCount++;
+      else incorrectCount++;
 
       totalScore += marksObtained;
 
@@ -72,12 +77,38 @@ const submitExam = async (req, res) => {
     }
 
     // Calculate time taken
-    const startTimeDate = new Date(startTime);
-    const endTimeDate = new Date(endTime);
-    const timeTaken = Math.round((endTimeDate - startTimeDate) / (1000 * 60)); // in minutes
+    const startTimeDate = new Date(startTime || Date.now() - 30 * 60 * 1000);
+    const endTimeDate = new Date(endTime || Date.now());
+    const timeTaken = Math.max(1, Math.round((endTimeDate - startTimeDate) / (1000 * 60))); // in minutes
 
     // Calculate percentage
     const percentage = exam.totalMarks > 0 ? Math.round((totalScore / exam.totalMarks) * 100) : 0;
+
+    // Calculate Rank among current submissions for this exam
+    const higherScoringCount = await Submission.countDocuments({
+      exam: examId,
+      totalScore: { $gt: totalScore }
+    });
+    const studentRank = higherScoringCount + 1;
+
+    // AI Performance Analysis Insights
+    const strengths = [];
+    const weaknesses = [];
+    const recommendations = [];
+
+    if (percentage >= 80) {
+      strengths.push(`Mastery in ${exam.subject} concepts and problem solving`);
+      strengths.push(`High accuracy (${correctCount} correct questions out of ${exam.questions.length})`);
+      recommendations.push(`Maintain strong conceptual grasp and attempt advanced level subject practice`);
+    } else if (percentage >= 50) {
+      strengths.push(`Good baseline understanding of ${exam.subject}`);
+      weaknesses.push(`Missed ${incorrectCount} questions due to option confusion or timing`);
+      recommendations.push(`Review key topics in ${exam.subject} and practice timed mock tests`);
+    } else {
+      weaknesses.push(`Low score (${percentage}%) in ${exam.subject} fundamental questions`);
+      weaknesses.push(`High error count (${incorrectCount} incorrect responses)`);
+      recommendations.push(`Re-read primary study materials for ${exam.subject} before retaking exams`);
+    }
 
     // Create submission
     const submission = await Submission.create({
@@ -89,25 +120,29 @@ const submitExam = async (req, res) => {
       percentage,
       startTime: startTimeDate,
       endTime: endTimeDate,
-      timeTaken
+      timeTaken,
+      rank: studentRank,
+      proctorLogs: {
+        tabSwitches: proctorLogs?.tabSwitches || 0,
+        copyPasteAttempts: proctorLogs?.copyPasteAttempts || 0,
+        faceVerified: proctorLogs?.faceVerified !== false
+      },
+      aiPerformanceSummary: {
+        strengths,
+        weaknesses,
+        recommendations
+      }
     });
 
     await submission.populate([
-      { path: 'student', select: 'name email' },
-      { path: 'exam', select: 'title subject totalMarks' }
+      { path: 'student', select: 'name email institution' },
+      { path: 'exam', select: 'title subject totalMarks passingMarks' }
     ]);
 
     res.status(201).json({
       success: true,
       message: 'Exam submitted successfully',
-      submission: {
-        id: submission._id,
-        totalScore: submission.totalScore,
-        totalMarks: submission.totalMarks,
-        percentage: submission.percentage,
-        timeTaken: submission.timeTaken,
-        submittedAt: submission.createdAt
-      }
+      submission
     });
   } catch (error) {
     console.error('Submit exam error:', error);
@@ -264,10 +299,42 @@ const deleteSubmission = async (req, res) => {
   }
 };
 
+// @desc    Get leaderboard for exam
+// @route   GET /api/submissions/leaderboard/:examId
+// @access  Private
+const getExamLeaderboard = async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const submissions = await Submission.find({ exam: examId })
+      .populate('student', 'name studentId institution')
+      .populate('exam', 'title subject totalMarks')
+      .sort({ totalScore: -1, timeTaken: 1 })
+      .limit(10)
+      .lean();
+
+    const leaderboard = submissions.map((sub, index) => ({
+      rank: index + 1,
+      studentName: sub.student?.name || 'Anonymous Student',
+      studentId: sub.student?.studentId || 'N/A',
+      institution: sub.student?.institution || 'Examin Academy',
+      score: sub.totalScore,
+      totalMarks: sub.totalMarks,
+      percentage: sub.percentage,
+      timeTaken: sub.timeTaken
+    }));
+
+    res.json({ success: true, count: leaderboard.length, leaderboard });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch exam leaderboard' });
+  }
+};
+
 module.exports = {
   submitExam,
   getMySubmissions,
   getAllSubmissions,
   getSubmission,
-  deleteSubmission
+  deleteSubmission,
+  getExamLeaderboard
 };

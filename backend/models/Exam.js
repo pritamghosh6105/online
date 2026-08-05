@@ -40,6 +40,11 @@ const examSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Subject cannot be more than 50 characters']
   },
+  category: {
+    type: String,
+    default: 'General',
+    trim: true
+  },
   duration: {
     type: Number,
     required: [true, 'Duration is required'],
@@ -48,6 +53,10 @@ const examSchema = new mongoose.Schema({
   totalMarks: {
     type: Number,
     default: 0
+  },
+  passingMarks: {
+    type: Number,
+    default: 40
   },
   questions: [questionSchema],
   createdBy: {
@@ -60,9 +69,20 @@ const examSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  status: {
+    type: String,
+    enum: ['Draft', 'Published'],
+    default: 'Published'
+  },
   isActive: {
     type: Boolean,
     default: true
+  },
+  proctoring: {
+    enableFaceVerify: { type: Boolean, default: true },
+    enableTabDetection: { type: Boolean, default: true },
+    enableCopyPasteBlock: { type: Boolean, default: true },
+    maxTabSwitchesAllowed: { type: Number, default: 3 }
   },
   startDate: {
     type: Date,
@@ -85,7 +105,7 @@ examSchema.pre('save', function(next) {
 // Virtual for checking if exam is currently active
 examSchema.virtual('isCurrentlyActive').get(function() {
   const now = new Date();
-  return this.isActive && now >= this.startDate && now <= this.endDate;
+  return this.isActive && this.status === 'Published' && now >= this.startDate && now <= this.endDate;
 });
 
 module.exports = mongoose.model('Exam', examSchema);

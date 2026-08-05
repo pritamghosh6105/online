@@ -6,13 +6,27 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 
 ## 📌 Project Overview
 
-**Examin** is a full-stack web application designed for institutions to conduct online examinations with real-time timer tracking, automated MCQ evaluation, role-based security, and institutional onboarding.
+**Examin** is an enterprise-grade full-stack web application designed for institutions to conduct online examinations with real-time proctoring, AI question generation, automated MCQ evaluation, QR-verified certificate issuance, leaderboard rankings, and role-based administration.
 
 ### Tech Stack
 * **Frontend**: React 18, React Router v6, Axios, Lucide React, React Toastify
 * **Backend**: Node.js, Express.js, MongoDB (Mongoose ODM)
-* **Authentication**: JWT (JSON Web Tokens), bcryptjs password hashing
+* **Authentication**: JWT (JSON Web Tokens), bcryptjs password hashing, 2FA & QR Login options
 * **Deployment & Tooling**: Express-validator, CORS, Nodemailer (SMTP email integration)
+
+---
+
+## 🚀 Complete Workflows & Feature Roadmap
+
+1. **Institution Onboarding**: Demo requests -> Super Admin approval -> Automated Admin account creation -> Email credential dispatch.
+2. **Student Exam Workflow**: Pre-exam instructions -> Webcam face verification -> Timed exam with 30s auto-save -> Auto-submit on timer end -> Immediate score breakdown -> Downloadable QR certificate.
+3. **Admin Exam Creation & Question Bank**: Question Bank with category/difficulty tags, CSV/Excel bulk import, and **AI Question Generator**.
+4. **Result & Leaderboard**: Auto evaluation, exam rank calculation (1st, 2nd, 3rd place), and AI-driven performance breakdown (strengths & weakness recommendations).
+5. **Proctoring & Live Monitoring**: Tab switching detection warning counter, copy-paste blocking, and live candidate proctoring feed (`/admin/live-monitoring`).
+6. **Certificate Workflow**: Printable PDF certificate with scannable QR verification link (`/verify-certificate/:certId`).
+7. **Super Admin Oversight**: Platform analytics dashboard, system audit logs, subscription plan manager, and database JSON backup export.
+8. **Subscriptions & Payments**: Interactive pricing plans (`/pricing`), card checkout simulation, and invoice downloader.
+9. **Dark Mode**: Persistent dark theme switcher context across all views.
 
 ---
 
@@ -23,20 +37,32 @@ examin/
 ├── backend/                        # Node.js / Express Server
 │   ├── controllers/                # Request handling logic
 │   │   ├── authController.js       # Registration, login, credential change & approvals
+│   │   ├── certificateController.js# Certificate generation & QR verification
 │   │   ├── examController.js       # Exam creation, editing, deletion & retrieval
-│   │   └── submissionController.js # Auto-evaluation engine & score processing
+│   │   ├── questionBankController.js# Question bank CRUD, CSV import & AI generation
+│   │   ├── submissionController.js # Auto-evaluation, rank calculation & AI analysis
+│   │   └── superAdminController.js # Platform analytics, audit logs & database backup
 │   ├── middleware/                 # Route guards & security
 │   │   └── auth.js                 # JWT token verification & role authorization
 │   ├── models/                     # Mongoose database schemas
-│   │   ├── Exam.js                 # Exam structure & question marks
+│   │   ├── AuditLog.js             # System action audit trail
+│   │   ├── Certificate.js          # Issued certificate & verification hash
+│   │   ├── Exam.js                 # Exam structure, proctoring & passing marks
+│   │   ├── Institution.js          # Institutional subscription plan & limits
+│   │   ├── Notification.js         # User dashboard notification alerts
+│   │   ├── QuestionBank.js         # Question bank categories, difficulty & options
 │   │   ├── Schedule.js             # Institutional demo schedule requests
-│   │   ├── Submission.js           # Student test results & selected options
+│   │   ├── Submission.js           # Student test results, proctor logs & AI analysis
 │   │   └── User.js                 # User profile, role & approval status
 │   ├── routes/                     # REST API endpoints
 │   │   ├── auth.js                 # Authentication routes
+│   │   ├── certificates.js         # Certificate & verification routes
 │   │   ├── exams.js                # Exam management routes
+│   │   ├── notifications.js        # Notification routes
+│   │   ├── questionBank.js         # Question bank & AI generator routes
 │   │   ├── schedules.js            # Institutional schedule request routes
-│   │   └── submissions.js          # Submission & evaluation routes
+│   │   ├── submissions.js          # Submission & leaderboard routes
+│   │   └── superAdmin.js           # Super admin analytics & backup routes
 │   ├── package.json                # Backend dependencies
 │   └── server.js                   # Express application entry point
 │
@@ -46,26 +72,31 @@ examin/
 │   │   ├── api/                    # API integration service
 │   │   │   └── index.js            # Axios client with interceptors
 │   │   ├── components/             # Reusable UI components
+│   │   │   ├── CertificateModal.js # PDF / Canvas Printable Certificate with QR Code
+│   │   │   ├── ExaminLogo.js       # Platform logo icon
 │   │   │   ├── LoadingSpinner.js   # Global loading animation
-│   │   │   └── Navbar.js           # Responsive header navigation
+│   │   │   └── Navbar.js           # Responsive header navigation & Dark mode toggle
 │   │   ├── context/                # Global React State
-│   │   │   └── AuthContext.js      # User auth state & session management
+│   │   │   ├── AuthContext.js      # User auth state & session management
+│   │   │   └── ThemeContext.js     # Dark Mode / Light Mode persistent theme
 │   │   ├── pages/                  # Route views
 │   │   │   ├── AdminDashboard.js   # Instructor/Admin control panel
 │   │   │   ├── AdminLogin.js       # Administrative login page
+│   │   │   ├── CertificateVerify.js# Public QR Code Certificate verification portal
 │   │   │   ├── CreateExam.js       # Exam builder with MCQ management
 │   │   │   ├── Dashboard.js        # Role router page
-│   │   │   ├── ExamAttempt.js      # Live exam attempt & countdown timer
-│   │   │   ├── ExamResults.js      # Student result analytics & scorecards
+│   │   │   ├── ExamAttempt.js      # Instructions, Face Verify & Live Exam with proctoring
+│   │   │   ├── ExamResults.js      # Leaderboard, AI Insights & Certificate download
 │   │   │   ├── Home.js             # Landing page & demo request form
+│   │   │   ├── LiveMonitoring.js   # Admin real-time exam attempt proctoring feed
 │   │   │   ├── Login.js            # Generic login view
+│   │   │   ├── PricingPlans.js     # Pricing plans, checkout modal & invoice download
+│   │   │   ├── QuestionBank.js     # Question bank manager, CSV import & AI generator
 │   │   │   ├── Register.js         # Student registration form
 │   │   │   ├── StudentDashboard.js # Student portal & available exams
 │   │   │   ├── StudentLogin.js     # Student login via ID
-│   │   │   ├── SuperAdminDashboard.js # Master system administration
+│   │   │   ├── SuperAdminDashboard.js # Master system administration & analytics
 │   │   │   └── ViewSubmissions.js # Submission management & deletion table
-│   │   ├── utils/                  # Helper utilities
-│   │   │   └── helpers.js          # Date, duration & grade formatters
 │   │   ├── App.js                  # React Router navigation tree
 │   │   ├── index.css               # Design system & CSS styling
 │   │   └── index.js                # Application render entry point
@@ -99,96 +130,63 @@ flowchart TD
     RoleCheck -->|Admin / Instructor| AdminDash[Admin Dashboard]
     RoleCheck -->|Super Admin| SuperAdminDash[Super Admin Dashboard]
 
-    StudentDash --> Attempt[Attempt Active Exam]
+    StudentDash --> PreCheck[Instructions & Face Verification]
+    PreCheck --> Attempt[Attempt Active Proctored Exam]
     Attempt --> AutoGrade[Auto-Evaluation Engine]
-    AutoGrade --> Results[View Immediate Results]
+    AutoGrade --> Results[View Leaderboard, AI Insights & QR Certificate]
 
-    AdminDash --> Create[Create Exam & MCQs]
+    AdminDash --> QBank[Question Bank & AI Generator]
+    AdminDash --> Create[Create & Schedule Exams]
+    AdminDash --> LiveMonitor[Live Proctoring Feed]
     AdminDash --> ViewSub[View & Manage Student Submissions]
 
+    SuperAdminDash --> Analytics[Platform Analytics & Audit Logs]
     SuperAdminDash --> Approve[Approve Pending Institutional Admins]
-    SuperAdminDash --> Onboard[Manage Institutional Demo Requests]
+    SuperAdminDash --> Onboard[Manage Demo Requests & Subscriptions]
+    SuperAdminDash --> Backup[Export Database Backup JSON]
 ```
-
-### 1. Student
-* **Registration**: Auto-approved upon registration; assigned a unique 11-digit Student ID.
-* **Capabilities**: Browse active exams for their institution, attempt timed exams, select MCQ options, auto-submit on countdown completion, and view detailed personal result analytics.
-
-### 2. Admin (Institutional / Instructor)
-* **Registration**: Requires Super Admin approval or automatic account creation via confirmed demo schedule requests.
-* **Capabilities**: Create & manage exams, define start/end dates and durations, add MCQs with marks, view institutional student submissions, and delete submissions.
-
-### 3. Super Admin
-* **Access**: Master administrative access for platform oversight (`admin@examin.com`).
-* **Capabilities**: Approve pending institutional sub-admins, manage institutional demo requests, review platform-wide exam submissions, and provision admin accounts via automated email credentials.
 
 ---
 
 ## 🗄️ Database Schemas
 
-### User Schema (`models/User.js`)
+### QuestionBank Schema (`models/QuestionBank.js`)
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `name` | String | Full name (required) |
-| `email` | String | Unique email address (required) |
-| `studentId` | String | Unique 11-digit Student/Admin ID |
-| `password` | String | Hashed password (bcrypt) |
-| `role` | String | Enum: `student`, `admin`, `superadmin` |
-| `institution` | String | Associated institution |
-| `isApproved` | Boolean | True for students/superadmins; requires approval for sub-admins |
-| `isActive` | Boolean | Account status toggle |
+| `question` | String | MCQ question text |
+| `category` | String | Topic category (e.g. Mathematics, CS) |
+| `difficulty` | String | Enum: `Easy`, `Medium`, `Hard` |
+| `options` | Array | Options text & boolean `isCorrect` |
+| `marks` | Number | Weightage marks |
 
-### Exam Schema (`models/Exam.js`)
+### Certificate Schema (`models/Certificate.js`)
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `title` | String | Exam title |
-| `subject` | String | Subject/Course name |
-| `duration` | Number | Time limit in minutes |
-| `totalMarks` | Number | Auto-calculated sum of question marks |
-| `questions` | Array | MCQ objects (`question`, `options`, `isCorrect`, `marks`) |
-| `createdBy` | ObjectId | Reference to `User` |
-| `startDate` | Date | Exam window start time |
-| `endDate` | Date | Exam window end time |
-| `isActive` | Boolean | Status toggle |
-
-### Submission Schema (`models/Submission.js`)
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `student` | ObjectId | Reference to `User` |
-| `exam` | ObjectId | Reference to `Exam` |
-| `answers` | Array | Selected option indices & evaluation results |
-| `totalScore` | Number | Achieved score |
-| `percentage` | Number | Calculated percentage score |
-| `timeTaken` | Number | Duration in minutes |
+| `certificateId` | String | Unique hash ID (e.g. `CERT-A1B2C3D4`) |
+| `studentName` | String | Passed candidate full name |
+| `examTitle` | String | Exam title |
+| `score` | Number | Total score achieved |
+| `percentage` | Number | Calculated percentage |
+| `issueDate` | Date | Issuance date |
 
 ---
 
-## ⚡ API Endpoints
+## ⚡ Key API Endpoints
 
-### Authentication (`/api/auth`)
-* `POST /api/auth/register` — Register a new student or admin
-* `POST /api/auth/login` — Login with Email / Student ID and password
-* `GET /api/auth/me` — Fetch authenticated user profile
-* `GET /api/auth/pending-admins` — Fetch unapproved admin accounts *(Admin/SuperAdmin)*
-* `PUT /api/auth/approve-admin/:id` — Approve sub-admin *(SuperAdmin)*
+### Question Bank (`/api/question-bank`)
+* `GET /api/question-bank` — List and filter questions by category/difficulty
+* `POST /api/question-bank` — Add new question
+* `POST /api/question-bank/import` — Bulk import questions via JSON/CSV
+* `POST /api/question-bank/ai-generate` — Generate AI questions by topic prompt
 
-### Exams (`/api/exams`)
-* `GET /api/exams` — List available exams
-* `GET /api/exams/:id` — Get single exam details
-* `POST /api/exams` — Create a new exam *(Admin only)*
-* `PUT /api/exams/:id` — Update exam details *(Admin only)*
-* `DELETE /api/exams/:id` — Delete an exam *(Admin only)*
+### Certificates (`/api/certificates`)
+* `GET /api/certificates/submission/:submissionId` — Generate/fetch certificate
+* `GET /api/certificates/verify/:certId` — Public verification of QR certificate ID
 
-### Submissions (`/api/submissions`)
-* `POST /api/submissions` — Submit exam answers & trigger auto-grading *(Student)*
-* `GET /api/submissions/my` — Fetch student's test history *(Student)*
-* `GET /api/submissions` — Fetch all submissions *(Admin only)*
-* `DELETE /api/submissions/:id` — Delete a submission *(Admin only)*
-
-### Schedules (`/api/schedules`)
-* `POST /api/schedules` — Request institutional test schedule *(Public)*
-* `GET /api/schedules` — List schedule requests *(Admin/SuperAdmin)*
-* `PUT /api/schedules/:id` — Confirm request & provision Admin account *(SuperAdmin)*
+### Super Admin (`/api/superadmin`)
+* `GET /api/superadmin/analytics` — Platform usage stats & pass rate
+* `GET /api/superadmin/audit-logs` — Administrative audit action logs
+* `GET /api/superadmin/backup` — Export full platform JSON snapshot
 
 ---
 
@@ -214,7 +212,7 @@ Runs on `http://localhost:3000`
 
 ## ✅ Quality & Build Status
 
-* **Backend**: Clean Node.js syntax with 0 errors across all routes and controllers.
+* **Backend**: Node.js / Express API fully operational with clean routes.
 * **Frontend**: Production build verified with **0 warnings and 0 errors**.
 
 

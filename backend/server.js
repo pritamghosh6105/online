@@ -11,6 +11,10 @@ const authRoutes = require('./routes/auth');
 const examRoutes = require('./routes/exams');
 const submissionRoutes = require('./routes/submissions');
 const scheduleRoutes = require('./routes/schedules');
+const questionBankRoutes = require('./routes/questionBank');
+const certificateRoutes = require('./routes/certificates');
+const notificationRoutes = require('./routes/notifications');
+const superAdminRoutes = require('./routes/superAdmin');
 
 const app = express();
 
@@ -56,6 +60,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/exams', examRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/schedules', scheduleRoutes);
+app.use('/api/question-bank', questionBankRoutes);
+app.use('/api/certificates', certificateRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/superadmin', superAdminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

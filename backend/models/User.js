@@ -49,6 +49,18 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  isTwoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+  qrLoginKey: {
+    type: String,
+    default: ''
+  },
+  plan: {
+    type: String,
+    default: 'Free'
   }
 }, {
   timestamps: true

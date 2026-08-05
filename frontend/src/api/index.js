@@ -30,6 +30,7 @@ export const examAPI = {
 export const submissionAPI = {
   submitExam: (submissionData) => api.post('/submissions', submissionData),
   getMySubmissions: () => api.get('/submissions/my'),
+  getLeaderboard: (examId) => api.get(`/submissions/leaderboard/${examId}`),
   getAllSubmissions: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     return api.get(`/submissions${queryString ? `?${queryString}` : ''}`);
@@ -44,4 +45,40 @@ export const scheduleAPI = {
   getSchedules: () => api.get('/schedules'),
   updateStatus: (id, status) => api.put(`/schedules/${id}`, { status }),
   deleteSchedule: (id) => api.delete(`/schedules/${id}`),
+};
+
+// Question Bank API
+export const questionBankAPI = {
+  getQuestions: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/question-bank${queryString ? `?${queryString}` : ''}`);
+  },
+  createQuestion: (data) => api.post('/question-bank', data),
+  importBulk: (questions) => api.post('/question-bank/import', { questions }),
+  getRandomQuestions: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    return api.get(`/question-bank/random?${queryString}`);
+  },
+  aiGenerateQuestions: (promptData) => api.post('/question-bank/ai-generate', promptData),
+  deleteQuestion: (id) => api.delete(`/question-bank/${id}`)
+};
+
+// Certificate API
+export const certificateAPI = {
+  getCertificate: (submissionId) => api.get(`/certificates/submission/${submissionId}`),
+  verifyCertificate: (certId) => api.get(`/certificates/verify/${certId}`)
+};
+
+// Notification API
+export const notificationAPI = {
+  getNotifications: () => api.get('/notifications'),
+  markReadAll: () => api.put('/notifications/read-all')
+};
+
+// SuperAdmin API
+export const superAdminAPI = {
+  getAnalytics: () => api.get('/superadmin/analytics'),
+  getAuditLogs: () => api.get('/superadmin/audit-logs'),
+  updateInstitutionPlan: (name, plan) => api.put('/superadmin/institution-plan', { name, plan }),
+  getBackup: () => api.get('/superadmin/backup')
 };
