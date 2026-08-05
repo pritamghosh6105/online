@@ -125,7 +125,7 @@ examin/
 │   │   └── index.js                # Application render entry point
 │   └── package.json                # Frontend dependencies
 │
-├── README.md               # Complete system documentation
+├── README.md                       # Complete system documentation
 └── render.yaml                     # Render deployment configuration
 ```
 
