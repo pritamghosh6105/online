@@ -136,13 +136,14 @@ router.put('/:id', async (req, res) => {
 
     let createdAdmin = null;
 
-    // If status is confirmed or completed, auto-create or approve Admin account
-    if (status === 'confirmed' || status === 'completed') {
+    // If status is approved, confirmed or completed, auto-create or approve Admin account
+    if (status === 'approved' || status === 'confirmed' || status === 'completed') {
       const User = require('../models/User');
       let existingUser = await User.findOne({ email: schedule.email });
 
+      const generatedPassword = 'Admin@' + Math.floor(100000 + Math.random() * 900000);
+
       if (!existingUser) {
-        const generatedPassword = 'Admin@' + Math.floor(100000 + Math.random() * 900000);
         const adminId = Date.now().toString().slice(-8) + Math.floor(100 + Math.random() * 900).toString();
 
         existingUser = await User.create({
@@ -156,8 +157,7 @@ router.put('/:id', async (req, res) => {
           isActive: true
         });
 
-        // Fire background email sending (non-blocking for instant response)
-        const hasSmtp = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+        // Send credentials email
         sendAdminCredentialsEmail(
           schedule.email,
           schedule.name,
@@ -172,24 +172,38 @@ router.put('/:id', async (req, res) => {
           adminId: adminId,
           password: generatedPassword,
           institution: schedule.institution,
-          emailSent: hasSmtp,
+          emailSent: true,
           isNew: true
         };
       } else {
-        // If user already exists, update role to admin and approve
+        // If user already exists, upgrade to admin, set Admin ID & password, and send email!
+        let adminId = existingUser.studentId;
+        if (!adminId) {
+          adminId = Date.now().toString().slice(-8) + Math.floor(100 + Math.random() * 900).toString();
+          existingUser.studentId = adminId;
+        }
         existingUser.role = 'admin';
         existingUser.isApproved = true;
+        existingUser.password = generatedPassword;
         existingUser.institution = schedule.institution || existingUser.institution;
         await existingUser.save();
+
+        sendAdminCredentialsEmail(
+          existingUser.email,
+          existingUser.name,
+          adminId,
+          generatedPassword,
+          existingUser.institution
+        ).catch(err => console.error('Background email dispatch failed:', err.message));
 
         createdAdmin = {
           name: existingUser.name,
           email: existingUser.email,
-          adminId: existingUser.studentId || 'Existing ID',
-          password: '(Existing Account Password)',
+          adminId: adminId,
+          password: generatedPassword,
           institution: existingUser.institution,
-          emailSent: false,
-          isNew: false
+          emailSent: true,
+          isNew: true
         };
       }
     }

@@ -1,4 +1,9 @@
-/* Responsive Design System & Global Styles for Mobile and Desktop */
+/* Desktop Only Navigation Link Styling */
+@media (max-width: 768px) {
+  .desktop-only-back-home {
+    display: none !important;
+  }
+}
 
 :root {
   --primary-color: #3b82f6;

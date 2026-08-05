@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { examAPI } from '../api';
+import { examAPI, aiExamAPI } from '../api';
 import {
   BookOpen,
   Plus,
@@ -8,7 +8,14 @@ import {
   Save,
   FileText,
   Check,
-  X
+  X,
+  Sparkles,
+  Wand2,
+  Brain,
+  Bot,
+  Zap,
+  RefreshCw,
+  Edit3
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -37,6 +44,50 @@ const CreateExam = () => {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // AI Generator Modal States
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiForm, setAiForm] = useState({
+    topic: '',
+    subject: '',
+    difficulty: 'Medium',
+    count: 5
+  });
+
+  const handleGenerateAiExam = async (e) => {
+    if (e) e.preventDefault();
+    const topicToUse = aiForm.topic || examData.subject || examData.title || 'General Knowledge';
+    
+    setAiLoading(true);
+    try {
+      const res = await aiExamAPI.generateExam({
+        topic: topicToUse,
+        subject: aiForm.subject || examData.subject || topicToUse,
+        difficulty: aiForm.difficulty,
+        count: aiForm.count
+      });
+
+      if (res.data?.success) {
+        const generated = res.data;
+        setExamData(prev => ({
+          ...prev,
+          title: prev.title || generated.title,
+          subject: prev.subject || generated.subject,
+          duration: prev.duration || generated.duration || 60,
+          questions: [...prev.questions, ...generated.questions]
+        }));
+
+        toast.success(`✨ AI generated ${generated.questions.length} questions for ${topicToUse}!`);
+        setShowAiModal(false);
+      }
+    } catch (err) {
+      console.error('Error generating AI exam:', err);
+      toast.error('Failed to generate AI questions. Please try again.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleExamDataChange = (e) => {
     const { name, value } = e.target;
@@ -147,6 +198,20 @@ const CreateExam = () => {
     toast.success('Question removed');
   };
 
+  const editQuestion = (index) => {
+    const qToEdit = examData.questions[index];
+    setCurrentQuestion({
+      question: qToEdit.question,
+      options: qToEdit.options.map(opt => ({ ...opt })),
+      marks: qToEdit.marks || 1
+    });
+    setExamData(prev => ({
+      ...prev,
+      questions: prev.questions.filter((_, i) => i !== index)
+    }));
+    toast.info(`Editing Question Q${index + 1}. Modify details and click "Add Question" to save.`);
+  };
+
   const validateExam = () => {
     const newErrors = {};
 
@@ -245,23 +310,251 @@ const CreateExam = () => {
       }}>
         {/* Header */}
         <div style={{
-          marginBottom: '2rem'
+          marginBottom: '2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem'
         }}>
-          <h1 style={{
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
-          }}>
-            Create New Exam
-          </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '1rem'
-          }}>
-            Fill in the exam details and add questions to create a new exam.
-          </p>
+          <div>
+            <h1 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#1f2937',
+              marginBottom: '0.5rem'
+            }}>
+              Create New Exam
+            </h1>
+            <p style={{
+              color: '#6b7280',
+              fontSize: '1rem',
+              margin: 0
+            }}>
+              Fill in the exam details or use AI to generate questions automatically.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAiForm(prev => ({
+                ...prev,
+                topic: examData.subject || examData.title || '',
+                subject: examData.subject || ''
+              }));
+              setShowAiModal(true);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+              color: '#ffffff',
+              padding: '0.75rem 1.25rem',
+              borderRadius: '0.5rem',
+              fontWeight: '700',
+              fontSize: '0.925rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Sparkles size={18} /> Build Exam with AI
+          </button>
         </div>
+
+        {/* AI Generator Modal */}
+        {showAiModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '1rem',
+              maxWidth: '520px',
+              width: '100%',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+              border: '1px solid #e2e8f0'
+            }}>
+              {/* Modal Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                color: '#ffffff',
+                padding: '1.25rem 1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <Sparkles size={22} />
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>
+                    AI Exam & Question Builder
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAiModal(false)}
+                  style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <form onSubmit={handleGenerateAiExam} style={{ padding: '1.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: 0, marginBottom: '1.25rem' }}>
+                  Enter any topic or subject below. AI will automatically generate structured questions, options, and duration for your exam!
+                </p>
+
+                {/* Topic Field */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
+                    Exam Topic / Subject *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={aiForm.topic}
+                    onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
+                    placeholder="e.g. Python Basics, Machine Learning, World History..."
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {/* Quick Topic Badges */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.25rem' }}>
+                  {['Python', 'JavaScript', 'Data Structures', 'Mathematics', 'General Science', 'Java'].map(item => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setAiForm({ ...aiForm, topic: item, subject: item })}
+                      style={{
+                        backgroundColor: aiForm.topic === item ? '#7c3aed' : '#f1f5f9',
+                        color: aiForm.topic === item ? '#ffffff' : '#475569',
+                        border: 'none',
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.775rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + {item}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Difficulty & Count */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
+                      Difficulty Level
+                    </label>
+                    <select
+                      value={aiForm.difficulty}
+                      onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.7rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.875rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                      <option value="Mixed">Mixed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
+                      Number of Questions
+                    </label>
+                    <select
+                      value={aiForm.count}
+                      onChange={(e) => setAiForm({ ...aiForm, count: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '0.7rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.875rem',
+                        fontWeight: '600'
+                      }}
+                    >
+                      <option value="5">5 Questions</option>
+                      <option value="10">10 Questions</option>
+                      <option value="15">15 Questions</option>
+                      <option value="20">20 Questions</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowAiModal(false)}
+                    style={{
+                      padding: '0.65rem 1.25rem',
+                      backgroundColor: '#f1f5f9',
+                      color: '#475569',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={aiLoading}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.65rem 1.4rem',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      opacity: aiLoading ? 0.7 : 1
+                    }}
+                  >
+                    {aiLoading ? <RefreshCw size={18} className="animate-spin" /> : <Wand2 size={18} />}
+                    {aiLoading ? 'Generating AI Questions...' : 'Generate Questions'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* Exam Details */}
@@ -717,20 +1010,48 @@ const CreateExam = () => {
                       }}>
                         Q{index + 1}. {question.question}
                       </h4>
-                      <button
-                        type="button"
-                        onClick={() => removeQuestion(index)}
-                        style={{
-                          backgroundColor: '#dc2626',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '0.375rem',
-                          padding: '0.25rem',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Trash2 style={{ width: '1rem', height: '1rem' }} />
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => editQuestion(index)}
+                          title="Edit Question"
+                          style={{
+                            backgroundColor: '#2563eb',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.3rem 0.5rem',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          <Edit3 style={{ width: '0.875rem', height: '0.875rem' }} /> Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeQuestion(index)}
+                          title="Delete Question"
+                          style={{
+                            backgroundColor: '#dc2626',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            padding: '0.3rem 0.5rem',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          <Trash2 style={{ width: '0.875rem', height: '0.875rem' }} />
+                        </button>
+                      </div>
                     </div>
                     <div style={{
                       display: 'grid',

@@ -15,6 +15,7 @@ const questionBankRoutes = require('./routes/questionBank');
 const certificateRoutes = require('./routes/certificates');
 const notificationRoutes = require('./routes/notifications');
 const superAdminRoutes = require('./routes/superAdmin');
+const aiExamRoutes = require('./routes/aiExam');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/question-bank', questionBankRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/superadmin', superAdminRoutes);
+app.use('/api/ai-exam', aiExamRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

@@ -26,7 +26,7 @@ const ScheduleSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'contacted', 'completed'],
+    enum: ['pending', 'approved', 'confirmed', 'contacted', 'completed'],
     default: 'pending'
   },
   createdAt: {

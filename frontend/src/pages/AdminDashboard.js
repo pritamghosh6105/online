@@ -455,17 +455,26 @@ const AdminDashboard = () => {
               View Submissions
             </Link>
             
+            {/* Change Password Button Available to All Admins */}
+            <button
+              onClick={() => {
+                setCredentialsForm(prev => ({
+                  ...prev,
+                  currentAdminId: user?.studentId || '11111111111',
+                  newStudentId: user?.studentId || '11111111111'
+                }));
+                setShowCredentialsModal(true);
+              }}
+              className="admin-action-btn"
+              style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}
+            >
+              <Key style={{ width: '1.25rem', height: '1.25rem' }} />
+              Change Password
+            </button>
+
             {/* Main Admin Only Tools */}
             {isMainAdmin && (
               <>
-                <button
-                  onClick={() => setShowCredentialsModal(true)}
-                  className="admin-action-btn"
-                  style={{ backgroundColor: '#7c3aed', color: '#ffffff' }}
-                >
-                  <Key style={{ width: '1.25rem', height: '1.25rem' }} />
-                  Change Credentials
-                </button>
                 <button
                   onClick={() => setShowAddAdminModal(true)}
                   className="admin-action-btn"

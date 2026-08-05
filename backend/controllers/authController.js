@@ -403,17 +403,33 @@ const getMe = async (req, res) => {
 // @access  Private (Admin only)
 const getAdmins = async (req, res) => {
   try {
-    const admins = await User.find({ role: 'admin' }).select('name email studentId createdAt').lean();
+    const admins = await User.find({ role: { $in: ['admin', 'superadmin'] } });
     
-    res.json({
-      success: true,
-      admins: admins.map(admin => ({
+    const formattedAdmins = await Promise.all(admins.map(async (admin) => {
+      // Auto-assign studentId for admins missing an ID
+      if (!admin.studentId) {
+        if (admin.email === 'admin@examin.com') {
+          admin.studentId = '11111111111';
+        } else {
+          admin.studentId = Date.now().toString().slice(-8) + Math.floor(100 + Math.random() * 900).toString();
+        }
+        await admin.save().catch(() => {});
+      }
+
+      return {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        role: admin.role,
+        institution: admin.institution || '',
         studentId: admin.studentId,
         createdAt: admin.createdAt
-      }))
+      };
+    }));
+    
+    res.json({
+      success: true,
+      admins: formattedAdmins
     });
   } catch (error) {
     console.error('Get admins error:', error);
@@ -431,13 +447,19 @@ const changeCredentials = async (req, res) => {
   try {
     const { oldAdminId, currentPassword, newStudentId, newPassword } = req.body;
 
-    // Find admin by old student ID (include password field)
-    const admin = await User.findOne({ studentId: oldAdminId, role: 'admin' }).select('+password');
+    // Find admin by logged-in user ID, old student ID, or email
+    let admin = null;
+    if (req.user?._id) {
+      admin = await User.findById(req.user._id).select('+password');
+    }
+    if (!admin && oldAdminId) {
+      admin = await User.findOne({ studentId: oldAdminId }).select('+password');
+    }
     
     if (!admin) {
       return res.status(404).json({
         success: false,
-        message: 'Admin not found with this ID'
+        message: 'Admin account not found'
       });
     }
 
@@ -450,29 +472,34 @@ const changeCredentials = async (req, res) => {
       });
     }
 
-    // Check if new student ID already exists (for another user)
-    const existingUser = await User.findOne({ 
-      studentId: newStudentId,
-      _id: { $ne: admin._id }
-    });
-    
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'This Admin ID is already in use'
+    // If newStudentId provided and different, update it
+    if (newStudentId && newStudentId.length === 11 && newStudentId !== admin.studentId) {
+      const existingUser = await User.findOne({ 
+        studentId: newStudentId,
+        _id: { $ne: admin._id }
       });
+      
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'This Admin ID is already in use'
+        });
+      }
+      admin.studentId = newStudentId;
     }
 
-    // Update credentials
-    admin.studentId = newStudentId;
-    admin.password = newPassword; // Will be hashed by pre-save hook
+    // Update password if provided
+    if (newPassword) {
+      admin.password = newPassword;
+    }
+
     await admin.save();
 
-    console.log(`✅ Admin credentials updated: ${oldAdminId} → ${newStudentId}`);
+    console.log(`✅ Admin credentials updated for ${admin.name} (${admin.email})`);
 
     res.json({
       success: true,
-      message: 'Credentials updated successfully',
+      message: 'Password & credentials updated successfully',
       user: {
         id: admin._id,
         name: admin.name,

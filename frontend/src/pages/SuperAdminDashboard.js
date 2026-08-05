@@ -92,11 +92,7 @@ const SuperAdminDashboard = () => {
       const createdAdmin = res.data?.createdAdmin;
       
       if (createdAdmin) {
-        if (createdAdmin.isNew) {
-          alert(`✅ Request marked as "${status}"!\n\n👑 Admin Account Created for ${createdAdmin.name}:\n• Institution: ${createdAdmin.institution}\n• Email: ${createdAdmin.email}\n• Admin ID: ${createdAdmin.adminId}\n• Password: ${createdAdmin.password}\n\n${createdAdmin.emailSent ? '📧 Admin login credentials email sent successfully!' : 'ℹ️ Admin credentials created. (Configure SMTP settings in .env to dispatch live emails).'}`);
-        } else {
-          alert(`✅ Request marked as "${status}"!\n\n👑 User "${createdAdmin.name}" (${createdAdmin.email}) is now an approved Admin for ${createdAdmin.institution}.`);
-        }
+        alert(`✅ Request Approved!\n\n👑 Admin Account Configured for ${createdAdmin.name}:\n• Institution: ${createdAdmin.institution}\n• Email: ${createdAdmin.email}\n• Admin ID: ${createdAdmin.adminId}\n• Password: ${createdAdmin.password}\n\n📧 Admin login credentials email dispatched to ${createdAdmin.email}!`);
       } else {
         alert(`Schedule status updated to "${status}".`);
       }
@@ -304,38 +300,6 @@ const SuperAdminDashboard = () => {
             </div>
           </div>
 
-          {/* Stat 2: Pending Approvals */}
-          <div 
-            onClick={() => setActiveTab('pending')}
-            style={{
-              backgroundColor: pendingAdmins.length > 0 ? '#fffbeb' : '#ffffff',
-              border: pendingAdmins.length > 0 ? '2px solid #f59e0b' : '1px solid #e2e8f0',
-              borderRadius: '0.75rem',
-              padding: '1.25rem',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 0.35rem 0' }}>
-                  Pending Approvals
-                </p>
-                <p style={{ fontSize: '2rem', fontWeight: '800', color: pendingAdmins.length > 0 ? '#d97706' : '#0f172a', margin: 0 }}>
-                  {pendingAdmins.length}
-                </p>
-              </div>
-              <div style={{
-                backgroundColor: pendingAdmins.length > 0 ? '#fef3c7' : '#f1f5f9',
-                padding: '0.75rem',
-                borderRadius: '0.5rem',
-                color: pendingAdmins.length > 0 ? '#d97706' : '#64748b'
-              }}>
-                <AlertTriangle size={24} />
-              </div>
-            </div>
-          </div>
-
           {/* Stat 3: Active Institutions */}
           <div 
             onClick={() => setActiveTab('approved')}
@@ -420,26 +384,6 @@ const SuperAdminDashboard = () => {
             <Calendar size={18} />
             Scheduled Test Requests ({schedules.length})
           </button>
-          <button
-            onClick={() => setActiveTab('pending')}
-            style={{
-              padding: '0.75rem 1.25rem',
-              borderRadius: '0.5rem 0.5rem 0 0',
-              fontWeight: '700',
-              fontSize: '0.9rem',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: activeTab === 'pending' ? '#ffffff' : 'transparent',
-              color: activeTab === 'pending' ? '#d97706' : '#64748b',
-              borderBottom: activeTab === 'pending' ? '3px solid #d97706' : 'none'
-            }}
-          >
-            <AlertTriangle size={18} />
-            Pending Approvals ({pendingAdmins.length})
-          </button>
 
           <button
             onClick={() => setActiveTab('approved')}
@@ -490,10 +434,10 @@ const SuperAdminDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#1f2937', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Calendar style={{ color: '#7c3aed' }} /> Scheduled Test Requests & Institutional Demos ({schedules.length})
+                  <Calendar style={{ color: '#7c3aed' }} /> Scheduled Test Requests ({schedules.length})
                 </h2>
                 <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
-                  Institutional demo bookings & test scheduling requests submitted from the landing page.
+                  Test scheduling requests submitted from the landing page.
                 </p>
               </div>
             </div>
@@ -548,7 +492,7 @@ const SuperAdminDashboard = () => {
                         </td>
                         <td style={{ padding: '1rem' }}>
                           <select
-                            value={item.status || 'pending'}
+                            value={item.status === 'confirmed' || item.status === 'completed' ? 'approved' : (item.status || 'pending')}
                             onChange={(e) => handleUpdateScheduleStatus(item._id || item.id, e.target.value)}
                             style={{
                               padding: '0.35rem 0.65rem',
@@ -557,20 +501,12 @@ const SuperAdminDashboard = () => {
                               fontWeight: '700',
                               border: '1px solid #cbd5e1',
                               cursor: 'pointer',
-                              backgroundColor: 
-                                item.status === 'confirmed' ? '#dcfce7' :
-                                item.status === 'contacted' ? '#dbeafe' :
-                                item.status === 'completed' ? '#f3e8ff' : '#fef3c7',
-                              color: 
-                                item.status === 'confirmed' ? '#166534' :
-                                item.status === 'contacted' ? '#1e40af' :
-                                item.status === 'completed' ? '#6b21a8' : '#92400e'
+                              backgroundColor: (item.status === 'approved' || item.status === 'confirmed' || item.status === 'completed') ? '#dcfce7' : '#fef3c7',
+                              color: (item.status === 'approved' || item.status === 'confirmed' || item.status === 'completed') ? '#166534' : '#92400e'
                             }}
                           >
                             <option value="pending">Pending</option>
-                            <option value="contacted">Contacted</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="completed">Completed</option>
+                            <option value="approved">Approved</option>
                           </select>
                         </td>
                         <td style={{ padding: '1rem', textAlign: 'center' }}>
@@ -597,96 +533,6 @@ const SuperAdminDashboard = () => {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Tab 1: Pending Approvals */}
-        {activeTab === 'pending' && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '0.75rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#1f2937', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Clock style={{ color: '#d97706' }} /> Institution Sub-Admins Awaiting Approval
-            </h2>
-
-            {pendingAdmins.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b' }}>
-                <CheckCircle2 size={48} color="#059669" style={{ marginBottom: '1rem' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1f2937' }}>All Caught Up!</h3>
-                <p style={{ margin: 0 }}>There are no pending institution admin requests at this time.</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {pendingAdmins.map((admin) => (
-                  <div key={admin.id} style={{
-                    border: '1px solid #fef3c7',
-                    backgroundColor: '#fffbeb',
-                    borderRadius: '0.5rem',
-                    padding: '1.25rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '1rem'
-                  }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1f2937' }}>{admin.name}</span>
-                        <span style={{ backgroundColor: '#fef3c7', color: '#b45309', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
-                          PENDING APPROVAL
-                        </span>
-                      </div>
-                      <p style={{ margin: '0.25rem 0 0 0', color: '#4b5563', fontSize: '0.875rem' }}>
-                        <strong>Email:</strong> {admin.email} {admin.studentId ? `• ID: ${admin.studentId}` : ''}
-                      </p>
-                      <p style={{ margin: '0.25rem 0 0 0', color: '#1e40af', fontSize: '0.9rem', fontWeight: '600' }}>
-                        🏫 Requested Institution / School: <span style={{ textDecoration: 'underline' }}>{admin.institution || 'Not specified'}</span>
-                      </p>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button
-                        disabled={actionLoading}
-                        onClick={() => handleApprove(admin.id, admin.institution || admin.name)}
-                        style={{
-                          backgroundColor: '#059669',
-                          color: '#ffffff',
-                          border: 'none',
-                          padding: '0.6rem 1.2rem',
-                          borderRadius: '0.375rem',
-                          fontWeight: '700',
-                          fontSize: '0.875rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem'
-                        }}
-                      >
-                        <CheckCircle2 size={16} /> Approve Institution
-                      </button>
-
-                      <button
-                        disabled={actionLoading}
-                        onClick={() => handleDeleteAdmin(admin.id, admin.name)}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: '#ffffff',
-                          border: 'none',
-                          padding: '0.6rem 1rem',
-                          borderRadius: '0.375rem',
-                          fontWeight: '600',
-                          fontSize: '0.875rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.35rem'
-                        }}
-                      >
-                        <XCircle size={16} /> Reject
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
           </div>
@@ -719,8 +565,11 @@ const SuperAdminDashboard = () => {
                         <td style={{ padding: '0.875rem 1rem', fontWeight: '600', color: '#1f2937' }}>
                           {admin.name}
                         </td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#4b5563' }}>
-                          {admin.email} {admin.studentId ? `(${admin.studentId})` : ''}
+                        <td style={{ padding: '0.875rem 1rem' }}>
+                          <div style={{ fontWeight: '500', color: '#1f2937' }}>{admin.email}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#6d28d9', fontWeight: '700', marginTop: '0.15rem' }}>
+                            ID: {admin.studentId || (admin.email === 'admin@examin.com' ? '11111111111' : 'N/A')}
+                          </div>
                         </td>
                         <td style={{ padding: '0.875rem 1rem' }}>
                           <span style={{

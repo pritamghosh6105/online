@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, User, Mail, Lock, Eye, EyeOff, Building } from 'lucide-react';
+import { BookOpen, User, Mail, Lock, Eye, EyeOff, Building, X } from 'lucide-react';
 import { validateEmail } from '../utils/helpers';
 import { authAPI } from '../api';
 
@@ -96,24 +96,18 @@ const Register = () => {
     const { confirmPassword, ...registrationData } = formData;
     const result = await register(registrationData);
 
-    console.log('Registration result:', result);
-    console.log('User data:', result?.user);
-    console.log('Student ID:', result?.user?.studentId);
-
-    if (result.success && result.user) {
-      // Show student ID modal
-      if (result.user.studentId) {
-        console.log('Setting student ID modal - Student ID:', result.user.studentId);
+    if (result?.success) {
+      if (result.user?.role === 'student' && result.user?.studentId) {
         setStudentIdData(result.user);
         setShowStudentIdModal(true);
-        console.log('Modal state should now be true');
+      } else {
+        navigate('/dashboard');
       }
+    } else {
+      setErrors({ general: result?.message || 'Registration failed' });
     }
     setLoading(false);
   };
-
-  console.log('Render - showStudentIdModal:', showStudentIdModal);
-  console.log('Render - studentIdData:', studentIdData);
 
   return (
     <div style={{
@@ -122,16 +116,49 @@ const Register = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '1rem'
+      padding: '1.5rem',
+      position: 'relative'
     }}>
       <div className="auth-card" style={{
         backgroundColor: '#ffffff',
-        padding: '2rem',
-        borderRadius: '0.5rem',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        padding: '2.25rem 2rem 2rem 2rem',
+        borderRadius: '0.75rem',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '400px',
+        position: 'relative'
       }}>
+        {/* Cross Close Button to Back Home */}
+        <Link
+          to="/"
+          title="Back to Home"
+          aria-label="Back to Home"
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '2.1rem',
+            height: '2.1rem',
+            borderRadius: '50%',
+            backgroundColor: '#f1f5f9',
+            color: '#64748b',
+            textDecoration: 'none',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#e2e8f0';
+            e.currentTarget.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#f1f5f9';
+            e.currentTarget.style.color = '#64748b';
+          }}
+        >
+          <X size={18} />
+        </Link>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{

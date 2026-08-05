@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { BookOpen, User, Lock, Eye, EyeOff, X } from 'lucide-react';
 
 const StudentLogin = () => {
   const [formData, setFormData] = useState({
@@ -78,17 +78,50 @@ const StudentLogin = () => {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '1.5rem',
+      position: 'relative',
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       <div style={{
         backgroundColor: '#ffffff',
         border: '1px solid #e2e8f0',
-        borderRadius: '8px',
-        padding: '2rem',
+        borderRadius: '12px',
+        padding: '2.25rem 2rem 2rem 2rem',
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '400px',
+        position: 'relative'
       }}>
+        {/* Cross Close Button to Back Home */}
+        <Link
+          to="/"
+          title="Back to Home"
+          aria-label="Back to Home"
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '2.1rem',
+            height: '2.1rem',
+            borderRadius: '50%',
+            backgroundColor: '#f1f5f9',
+            color: '#64748b',
+            textDecoration: 'none',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#e2e8f0';
+            e.currentTarget.style.color = '#0f172a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#f1f5f9';
+            e.currentTarget.style.color = '#64748b';
+          }}
+        >
+          <X size={18} />
+        </Link>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div style={{

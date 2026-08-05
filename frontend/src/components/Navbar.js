@@ -18,6 +18,8 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin' || user?.email === 'admin@examin.com';
+
   return (
     <nav style={{
       backgroundColor: '#1f2937',
@@ -28,26 +30,35 @@ const Navbar = () => {
       zIndex: 50
     }}>
       <div style={{
-        maxWidth: '1200px',
+        maxWidth: '1400px',
+        width: '100%',
         margin: '0 auto',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        gap: '1rem'
       }}>
         {/* Logo */}
         <ExaminLogo size={28} to="/dashboard" textColor="#ffffff" showSubtext={false} />
 
         {/* Desktop Navigation Links */}
-        <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="desktop-nav" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1rem',
+          whiteSpace: 'nowrap'
+        }}>
           <Link 
             to="/dashboard" 
             style={{
               color: '#d1d5db',
               textDecoration: 'none',
-              padding: '0.5rem 0.875rem',
+              padding: '0.5rem 0.75rem',
               borderRadius: '0.375rem',
               fontSize: '0.925rem',
               fontWeight: '500',
+              whiteSpace: 'nowrap',
+              outline: 'none',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -61,10 +72,12 @@ const Navbar = () => {
             style={{
               color: '#38bdf8',
               textDecoration: 'none',
-              padding: '0.5rem 0.875rem',
+              padding: '0.5rem 0.75rem',
               borderRadius: '0.375rem',
               fontSize: '0.925rem',
-              fontWeight: '600'
+              fontWeight: '600',
+              whiteSpace: 'nowrap',
+              outline: 'none'
             }}
           >
             Plans & Pricing
@@ -76,10 +89,12 @@ const Navbar = () => {
               style={{
                 color: '#d1d5db',
                 textDecoration: 'none',
-                padding: '0.5rem 0.875rem',
+                padding: '0.5rem 0.75rem',
                 borderRadius: '0.375rem',
                 fontSize: '0.925rem',
                 fontWeight: '500',
+                whiteSpace: 'nowrap',
+                outline: 'none',
                 transition: 'all 0.2s'
               }}
               onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -89,18 +104,23 @@ const Navbar = () => {
             </Link>
           )}
           
-          {(user?.role === 'admin' || user?.role === 'superadmin' || user?.email === 'admin@examin.com') && (
+          {isAdminUser && (
             <>
               <Link 
                 to="/admin/question-bank" 
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
-                  padding: '0.5rem 0.875rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: '0.375rem',
                   fontSize: '0.925rem',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
+                  transition: 'all 0.2s'
                 }}
+                onMouseEnter={(e) => e.target.style.color = '#ffffff'}
+                onMouseLeave={(e) => e.target.style.color = '#d1d5db'}
               >
                 Question Bank
               </Link>
@@ -110,10 +130,12 @@ const Navbar = () => {
                 style={{
                   color: '#ef4444',
                   textDecoration: 'none',
-                  padding: '0.5rem 0.875rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: '0.375rem',
                   fontSize: '0.925rem',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  outline: 'none'
                 }}
               >
                 Live Feed
@@ -124,10 +146,12 @@ const Navbar = () => {
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
-                  padding: '0.5rem 0.875rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: '0.375rem',
                   fontSize: '0.925rem',
                   fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -135,15 +159,18 @@ const Navbar = () => {
               >
                 Create Exam
               </Link>
+
               <Link 
                 to="/admin/submissions" 
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
-                  padding: '0.5rem 0.875rem',
+                  padding: '0.5rem 0.75rem',
                   borderRadius: '0.375rem',
                   fontSize: '0.925rem',
                   fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => e.target.style.color = '#ffffff'}
@@ -156,15 +183,22 @@ const Navbar = () => {
         </div>
 
         {/* Desktop User Menu */}
-        <div className="desktop-user-menu" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="desktop-user-menu" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1rem',
+          whiteSpace: 'nowrap',
+          flexShrink: 0
+        }}>
           <div style={{
             display: 'flex',
             alignItems: 'center',
             color: '#d1d5db',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            whiteSpace: 'nowrap'
           }}>
             <User style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.375rem' }} />
-            <span style={{ fontWeight: '500' }}>{user?.name}</span>
+            <span style={{ fontWeight: '500', whiteSpace: 'nowrap' }}>{user?.name}</span>
             <span style={{
               backgroundColor: (user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? '#7c3aed' : user?.role === 'admin' ? '#dc2626' : '#059669',
               color: '#ffffff',
@@ -173,7 +207,8 @@ const Navbar = () => {
               fontSize: '0.75rem',
               fontWeight: '600',
               marginLeft: '0.5rem',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap'
             }}>
               {(user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? 'SUPER ADMIN' : user?.role}
             </span>
@@ -192,6 +227,8 @@ const Navbar = () => {
               cursor: 'pointer',
               fontSize: '0.875rem',
               fontWeight: '500',
+              whiteSpace: 'nowrap',
+              outline: 'none',
               transition: 'all 0.2s'
             }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#b91c1c'}
@@ -280,6 +317,24 @@ const Navbar = () => {
             Dashboard
           </Link>
 
+          <Link
+            to="/pricing"
+            onClick={closeMobileMenu}
+            style={{
+              color: '#38bdf8',
+              textDecoration: 'none',
+              padding: '0.6rem 0.75rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.95rem',
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: '#1f2937'
+            }}
+          >
+            <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+            Plans & Pricing
+          </Link>
+
           {user?.role === 'student' && (
             <Link
               to="/results"
@@ -300,8 +355,44 @@ const Navbar = () => {
             </Link>
           )}
 
-          {user?.role === 'admin' && (
+          {isAdminUser && (
             <>
+              <Link
+                to="/admin/question-bank"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#f3f4f6',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                Question Bank
+              </Link>
+              
+              <Link
+                to="/admin/live-monitoring"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#ef4444',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                Live Feed
+              </Link>
+
               <Link
                 to="/admin/create-exam"
                 onClick={closeMobileMenu}
@@ -319,6 +410,7 @@ const Navbar = () => {
                 <PlusCircle style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
                 Create Exam
               </Link>
+
               <Link
                 to="/admin/submissions"
                 onClick={closeMobileMenu}

@@ -63,6 +63,11 @@ export const questionBankAPI = {
   deleteQuestion: (id) => api.delete(`/question-bank/${id}`)
 };
 
+// AI Exam Generator API
+export const aiExamAPI = {
+  generateExam: (data) => api.post('/ai-exam/generate', data),
+};
+
 // Certificate API
 export const certificateAPI = {
   getCertificate: (submissionId) => api.get(`/certificates/submission/${submissionId}`),
