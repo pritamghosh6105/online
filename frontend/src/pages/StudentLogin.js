@@ -151,7 +151,10 @@ const StudentLogin = () => {
                 maxLength="11"
                 style={{
                   width: '100%',
-                  padding: '0.65rem 0.75rem 0.65rem 2.85rem',
+                  paddingLeft: '3rem',
+                  paddingRight: '0.75rem',
+                  paddingTop: '0.65rem',
+                  paddingBottom: '0.65rem',
                   border: `1px solid ${errors.email ? '#ef4444' : '#cbd5e1'}`,
                   borderRadius: '6px',
                   fontSize: '0.875rem',
@@ -202,7 +205,10 @@ const StudentLogin = () => {
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.65rem 2.85rem 0.65rem 2.85rem',
+                  paddingLeft: '3rem',
+                  paddingRight: '3rem',
+                  paddingTop: '0.65rem',
+                  paddingBottom: '0.65rem',
                   border: `1px solid ${errors.password ? '#ef4444' : '#cbd5e1'}`,
                   borderRadius: '6px',
                   fontSize: '0.875rem',
