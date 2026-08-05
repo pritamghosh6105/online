@@ -57,6 +57,23 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Global Input Text Box Icon Alignment */
+.input-with-left-icon {
+  padding-left: 2.85rem !important;
+}
+.input-with-both-icons {
+  padding-left: 2.85rem !important;
+  padding-right: 2.85rem !important;
+}
+.input-icon-left {
+  position: absolute !important;
+  left: 0.85rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+}
+
 /* Ensure smooth image scaling and responsiveness */
 img, svg, video {
   max-width: 100%;
@@ -147,6 +164,23 @@ button, input, select, textarea {
     font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
     min-height: 44px; /* Touch-friendly tap targets */
     max-width: 100% !important;
+  }
+
+  /* Input Icon Alignment for Mobile & Small Screens */
+  .input-with-left-icon {
+    padding-left: 2.85rem !important;
+  }
+  .input-with-both-icons {
+    padding-left: 2.85rem !important;
+    padding-right: 2.85rem !important;
+  }
+  .input-icon-left {
+    position: absolute !important;
+    left: 0.85rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    pointer-events: none !important;
+    z-index: 5 !important;
   }
   
   .container {

@@ -129,18 +129,21 @@ const StudentLogin = () => {
               Student ID (11 Digits)
             </label>
             <div style={{ position: 'relative' }}>
-              <User style={{
+              <User className="input-icon-left" style={{
                 position: 'absolute',
-                left: '0.75rem',
+                left: '0.85rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                width: '1rem',
-                height: '1rem',
-                color: '#94a3b8'
+                width: '1.1rem',
+                height: '1.1rem',
+                color: '#94a3b8',
+                pointerEvents: 'none',
+                zIndex: 5
               }} />
               <input
                 type="text"
                 name="email"
+                className="input-with-left-icon"
                 value={formData.email}
                 onChange={handleChange}
                 inputMode="numeric"
@@ -148,7 +151,7 @@ const StudentLogin = () => {
                 maxLength="11"
                 style={{
                   width: '100%',
-                  padding: '0.625rem 0.75rem 0.625rem 2.375rem',
+                  padding: '0.65rem 0.75rem 0.65rem 2.85rem',
                   border: `1px solid ${errors.email ? '#ef4444' : '#cbd5e1'}`,
                   borderRadius: '6px',
                   fontSize: '0.875rem',
@@ -180,23 +183,26 @@ const StudentLogin = () => {
               Password
             </label>
             <div style={{ position: 'relative' }}>
-              <Lock style={{
+              <Lock className="input-icon-left" style={{
                 position: 'absolute',
-                left: '0.75rem',
+                left: '0.85rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                width: '1rem',
-                height: '1rem',
-                color: '#94a3b8'
+                width: '1.1rem',
+                height: '1.1rem',
+                color: '#94a3b8',
+                pointerEvents: 'none',
+                zIndex: 5
               }} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                className="input-with-both-icons"
                 value={formData.password}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.625rem 2.375rem 0.625rem 2.375rem',
+                  padding: '0.65rem 2.85rem 0.65rem 2.85rem',
                   border: `1px solid ${errors.password ? '#ef4444' : '#cbd5e1'}`,
                   borderRadius: '6px',
                   fontSize: '0.875rem',
