@@ -526,18 +526,10 @@ const addAdmin = async (req, res) => {
 
     console.log(`✅ New admin created: ${name} (ID: ${adminId})`);
 
-    // Send email with admin credentials
-    try {
-      const emailSent = await sendAdminCredentialsEmail(email, name, adminId, password);
-      if (emailSent) {
-        console.log('✅ Admin credentials email sent successfully to:', email);
-      } else {
-        console.warn('⚠️  Failed to send admin credentials email to:', email);
-      }
-    } catch (emailError) {
-      console.error('❌ Email sending error:', emailError.message);
-      console.warn('Email not sent, but admin was created successfully');
-    }
+    // Fire background email sending (non-blocking)
+    sendAdminCredentialsEmail(email, name, adminId, password).catch(err => {
+      console.error('❌ Background email sending error:', err.message);
+    });
 
     res.status(201).json({
       success: true,
