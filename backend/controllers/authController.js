@@ -32,34 +32,40 @@ const sendCredentialsEmail = async (email, name, studentId, password) => {
     // You'll need to set up SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS in .env
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
+      port: parseInt(process.env.SMTP_PORT || '587'),
       secure: false,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
 
     const mailOptions = {
-      from: `"Examin System" <${process.env.SMTP_USER}>`,
+      from: `"Examin Platform" <${process.env.SMTP_USER}>`,
+      replyTo: process.env.SMTP_USER,
       to: email,
-      subject: 'Your Examin Registration Details',
+      subject: `Your Examin Student Credentials - ID: ${studentId}`,
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #3b82f6;">Welcome to Examin!</h2>
-          <p>Dear ${name},</p>
-          <p>Your registration has been completed successfully. Here are your login credentials:</p>
-          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p style="margin: 5px 0;"><strong>Student ID:</strong> ${studentId}</p>
-            <p style="margin: 5px 0;"><strong>Password:</strong> ${password}</p>
+        <div style="font-family: Arial, sans-serif; padding: 25px; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+          <h2 style="color: #2563eb; margin-top: 0;">Welcome to Examin!</h2>
+          <p style="font-size: 15px; color: #334155;">Dear <strong>${name}</strong>,</p>
+          <p style="font-size: 15px; color: #334155;">Your student registration is complete. Here are your official account credentials:</p>
+          <div style="background-color: #f1f5f9; padding: 18px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+            <p style="margin: 6px 0; font-size: 16px;"><strong>Student ID:</strong> <span style="color: #2563eb; font-weight: 800;">${studentId}</span></p>
+            <p style="margin: 6px 0; font-size: 15px;"><strong>Password:</strong> ${password}</p>
           </div>
-          <p>Please keep these credentials safe. You will use your Student ID to login.</p>
-          <p>Best regards,<br>Examin Team</p>
+          <p style="font-size: 14px; color: #64748b;">Please save your 11-digit Student ID (<code>${studentId}</code>) securely. You will use this ID to sign into your student portal.</p>
+          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #94a3b8;">If you cannot find this email in your Inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</p>
         </div>
       `
     };
 
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Credentials email sent successfully to ${email} (MessageID: ${info.messageId})`);
     return true;
   } catch (error) {
     console.error('Email sending error:', error);
@@ -255,20 +261,16 @@ const register = async (req, res) => {
       studentId
     });
 
-    // Send email with credentials for students
+    // Send email with credentials for students in background (non-blocking)
     if (studentId) {
-      try {
-        const emailSent = await sendCredentialsEmail(email, name, studentId, req.body.password);
-        if (emailSent) {
-          console.log('✅ Credentials email sent successfully to:', email);
-        } else {
-          console.warn('⚠️  Failed to send credentials email to:', email);
-          console.warn('Please configure SMTP settings in .env file');
-        }
-      } catch (emailError) {
-        console.error('❌ Email sending error:', emailError.message);
-        console.warn('Email not sent, but registration was successful');
-      }
+      sendCredentialsEmail(email, name, studentId, req.body.password)
+        .then(sent => {
+          if (sent) console.log('✅ Credentials email sent successfully to:', email);
+          else console.warn('⚠️  Failed to send credentials email to:', email, '(Configure SMTP in .env)');
+        })
+        .catch(emailErr => {
+          console.error('❌ Email sending error:', emailErr.message);
+        });
     }
 
     // Generate token
@@ -292,9 +294,17 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'An account with this email already exists. Please login or use another email.'
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Server error during registration'
+      message: error.message || 'Server error during registration'
     });
   }
 };
@@ -649,6 +659,44 @@ const deleteAdmin = async (req, res) => {
   }
 };
 
+// @desc    Change user password (for Students and Admins)
+// @route   PUT /api/auth/change-password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Please provide both current and new password' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'New password must be at least 6 characters long' });
+    }
+
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ success: false, message: 'Failed to change password' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -658,6 +706,7 @@ module.exports = {
   getPendingAdmins,
   approveAdmin,
   changeCredentials,
+  changePassword,
   addAdmin,
   deleteAdmin
 };

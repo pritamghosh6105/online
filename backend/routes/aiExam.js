@@ -154,61 +154,66 @@ router.post('/generate', async (req, res) => {
     const cleanTopic = topic.trim() || subject.trim() || 'General Knowledge';
 
     // 1. Check if Gemini API key is configured
-    if (process.env.GEMINI_API_KEY) {
-      try {
-        console.log(`🤖 Invoking Gemini API for topic "${cleanTopic}"...`);
-        const prompt = `You are an expert academic exam creator. Generate ${targetCount} high-quality multiple choice questions for the topic "${cleanTopic}" (Subject: ${subject || cleanTopic}) at ${difficulty} difficulty.
-Return strictly valid JSON with no extra commentary or markdown formatting:
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey && apiKey.trim() && !apiKey.startsWith('AQ.')) {
+      const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
+      const prompt = `You are an expert academic exam creator. Generate ${targetCount} high-quality multiple choice questions for the topic "${cleanTopic}" (Subject: ${subject || cleanTopic}) at ${difficulty} difficulty level.
+Return STRICTLY a JSON object with no markdown backticks, no commentary, matching this structure:
 {
   "title": "${cleanTopic} ${difficulty} Assessment",
   "subject": "${subject || cleanTopic}",
   "duration": ${Math.min(targetCount * 5, 120)},
   "questions": [
     {
-      "question": "Question text?",
+      "question": "Clear and detailed question text?",
       "options": [
-        { "text": "Option 1", "isCorrect": true },
-        { "text": "Option 2", "isCorrect": false },
-        { "text": "Option 3", "isCorrect": false },
-        { "text": "Option 4", "isCorrect": false }
+        { "text": "Correct Option", "isCorrect": true },
+        { "text": "Incorrect Option 1", "isCorrect": false },
+        { "text": "Incorrect Option 2", "isCorrect": false },
+        { "text": "Incorrect Option 3", "isCorrect": false }
       ],
       "marks": 1
     }
   ]
 }`;
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
-        });
+      for (const model of models) {
+        try {
+          console.log(`🤖 Invoking Gemini API model (${model}) for topic "${cleanTopic}"...`);
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          });
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(cleanJson);
-            if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
-              console.log(`✅ Gemini API generated ${parsed.questions.length} questions successfully!`);
-              return res.json({
-                success: true,
-                title: parsed.title || `${cleanTopic} ${difficulty} Assessment`,
-                subject: parsed.subject || subject || cleanTopic,
-                duration: parsed.duration || Math.min(targetCount * 5, 120),
-                questions: parsed.questions,
-                source: 'Google Gemini API'
-              });
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawText) {
+              const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+              const parsed = JSON.parse(cleanJson);
+              if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+                console.log(`✅ Gemini API (${model}) generated ${parsed.questions.length} questions successfully!`);
+                return res.json({
+                  success: true,
+                  title: parsed.title || `${cleanTopic} ${difficulty} Assessment`,
+                  subject: parsed.subject || subject || cleanTopic,
+                  duration: parsed.duration || Math.min(targetCount * 5, 120),
+                  questions: parsed.questions,
+                  source: `Google Gemini API (${model})`
+                });
+              }
             }
+          } else {
+            console.warn(`Gemini model ${model} status: ${geminiRes.status}`);
           }
-        } else {
-          console.warn(`Gemini API returned status ${geminiRes.status}. Using fallback generator.`);
+        } catch (geminiErr) {
+          console.warn(`Gemini model ${model} error: ${geminiErr.message}`);
         }
-      } catch (geminiErr) {
-        console.warn(`Gemini API call error: ${geminiErr.message}. Using built-in generator.`);
       }
+      console.warn('Gemini API calls finished without success. Using fallback generator.');
     }
 
     // 2. Built-in Dynamic Fallback AI Question Generator

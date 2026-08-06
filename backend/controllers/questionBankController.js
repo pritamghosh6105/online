@@ -136,10 +136,59 @@ exports.aiGenerateQuestions = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Topic is required for AI question generation' });
     }
 
-    // Smart template generator engine for topic-based questions
-    const generatedQuestions = [];
     const num = Math.min(Math.max(parseInt(count) || 3, 1), 10);
+    const apiKey = process.env.GEMINI_API_KEY;
 
+    if (apiKey && apiKey.trim() && !apiKey.startsWith('AQ.')) {
+      const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
+      const prompt = `Generate ${num} multiple choice questions on "${topic}" at ${difficulty} difficulty.
+Return STRICTLY JSON array of questions, formatted like this with no markdown code blocks:
+[
+  {
+    "question": "Question text?",
+    "category": "${topic}",
+    "subject": "${topic}",
+    "difficulty": "${difficulty}",
+    "options": [
+      { "text": "Option A", "isCorrect": true },
+      { "text": "Option B", "isCorrect": false },
+      { "text": "Option C", "isCorrect": false },
+      { "text": "Option D", "isCorrect": false }
+    ],
+    "marks": ${difficulty === 'Hard' ? 3 : (difficulty === 'Medium' ? 2 : 1)},
+    "explanation": "Brief explanation"
+  }
+]`;
+
+      for (const model of models) {
+        try {
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          });
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawText) {
+              const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+              const parsed = JSON.parse(cleanJson);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                return res.json({ success: true, topic, difficulty, questions: parsed, source: `Google Gemini API (${model})` });
+              }
+            }
+          }
+        } catch (err) {
+          console.warn(`Question Bank Gemini API call failed on model ${model}:`, err.message);
+        }
+      }
+    }
+
+    // Smart template generator engine fallback for topic-based questions
+    const generatedQuestions = [];
     const templates = [
       {
         q: `What is the primary objective or definition of ${topic}?`,
@@ -211,7 +260,7 @@ exports.aiGenerateQuestions = async (req, res) => {
       });
     }
 
-    res.json({ success: true, topic, difficulty, questions: generatedQuestions });
+    res.json({ success: true, topic, difficulty, questions: generatedQuestions, source: 'Internal AI Engine' });
   } catch (error) {
     console.error('Error generating AI questions:', error);
     res.status(500).json({ success: false, message: 'AI Question Generation failed' });

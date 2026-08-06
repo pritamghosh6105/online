@@ -17,19 +17,10 @@ const StudentLogin = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    if (name === 'email') {
-      const numericValue = value.replace(/\D/g, '').slice(0, 11);
-      setFormData(prev => ({
-        ...prev,
-        [name]: numericValue
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
 
     if (errors[name]) {
       setErrors(prev => ({
@@ -41,11 +32,16 @@ const StudentLogin = () => {
 
   const validateForm = () => {
     const newErrors = {};
+    const val = formData.email.trim();
 
-    if (!formData.email.trim()) {
-      newErrors.email = '11-digit Student ID is required';
-    } else if (formData.email.length !== 11) {
-      newErrors.email = 'Student ID must be exactly 11 digits';
+    if (!val) {
+      newErrors.email = 'Student ID or Email is required';
+    } else if (val.includes('@')) {
+      if (!/\S+@\S+\.\S+/.test(val)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
+    } else if (!/^\d{11}$/.test(val)) {
+      newErrors.email = 'Student ID must be an 11-digit number or a valid email';
     }
 
     if (!formData.password.trim()) {
@@ -144,13 +140,13 @@ const StudentLogin = () => {
             fontSize: '0.875rem',
             margin: 0
           }}>
-            Sign in with your 11-digit Student ID
+            Sign in with your 11-digit Student ID or Email
           </p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
-          {/* Student ID Field */}
+          {/* Student ID / Email Field */}
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{
               display: 'block',
@@ -159,7 +155,7 @@ const StudentLogin = () => {
               color: '#334155',
               marginBottom: '0.375rem'
             }}>
-              Student ID (11 Digits)
+              Student ID or Email Address
             </label>
             <div style={{ position: 'relative' }}>
               <User className="input-icon-left" style={{
@@ -179,9 +175,7 @@ const StudentLogin = () => {
                 className="input-with-left-icon"
                 value={formData.email}
                 onChange={handleChange}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength="11"
+                placeholder="Enter 11-digit Student ID or Email"
                 style={{
                   width: '100%',
                   paddingLeft: '3rem',
@@ -195,7 +189,6 @@ const StudentLogin = () => {
                   backgroundColor: '#ffffff',
                   color: '#0f172a'
                 }}
-                placeholder="Enter 11-digit Student ID"
                 onFocus={(e) => e.target.style.borderColor = '#2563eb'}
                 onBlur={(e) => e.target.style.borderColor = errors.email ? '#ef4444' : '#cbd5e1'}
               />

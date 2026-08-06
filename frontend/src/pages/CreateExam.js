@@ -11,9 +11,6 @@ import {
   X,
   Sparkles,
   Wand2,
-  Brain,
-  Bot,
-  Zap,
   RefreshCw,
   Edit3
 } from 'lucide-react';
@@ -22,12 +19,30 @@ import { toast } from 'react-toastify';
 const CreateExam = () => {
   const navigate = useNavigate();
 
+  const getDefaultDates = () => {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const formatDateTime = (date) => {
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
+    return {
+      startDate: formatDateTime(now),
+      endDate: formatDateTime(tomorrow)
+    };
+  };
+
+  const defaults = getDefaultDates();
+
   const [examData, setExamData] = useState({
     title: '',
     subject: '',
     duration: 60,
-    startDate: '',
-    endDate: '',
+    startDate: defaults.startDate,
+    endDate: defaults.endDate,
     questions: []
   });
 
@@ -70,15 +85,21 @@ const CreateExam = () => {
 
       if (res.data?.success) {
         const generated = res.data;
+        const formattedQuestions = (generated.questions || []).map(q => ({
+          ...q,
+          isAiGenerated: true,
+          source: generated.source || 'AI Engine'
+        }));
+
         setExamData(prev => ({
           ...prev,
           title: prev.title || generated.title,
           subject: prev.subject || generated.subject,
           duration: prev.duration || generated.duration || 60,
-          questions: [...prev.questions, ...generated.questions]
+          questions: [...prev.questions, ...formattedQuestions]
         }));
 
-        toast.success(`✨ AI generated ${generated.questions.length} questions for ${topicToUse}!`);
+        toast.success(`✨ ${generated.source || 'AI'} generated ${generated.questions.length} questions for "${topicToUse}"!`);
         setShowAiModal(false);
       }
     } catch (err) {
@@ -1006,9 +1027,22 @@ const CreateExam = () => {
                         fontSize: '1rem',
                         fontWeight: '500',
                         color: '#1f2937',
-                        flex: 1
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '0.5rem'
                       }}>
-                        Q{index + 1}. {question.question}
+                        <span>Q{index + 1}. {question.question}</span>
+                        {question.isAiGenerated ? (
+                          <span style={{ backgroundColor: '#f3e8ff', color: '#7e22ce', fontSize: '0.7rem', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: '700', border: '1px solid #d8b4fe' }}>
+                            ✨ AI Generated ({question.source || 'AI'})
+                          </span>
+                        ) : (
+                          <span style={{ backgroundColor: '#f1f5f9', color: '#475569', fontSize: '0.7rem', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: '700', border: '1px solid #cbd5e1' }}>
+                            ✏️ Manual
+                          </span>
+                        )}
                       </h4>
                       <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                         <button

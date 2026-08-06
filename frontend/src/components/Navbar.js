@@ -67,21 +67,23 @@ const Navbar = () => {
             Dashboard
           </Link>
 
-          <Link 
-            to="/pricing" 
-            style={{
-              color: '#38bdf8',
-              textDecoration: 'none',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '0.375rem',
-              fontSize: '0.925rem',
-              fontWeight: '600',
-              whiteSpace: 'nowrap',
-              outline: 'none'
-            }}
-          >
-            Plans & Pricing
-          </Link>
+          {isAdminUser && (
+            <Link 
+              to="/pricing" 
+              style={{
+                color: '#38bdf8',
+                textDecoration: 'none',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.375rem',
+                fontSize: '0.925rem',
+                fontWeight: '600',
+                whiteSpace: 'nowrap',
+                outline: 'none'
+              }}
+            >
+              Plans & Pricing
+            </Link>
+          )}
           
           {user?.role === 'student' && (
             <Link 
@@ -317,23 +319,25 @@ const Navbar = () => {
             Dashboard
           </Link>
 
-          <Link
-            to="/pricing"
-            onClick={closeMobileMenu}
-            style={{
-              color: '#38bdf8',
-              textDecoration: 'none',
-              padding: '0.6rem 0.75rem',
-              borderRadius: '0.375rem',
-              fontSize: '0.95rem',
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#1f2937'
-            }}
-          >
-            <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
-            Plans & Pricing
-          </Link>
+          {isAdminUser && (
+            <Link
+              to="/pricing"
+              onClick={closeMobileMenu}
+              style={{
+                color: '#38bdf8',
+                textDecoration: 'none',
+                padding: '0.6rem 0.75rem',
+                borderRadius: '0.375rem',
+                fontSize: '0.95rem',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#1f2937'
+              }}
+            >
+              <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+              Plans & Pricing
+            </Link>
+          )}
 
           {user?.role === 'student' && (
             <Link

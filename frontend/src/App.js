@@ -43,7 +43,10 @@ function App() {
 
           {/* Public Certificate Verification */}
           <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
-          <Route path="/pricing" element={<PricingPlans />} />
+          <Route 
+            path="/pricing" 
+            element={user && user.role === 'student' ? <Navigate to="/dashboard" /> : <PricingPlans />} 
+          />
 
           {/* Public Auth Routes */}
           <Route 

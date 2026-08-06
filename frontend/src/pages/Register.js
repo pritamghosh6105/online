@@ -186,6 +186,22 @@ const Register = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit}>
+          {errors.general && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#dc2626',
+              padding: '0.75rem 1rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.85rem',
+              marginBottom: '1.25rem',
+              fontWeight: '600',
+              textAlign: 'center'
+            }}>
+              ⚠️ {errors.general}
+            </div>
+          )}
+
           {/* Name Field */}
           <div style={{ marginBottom: '1rem' }}>
             <label style={{
@@ -658,9 +674,14 @@ const Register = () => {
               <p style={{
                 fontSize: '0.875rem',
                 color: '#1e40af',
-                margin: 0
+                margin: 0,
+                lineHeight: '1.4'
               }}>
-                📧 An email with your credentials has been sent to <strong>{studentIdData.email}</strong>
+                📧 An email with your credentials has been sent to <strong>{studentIdData.email}</strong>.
+                <br />
+                <span style={{ fontSize: '0.78rem', color: '#1e3a8a', display: 'inline-block', marginTop: '0.35rem' }}>
+                  ℹ️ <em>If you don't see it in your primary inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</em>
+                </span>
               </p>
             </div>
 
