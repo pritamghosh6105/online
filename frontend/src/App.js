@@ -16,6 +16,7 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
 import Home from './pages/Home';
 import QuestionBank from './pages/QuestionBank';
+import StudentQuestionBank from './pages/StudentQuestionBank';
 import LiveMonitoring from './pages/LiveMonitoring';
 import PricingPlans from './pages/PricingPlans';
 import CertificateVerify from './pages/CertificateVerify';
@@ -105,6 +106,16 @@ function App() {
               user && user.role === 'student' ? 
               <ExamResults /> : 
               <Navigate to="/dashboard" />
+            } 
+          />
+          <Route 
+            path="/question-bank" 
+            element={
+              user ? (
+                user.role === 'student' ? <StudentQuestionBank /> : <QuestionBank />
+              ) : (
+                <Navigate to="/login" />
+              )
             } 
           />
           

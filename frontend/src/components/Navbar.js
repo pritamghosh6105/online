@@ -86,24 +86,47 @@ const Navbar = () => {
           )}
           
           {user?.role === 'student' && (
-            <Link 
-              to="/results" 
-              style={{
-                color: '#d1d5db',
-                textDecoration: 'none',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.925rem',
-                fontWeight: '500',
-                whiteSpace: 'nowrap',
-                outline: 'none',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = '#ffffff'}
-              onMouseLeave={(e) => e.target.style.color = '#d1d5db'}
-            >
-              My Results
-            </Link>
+            <>
+              <Link 
+                to="/question-bank" 
+                style={{
+                  color: '#10b981',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#34d399'}
+                onMouseLeave={(e) => e.target.style.color = '#10b981'}
+              >
+                Question Bank
+              </Link>
+              <Link 
+                to="/results" 
+                style={{
+                  color: '#d1d5db',
+                  textDecoration: 'none',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.925rem',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#ffffff'}
+                onMouseLeave={(e) => e.target.style.color = '#d1d5db'}
+              >
+                My Results
+              </Link>
+            </>
           )}
           
           {isAdminUser && (
@@ -340,23 +363,43 @@ const Navbar = () => {
           )}
 
           {user?.role === 'student' && (
-            <Link
-              to="/results"
-              onClick={closeMobileMenu}
-              style={{
-                color: '#f3f4f6',
-                textDecoration: 'none',
-                padding: '0.6rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#1f2937'
-              }}
-            >
-              <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
-              My Results
-            </Link>
+            <>
+              <Link
+                to="/question-bank"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#10b981',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                Question Bank
+              </Link>
+              <Link
+                to="/results"
+                onClick={closeMobileMenu}
+                style={{
+                  color: '#f3f4f6',
+                  textDecoration: 'none',
+                  padding: '0.6rem 0.75rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: '#1f2937'
+                }}
+              >
+                <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                My Results
+              </Link>
+            </>
           )}
 
           {isAdminUser && (

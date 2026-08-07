@@ -188,12 +188,18 @@ const getAllSubmissions = async (req, res) => {
       query.exam = examId;
     }
 
-    // If only stats are needed, return count only
+    // If only stats are needed, return count of valid non-orphaned submissions
     if (statsOnly === 'true') {
-      const count = await Submission.countDocuments(query);
+      const allSubs = await Submission.find(query)
+        .select('student exam')
+        .populate('student', '_id')
+        .populate('exam', '_id')
+        .lean();
+      
+      const validCount = allSubs.filter(sub => sub.student && sub.exam).length;
       return res.json({
         success: true,
-        count,
+        count: validCount,
         statsOnly: true
       });
     }

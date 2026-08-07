@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { examAPI, submissionAPI, authAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  BookOpen, 
-  Users, 
-  FileText, 
-  Plus, 
-  Eye, 
-  Trash2, 
+import {
+  BookOpen,
+  Users,
+  FileText,
+  Plus,
+  Eye,
+  Trash2,
   Calendar,
   Clock,
   Award,
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
         examAPI.getExams({ statsOnly: true }),
         submissionAPI.getAllSubmissions({ statsOnly: true })
       ]);
-      
+
       setStats({
         examsCount: examsStatsResponse.data.count || 0,
         submissionsCount: submissionsStatsResponse.data.count || 0
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
       // Fetch limited recent exams for display (only first page)
       const examsResponse = await examAPI.getExams({ page: 1, limit: 10 });
       setExams(examsResponse.data.exams || []);
-      
+
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load dashboard data');
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
         newStudentId: credentialsForm.newStudentId,
         newPassword: credentialsForm.newPassword
       });
-      
+
       alert('Credentials updated successfully! Please login again with new credentials.');
       setShowCredentialsModal(false);
       setCredentialsForm({
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
         newPassword: '',
         confirmPassword: ''
       });
-      
+
       // Optionally logout user so they can login with new credentials
       // logout();
     } catch (error) {
@@ -234,7 +234,7 @@ const AdminDashboard = () => {
         email: addAdminForm.email,
         password: addAdminForm.password
       });
-      
+
       alert(`New admin created successfully!\nAdmin ID: ${addAdminForm.adminId}\nEmail: ${addAdminForm.email}`);
       setShowAddAdminModal(false);
       setAddAdminForm({
@@ -383,7 +383,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Card 2: Total Students */}
-          <div 
+          <div
             className="admin-stat-card"
             onClick={() => {
               setShowStudentModal(true);
@@ -454,7 +454,7 @@ const AdminDashboard = () => {
               <Eye style={{ width: '1.25rem', height: '1.25rem' }} />
               View Submissions
             </Link>
-            
+
             {/* Change Password Button Available to All Admins */}
             <button
               onClick={() => {
@@ -627,7 +627,7 @@ const AdminDashboard = () => {
                 gap: '1rem'
               }}>
                 {exams.map((exam) => (
-                  <div 
+                  <div
                     key={exam._id}
                     style={{
                       border: '1px solid #e5e7eb',
@@ -769,7 +769,7 @@ const AdminDashboard = () => {
 
         {/* Student Details Modal */}
         {showStudentModal && (
-          <div 
+          <div
             style={{
               position: 'fixed',
               top: 0,
@@ -785,7 +785,7 @@ const AdminDashboard = () => {
             }}
             onClick={() => setShowStudentModal(false)}
           >
-            <div 
+            <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '0.5rem',
@@ -912,7 +912,7 @@ const AdminDashboard = () => {
                       </thead>
                       <tbody>
                         {uniqueStudents.map((student) => (
-                          <tr 
+                          <tr
                             key={student._id}
                             style={{
                               borderBottom: '1px solid #e5e7eb'
@@ -1120,7 +1120,7 @@ const AdminDashboard = () => {
                   <input
                     type="password"
                     value={credentialsForm.currentPassword}
-                    onChange={(e) => setCredentialsForm({...credentialsForm, currentPassword: e.target.value})}
+                    onChange={(e) => setCredentialsForm({ ...credentialsForm, currentPassword: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1150,7 +1150,7 @@ const AdminDashboard = () => {
                     onChange={(e) => {
                       const value = e.target.value.replace(/[^0-9]/g, '');
                       if (value.length <= 11) {
-                        setCredentialsForm({...credentialsForm, newStudentId: value});
+                        setCredentialsForm({ ...credentialsForm, newStudentId: value });
                       }
                     }}
                     inputMode="numeric"
@@ -1182,7 +1182,7 @@ const AdminDashboard = () => {
                   <input
                     type="password"
                     value={credentialsForm.newPassword}
-                    onChange={(e) => setCredentialsForm({...credentialsForm, newPassword: e.target.value})}
+                    onChange={(e) => setCredentialsForm({ ...credentialsForm, newPassword: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1209,7 +1209,7 @@ const AdminDashboard = () => {
                   <input
                     type="password"
                     value={credentialsForm.confirmPassword}
-                    onChange={(e) => setCredentialsForm({...credentialsForm, confirmPassword: e.target.value})}
+                    onChange={(e) => setCredentialsForm({ ...credentialsForm, confirmPassword: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1386,7 +1386,7 @@ const AdminDashboard = () => {
                   <input
                     type="text"
                     value={addAdminForm.name}
-                    onChange={(e) => setAddAdminForm({...addAdminForm, name: e.target.value})}
+                    onChange={(e) => setAddAdminForm({ ...addAdminForm, name: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1416,7 +1416,7 @@ const AdminDashboard = () => {
                     onChange={(e) => {
                       const value = e.target.value.replace(/[^0-9]/g, '');
                       if (value.length <= 11) {
-                        setAddAdminForm({...addAdminForm, adminId: value});
+                        setAddAdminForm({ ...addAdminForm, adminId: value });
                       }
                     }}
                     inputMode="numeric"
@@ -1448,7 +1448,7 @@ const AdminDashboard = () => {
                   <input
                     type="email"
                     value={addAdminForm.email}
-                    onChange={(e) => setAddAdminForm({...addAdminForm, email: e.target.value})}
+                    onChange={(e) => setAddAdminForm({ ...addAdminForm, email: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1475,7 +1475,7 @@ const AdminDashboard = () => {
                   <input
                     type="password"
                     value={addAdminForm.password}
-                    onChange={(e) => setAddAdminForm({...addAdminForm, password: e.target.value})}
+                    onChange={(e) => setAddAdminForm({ ...addAdminForm, password: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1502,7 +1502,7 @@ const AdminDashboard = () => {
                   <input
                     type="password"
                     value={addAdminForm.confirmPassword}
-                    onChange={(e) => setAddAdminForm({...addAdminForm, confirmPassword: e.target.value})}
+                    onChange={(e) => setAddAdminForm({ ...addAdminForm, confirmPassword: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1690,9 +1690,9 @@ const AdminDashboard = () => {
                         {adminList.map((admin) => {
                           const isMainAdmin = admin.email === 'admin@examin.com';
                           const isCurrentUser = admin.id === user?._id || admin.studentId === user?.studentId;
-                          
+
                           return (
-                            <tr 
+                            <tr
                               key={admin.id}
                               style={{
                                 borderBottom: '1px solid #e5e7eb'

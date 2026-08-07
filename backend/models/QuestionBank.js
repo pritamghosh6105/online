@@ -47,6 +47,10 @@ const questionBankSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  isPublished: {
+    type: Boolean,
+    default: true
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

@@ -88,7 +88,7 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 7. **Proctoring Workflow**: Camera Permission -> Face Detection -> Debounced Tab/Blur Counter -> Anti-Extension Copy/Paste Block.
 8. **Notification Workflow**: In-App Dashboard Alerts & Automated Email notifications.
 9. **Super Admin Workflow**: Manage Scheduled Test Requests -> Approve Sub-Admins -> Inspect Connected Institution Portals -> Manage Registered Students -> Platform Analytics -> Audit Logs -> JSON Backup.
-10. **Certificate Workflow**: Pass Exam -> Printable PDF Certificate -> QR Verification Code.
+
 
 ---
 

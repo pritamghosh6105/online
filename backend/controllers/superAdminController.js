@@ -129,8 +129,11 @@ exports.deleteStudent = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Student account not found' });
     }
 
+    // Delete associated submissions
+    await Submission.deleteMany({ student: req.params.id });
+
     await User.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Student account deleted successfully' });
+    res.json({ success: true, message: 'Student account and associated submissions deleted successfully' });
   } catch (error) {
     console.error('Error deleting student:', error);
     res.status(500).json({ success: false, message: 'Failed to delete student account' });

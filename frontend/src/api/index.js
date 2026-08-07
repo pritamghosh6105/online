@@ -61,6 +61,8 @@ export const questionBankAPI = {
     return api.get(`/question-bank/random?${queryString}`);
   },
   aiGenerateQuestions: (promptData) => api.post('/question-bank/ai-generate', promptData),
+  publishQuestionBank: (data) => api.post('/question-bank/publish', data),
+  bulkDeleteQuestions: (questionIds) => api.post('/question-bank/bulk-delete', { questionIds }),
   deleteQuestion: (id) => api.delete(`/question-bank/${id}`)
 };
 

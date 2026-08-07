@@ -335,12 +335,84 @@ JSON schema:
   }
 };
 
-// Delete question from question bank
+// Delete single question from question bank
 exports.deleteQuestion = async (req, res) => {
   try {
     await QuestionBank.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Question deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to delete question' });
+  }
+};
+
+// Bulk delete questions from question bank
+exports.bulkDeleteQuestions = async (req, res) => {
+  try {
+    const { questionIds } = req.body;
+    if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'No question IDs provided for deletion' });
+    }
+
+    const result = await QuestionBank.deleteMany({ _id: { $in: questionIds } });
+
+    await AuditLog.create({
+      user: req.user?._id,
+      userName: req.user?.name,
+      userEmail: req.user?.email,
+      action: 'BULK_QUESTIONS_DELETED',
+      details: `Deleted ${result.deletedCount} questions from Question Bank`,
+      institution: req.user?.institution
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} question(s) from Question Bank`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('Error bulk deleting questions:', error);
+    res.status(500).json({ success: false, message: 'Failed to bulk delete questions' });
+  }
+};
+
+// Publish Question Bank to Students under Admin's Institution
+exports.publishQuestionBank = async (req, res) => {
+  try {
+    const { questionIds, category } = req.body;
+    const institution = req.user.institution || '';
+    const adminId = req.user._id;
+
+    let query = {};
+    if (questionIds && Array.isArray(questionIds) && questionIds.length > 0) {
+      query._id = { $in: questionIds };
+    } else if (category) {
+      query.category = category;
+    }
+
+    const result = await QuestionBank.updateMany(query, {
+      $set: {
+        isPublished: true,
+        institution: institution,
+        createdBy: adminId
+      }
+    });
+
+    await AuditLog.create({
+      user: adminId,
+      userName: req.user.name,
+      userEmail: req.user.email,
+      action: 'QUESTION_BANK_PUBLISHED',
+      details: `Published Question Bank questions to students`,
+      institution
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully published Question Bank to students!`,
+      publishedCount: result.modifiedCount || result.matchedCount || 0
+    });
+  } catch (error) {
+    console.error('Error publishing Question Bank:', error);
+    res.status(500).json({ success: false, message: 'Failed to publish Question Bank to students' });
   }
 };

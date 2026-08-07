@@ -11,7 +11,6 @@ import {
   Award,
   TrendingUp,
   Target,
-  Star,
   BarChart3,
   Timer,
   Lock,
@@ -100,8 +99,8 @@ const StudentDashboard = () => {
         submissionAPI.getMySubmissions()
       ]);
       
-      const examsData = examsResponse.data.exams;
-      const submissionsData = submissionsResponse.data.submissions;
+      const examsData = examsResponse.data.exams || [];
+      const submissionsData = submissionsResponse.data.submissions || [];
       
       setExams(examsData);
       setSubmissions(submissionsData);
@@ -111,15 +110,20 @@ const StudentDashboard = () => {
       const averageScore = submissionsData.length > 0 
         ? (submissionsData.reduce((sum, sub) => sum + sub.percentage, 0) / submissionsData.length).toFixed(1)
         : 0;
-      // Removed bestScore calculation
+
       const pendingExams = examsData.filter(exam => {
-        const isSubmitted = submissionsData.some(sub => sub.exam && sub.exam._id === exam._id);
+        const isSubmitted = submissionsData.some(sub => {
+          const subExamId = sub.exam?._id || sub.exam;
+          return subExamId && exam?._id && subExamId.toString() === exam._id.toString();
+        });
         const status = getExamStatus(exam);
-        return !isSubmitted && (status.status === 'upcoming' || status.status === 'active');
+        return !isSubmitted && status.status !== 'completed';
       }).length;
       
+      const totalExams = Math.max(examsData.length, completedExams + pendingExams);
+
       setStats({
-        totalExams: examsData.length,
+        totalExams,
         completedExams,
         pendingExams,
         averageScore,
@@ -141,8 +145,8 @@ const StudentDashboard = () => {
         submissionAPI.getMySubmissions()
       ]);
       
-      const examsData = examsResponse.data.exams;
-      const submissionsData = submissionsResponse.data.submissions;
+      const examsData = examsResponse.data.exams || [];
+      const submissionsData = submissionsResponse.data.submissions || [];
       
       setExams(examsData);
       setSubmissions(submissionsData);
@@ -152,15 +156,20 @@ const StudentDashboard = () => {
       const averageScore = submissionsData.length > 0 
         ? (submissionsData.reduce((sum, sub) => sum + sub.percentage, 0) / submissionsData.length).toFixed(1)
         : 0;
-      // Removed bestScore calculation
+
       const pendingExams = examsData.filter(exam => {
-        const isSubmitted = submissionsData.some(sub => sub.exam && sub.exam._id === exam._id);
+        const isSubmitted = submissionsData.some(sub => {
+          const subExamId = sub.exam?._id || sub.exam;
+          return subExamId && exam?._id && subExamId.toString() === exam._id.toString();
+        });
         const status = getExamStatus(exam);
-        return !isSubmitted && (status.status === 'upcoming' || status.status === 'active');
+        return !isSubmitted && status.status !== 'completed';
       }).length;
+
+      const totalExams = Math.max(examsData.length, completedExams + pendingExams);
       
       setStats({
-        totalExams: examsData.length,
+        totalExams,
         completedExams,
         pendingExams,
         averageScore,
@@ -378,6 +387,51 @@ const StudentDashboard = () => {
                   color: '#6b7280'
                 }}>
                   Check your exam scores and performance
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              to="/question-bank"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '1rem',
+                backgroundColor: '#f0fdf4',
+                borderRadius: '0.375rem',
+                textDecoration: 'none',
+                border: '1px solid #bbf7d0',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#d1fae5';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f0fdf4';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <BookOpen style={{
+                width: '1.5rem',
+                height: '1.5rem',
+                color: '#059669',
+                marginRight: '0.75rem'
+              }} />
+              <div>
+                <p style={{
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#065f46',
+                  marginBottom: '0.25rem'
+                }}>
+                  Question Bank
+                </p>
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: '#047857'
+                }}>
+                  Practice MCQs with answer explanations
                 </p>
               </div>
             </Link>

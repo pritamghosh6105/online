@@ -47,17 +47,19 @@ const getExams = async (req, res) => {
     const { page = 1, limit = 50, statsOnly = false } = req.query;
     let query = {};
     
-    // If student, only show active exams for their institution
+    // If student, show all active exams for their institution
     if (req.user.role === 'student') {
-      const now = new Date();
       query = {
-        isActive: true,
-        endDate: { $gte: now } // Show exams that haven't ended yet
+        isActive: true
       };
 
-      // Filter by student's registered institution if set
+      // Filter by student's registered institution if set, or unrestricted exams
       if (req.user.institution) {
-        query.institution = req.user.institution;
+        query.$or = [
+          { institution: req.user.institution },
+          { institution: '' },
+          { institution: { $exists: false } }
+        ];
       }
     } else if (req.user.role === 'admin' && req.user.institution) {
       // Sub-admins view exams for their institution or created by them
@@ -261,13 +263,14 @@ const deleteExam = async (req, res) => {
       });
     }
 
-    // Ownership check removed: any admin can delete any exam
+    // Delete associated submissions
+    await Submission.deleteMany({ exam: req.params.id });
 
     await Exam.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
-      message: 'Exam deleted successfully'
+      message: 'Exam and associated submissions deleted successfully'
     });
   } catch (error) {
     console.error('Delete exam error:', error);
