@@ -38,8 +38,8 @@ const submissionValidation = [
 router.post('/', protect, authorize('student'), submissionValidation, submitExam);
 router.get('/my', protect, authorize('student'), getMySubmissions);
 router.get('/leaderboard/:examId', protect, getExamLeaderboard);
-router.get('/', protect, authorize('admin'), getAllSubmissions);
+router.get('/', protect, authorize('admin', 'superadmin'), getAllSubmissions);
 router.get('/:id', protect, getSubmission);
-router.delete('/:id', protect, authorize('admin'), deleteSubmission);
+router.delete('/:id', protect, authorize('admin', 'superadmin'), deleteSubmission);
 
 module.exports = router;

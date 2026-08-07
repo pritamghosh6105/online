@@ -13,15 +13,34 @@ exports.getQuestions = async (req, res) => {
       filter.question = { $regex: search, $options: 'i' };
     }
 
-    // Filter by institution if admin
-    if (req.user && req.user.role === 'admin' && req.user.institution) {
-      filter.$or = [
-        { institution: req.user.institution },
-        { institution: '' }
-      ];
+    // Role-based Ownership & Admin-Student Isolation Filtering
+    if (req.user) {
+      if (req.user.role === 'admin') {
+        // Admin sees only Question Banks created by them or for their institution
+        if (req.user.institution) {
+          filter.$or = [
+            { createdBy: req.user._id },
+            { institution: req.user.institution }
+          ];
+        } else {
+          filter.createdBy = req.user._id;
+        }
+      } else if (req.user.role === 'student') {
+        // Students view ONLY Question Banks created by their assigned Admin or matching their institution
+        if (req.user.institution) {
+          filter.$or = [
+            { institution: req.user.institution },
+            { createdBy: req.user.assignedAdmin }
+          ];
+        } else if (req.user.assignedAdmin) {
+          filter.createdBy = req.user.assignedAdmin;
+        }
+      }
     }
 
-    const questions = await QuestionBank.find(filter).sort({ createdAt: -1 });
+    const questions = await QuestionBank.find(filter)
+      .populate('createdBy', 'name email adminId institution')
+      .sort({ createdAt: -1 });
     res.json({ success: true, count: questions.length, questions });
   } catch (error) {
     console.error('Error fetching question bank:', error);
@@ -128,21 +147,40 @@ exports.generateRandomQuestions = async (req, res) => {
   }
 };
 
-// AI Question Generator assistant
+// AI Question Generator assistant with Gemini AI & Optional Syllabus Integration
 exports.aiGenerateQuestions = async (req, res) => {
   try {
-    const { topic, difficulty = 'Medium', count = 3 } = req.body;
+    const { topic, syllabus, difficulty = 'Medium', count = 50 } = req.body;
     if (!topic) {
       return res.status(400).json({ success: false, message: 'Topic is required for AI question generation' });
     }
 
-    const num = Math.min(Math.max(parseInt(count) || 3, 1), 10);
+    const num = Math.min(Math.max(parseInt(count) || 50, 1), 50);
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (apiKey && apiKey.trim() && !apiKey.startsWith('AQ.')) {
       const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
-      const prompt = `Generate ${num} multiple choice questions on "${topic}" at ${difficulty} difficulty.
-Return STRICTLY JSON array of questions, formatted like this with no markdown code blocks:
+      const batchSize = 15;
+      const batchesNeeded = Math.ceil(num / batchSize);
+      
+      for (const model of models) {
+        try {
+          let allGenerated = [];
+          for (let b = 0; b < batchesNeeded; b++) {
+            const currentBatchCount = Math.min(batchSize, num - allGenerated.length);
+            if (currentBatchCount <= 0) break;
+
+            const syllabusPrompt = syllabus && syllabus.trim() 
+              ? `\nSyllabus / Curriculum Guidelines:\n"${syllabus.trim()}"\n` 
+              : '';
+
+            const prompt = `You are an expert examiner. Generate ${currentBatchCount} distinct, high-quality multiple choice questions on the topic/subject "${topic}".${syllabusPrompt}
+Difficulty level: ${difficulty}.
+${b > 0 ? `This is Batch ${b + 1}. Do NOT repeat questions from previous batches.` : ''}
+Ensure each question has 4 options (A, B, C, D) with exactly 1 correct option, accurate marks, and a clear explanation.
+Return STRICTLY a valid JSON array of questions, with NO markdown code blocks, NO HTML, and NO conversational text.
+
+JSON schema:
 [
   {
     "question": "Question text?",
@@ -156,30 +194,45 @@ Return STRICTLY JSON array of questions, formatted like this with no markdown co
       { "text": "Option D", "isCorrect": false }
     ],
     "marks": ${difficulty === 'Hard' ? 3 : (difficulty === 'Medium' ? 2 : 1)},
-    "explanation": "Brief explanation"
+    "explanation": "Clear explanation"
   }
 ]`;
 
-      for (const model of models) {
-        try {
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
-          });
+            const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.7,
+                  maxOutputTokens: 8192
+                }
+              })
+            });
 
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (rawText) {
-              const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
-              const parsed = JSON.parse(cleanJson);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                return res.json({ success: true, topic, difficulty, questions: parsed, source: `Google Gemini API (${model})` });
+            if (geminiRes.ok) {
+              const geminiData = await geminiRes.json();
+              const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (rawText) {
+                const cleanJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(cleanJson);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  allGenerated = allGenerated.concat(parsed);
+                }
               }
             }
+          }
+
+          if (allGenerated.length > 0) {
+            return res.json({
+              success: true,
+              topic,
+              syllabus: syllabus || '',
+              difficulty,
+              count: allGenerated.length,
+              questions: allGenerated.slice(0, num),
+              source: `Google Gemini AI (${model})`
+            });
           }
         } catch (err) {
           console.warn(`Question Bank Gemini API call failed on model ${model}:`, err.message);
@@ -187,80 +240,95 @@ Return STRICTLY JSON array of questions, formatted like this with no markdown co
       }
     }
 
-    // Smart template generator engine fallback for topic-based questions
+    // Smart dynamic template generator engine fallback for topic/syllabus based questions
     const generatedQuestions = [];
-    const templates = [
-      {
-        q: `What is the primary objective or definition of ${topic}?`,
-        opts: [
-          `To structure, evaluate and manage ${topic} core processes effectively`,
-          `To disable external connections in ${topic}`,
-          `To bypass authorization protocols`,
-          `None of the above`
-        ],
-        correctIndex: 0,
-        exp: `${topic} focuses on structured evaluation and core management.`
-      },
-      {
-        q: `Which of the following represents a fundamental principle of ${topic}?`,
-        opts: [
-          `Consistency, integrity, and scalability`,
-          `Uncontrolled data duplication`,
-          `Single-threaded non-responsive execution`,
-          `Deprecation of security policies`
-        ],
-        correctIndex: 0,
-        exp: `Consistency and integrity are foundational principles.`
-      },
-      {
-        q: `In the context of ${topic}, how is efficiency best optimized?`,
-        opts: [
-          `By automating repetitive evaluation tasks and caching results`,
-          `By performing manual verification for every single transaction`,
-          `By removing index structures`,
-          `By increasing latency parameters`
-        ],
-        correctIndex: 0,
-        exp: `Automation and caching increase operational speed and efficiency.`
-      },
-      {
-        q: `Which standard metric is commonly evaluated in ${topic}?`,
-        opts: [
-          `Accuracy score percentage and time completion metrics`,
-          `Number of system reboots`,
-          `Hard drive disk rotation speed`,
-          `Monitor display resolution`
-        ],
-        correctIndex: 0,
-        exp: `Accuracy percentage is the standard evaluation metric.`
-      },
-      {
-        q: `What is a common best practice when implementing ${topic} in real-world systems?`,
-        opts: [
-          `Enforcing strict Role-Based Access Control (RBAC) and audit logging`,
-          `Allowing anonymous root access without authentication`,
-          `Disabling real-time monitoring and backup features`,
-          `Hardcoding secret keys into source code`
-        ],
-        correctIndex: 0,
-        exp: `RBAC and audit logging ensure enterprise security and compliance.`
-      }
-    ];
+    const syllabusTopics = syllabus && syllabus.trim()
+      ? syllabus.trim().split(/[\n,;]+/).map(s => s.trim()).filter(Boolean)
+      : [topic];
 
     for (let i = 0; i < num; i++) {
-      const t = templates[i % templates.length];
+      const subtopic = syllabusTopics[i % syllabusTopics.length] || topic;
+      const qNum = i + 1;
+      
+      const questionTypes = [
+        {
+          q: `[Q${qNum}] What is the primary objective of "${subtopic}" in ${topic}?`,
+          opts: [
+            `To systematically structure, evaluate, and optimize ${subtopic} core operations`,
+            `To disable external validation checks in ${subtopic}`,
+            `To bypass authorization protocols and security logging`,
+            `None of the above`
+          ],
+          correctIndex: 0,
+          exp: `${subtopic} focuses on structured optimization and core evaluation.`
+        },
+        {
+          q: `[Q${qNum}] Which fundamental principle governs ${subtopic}?`,
+          opts: [
+            `High performance, data integrity, and deterministic execution`,
+            `Uncontrolled data duplication and random memory allocation`,
+            `Single-threaded blocking execution without error handling`,
+            `Deprecation of core validation standards`
+          ],
+          correctIndex: 0,
+          exp: `Data integrity and deterministic execution are foundational for ${subtopic}.`
+        },
+        {
+          q: `[Q${qNum}] How is optimal efficiency achieved when implementing ${subtopic}?`,
+          opts: [
+            `By automating execution pipelines and caching evaluated states`,
+            `By performing manual audits for every individual cycle`,
+            `By disabling indexing and search structures`,
+            `By intentionally introducing network latency`
+          ],
+          correctIndex: 0,
+          exp: `Automating pipelines and caching states maximizes system throughput.`
+        },
+        {
+          q: `[Q${qNum}] Which key metric is evaluated when benchmarking ${subtopic}?`,
+          opts: [
+            `Accuracy percentage score and execution latency`,
+            `Number of system restarts`,
+            `Hardware fan speed`,
+            `Monitor refresh rate`
+          ],
+          correctIndex: 0,
+          exp: `Accuracy percentage and execution latency are standard benchmarking metrics.`
+        },
+        {
+          q: `[Q${qNum}] What is considered best practice when deploying ${subtopic} modules?`,
+          opts: [
+            `Implementing strict Role-Based Access Control (RBAC) and audit trails`,
+            `Granting unauthenticated anonymous administrative access`,
+            `Disabling real-time monitoring and failover mechanisms`,
+            `Hardcoding access tokens directly in source files`
+          ],
+          correctIndex: 0,
+          exp: `RBAC and audit logging ensure compliance and security.`
+        }
+      ];
+
+      const template = questionTypes[i % questionTypes.length];
       generatedQuestions.push({
-        question: t.q,
+        question: template.q,
         category: topic,
         subject: topic,
         difficulty,
-        options: t.opts.map((opt, idx) => ({ text: opt, isCorrect: idx === t.correctIndex })),
+        options: template.opts.map((text, idx) => ({ text, isCorrect: idx === template.correctIndex })),
         marks: difficulty === 'Hard' ? 3 : (difficulty === 'Medium' ? 2 : 1),
-        explanation: t.exp
+        explanation: template.exp
       });
     }
 
-    res.json({ success: true, topic, difficulty, questions: generatedQuestions, source: 'Internal AI Engine' });
+    res.json({
+      success: true,
+      topic,
+      syllabus: syllabus || '',
+      difficulty,
+      count: generatedQuestions.length,
+      questions: generatedQuestions,
+      source: 'Examin Smart AI Engine'
+    });
   } catch (error) {
     console.error('Error generating AI questions:', error);
     res.status(500).json({ success: false, message: 'AI Question Generation failed' });

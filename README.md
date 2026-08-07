@@ -20,10 +20,16 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 ## ✨ Features & Capabilities
 
 ### 🛡️ Proctoring & Anti-Cheating Suite
-* Tab-switching detection counter with auto-warning alerts.
-* Text copy/paste protection on active exam screens.
-* Webcam face verification before test launch.
-* Live candidate proctoring feed (`/admin/live-monitoring`).
+* **Anti-Chrome Extension Defense**: 3-layer security system using capturing-phase event listeners (`useCapture = true`, `stopImmediatePropagation()`) to intercept events before Chrome extensions (e.g. *Absolute Enable Right Click & Copy*) can run content scripts.
+* **Text Selection Wiper**: Real-time `selectionchange` listener invoking `window.getSelection().removeAllRanges()` to immediately un-highlight text if an extension forces CSS `user-select: text !important`.
+* **Clipboard Data Poisoning**: Automatically overwrites hijacked copy payloads with security warning text (`[SECURITY VIOLATION]: Question text copying is prohibited...`).
+* **Debounced Dual Tab & Window Blur Detection**: Detects browser tab switching (`visibilitychange`) and application/window switching (`window.blur`) with real-time header violation badge (`Tab Switches: X/3`).
+* **Keyboard Shortcut & Screenshot Blocking**: Intercepts `PrintScreen`, `F12`, `Ctrl+Shift+I/J/C`, `Ctrl+P`, `Ctrl+U`, `Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+S`.
+* **Live Proctor Monitoring Feed**: Real-time instructor view (`/admin/live-monitoring`) for active exam tracking.
+
+### ⏱️ Live Real-Time Countdown Timer Engine
+* **Freeze-Proof Timer Engine**: Calculates exact remaining seconds dynamically from `new Date()` vs `examStartTime` every 1000ms, eliminating timer freezing, pauses, or drift.
+* **Sub-Second Auto-Save**: Background answer auto-saving to `localStorage` every 800ms with live visual indicator (`Auto-saved`).
 
 ### 🤖 Google Gemini AI Exam Builder
 * Real-time AI question generator powered by Google Gemini (`/api/ai-exam/generate`) allowing instant test creation by topic prompt (*Python, Data Structures, Maths, Science, History, etc.*).
@@ -44,9 +50,9 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 * **Change Password Modal**: Secure password update tool on Student Dashboard (`/student-dashboard`) with live validation.
 * Sub-Admin password & credential management directly from Admin Dashboard.
 
-### 📚 Question Bank & Leaderboards
+### 📚 Question Bank & Redesigned Exam Results
 * Centralized question bank with category tags, difficulty filters (Easy, Medium, Hard), and bulk CSV/JSON import capabilities.
-* Instant score evaluation, class rank calculation, and AI-generated performance feedback breaking down strengths and weakness recommendations.
+* **Redesigned Exam Results UI**: Clean flexbox card layout featuring high-contrast score cards, test duration, letter grade badges (A/B/C/D/F), pass/fail status pills, and full-width AI performance feedback breaking down strengths and weakness recommendations.
 
 ### 📜 Printable QR Certificates
 * Automatic PDF/Printable certificate generation for passing candidates, complete with scannable QR verification link (`/verify-certificate/:certId`).
@@ -65,8 +71,8 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 ## 🔒 Security & Compliance
 
 * **JWT Authentication**: Secure JSON Web Tokens stored with session management.
-* **Role-Based Access Control (RBAC)**: Strict role separation between Students, Admins/Instructors, and Super Admin.
-* **Proctoring Audit Trail**: Every tab switch, copy attempt, and proctor flag recorded in submission records.
+* **Role-Based Access Control (RBAC)**: Strict role separation between Students, Admins/Instructors, and Super Admin (`/api/superadmin/*` protected).
+* **Proctoring Audit Trail**: Every tab switch, window blur, copy attempt, and proctor flag recorded in submission records.
 * **Database Encryption & Hashing**: Bcrypt password hashing (12 rounds) and sanitized inputs via express-validator.
 
 ---
@@ -76,10 +82,10 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 1. **Institution Onboarding**: Demo Request -> Super Admin Approval -> Automated Credentials Email with 11-digit Admin ID.
 2. **Admin & Student Password Management**: Sub-Admins and Students can update passwords directly via the **Change Password** panel.
 3. **AI Exam Creation**: Topic Prompt -> Google Gemini AI Generator -> Auto-populated Questions -> Editable Question List -> Schedule & Publish.
-4. **Student Exam Workflow**: Pre-exam Instructions -> Face Verification -> Timed Exam with 30s Auto-Save -> Auto-Submit -> QR Certificate.
+4. **Student Exam Workflow**: Pre-exam Instructions -> Face Verification -> Timed Exam with Live Countdown & 800ms Auto-Save -> Auto-Submit -> QR Certificate.
 5. **Result & Analytics**: Auto Evaluation -> Rank Generation -> AI Strengths & Weakness Analysis.
 6. **Question Bank**: Categories -> CSV Import -> Difficulty Filters -> Random Question Selection.
-7. **Proctoring Workflow**: Camera Permission -> Face Detection -> Tab Switch Counter -> Copy/Paste Block.
+7. **Proctoring Workflow**: Camera Permission -> Face Detection -> Debounced Tab/Blur Counter -> Anti-Extension Copy/Paste Block.
 8. **Notification Workflow**: In-App Dashboard Alerts & Automated Email notifications.
 9. **Super Admin Workflow**: Manage Scheduled Test Requests -> Approve Sub-Admins -> Inspect Connected Institution Portals -> Manage Registered Students -> Platform Analytics -> Audit Logs -> JSON Backup.
 10. **Certificate Workflow**: Pass Exam -> Printable PDF Certificate -> QR Verification Code.

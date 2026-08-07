@@ -58,10 +58,15 @@ export const getGradeLetter = (percentage) => {
 };
 
 export const getExamStatus = (exam) => {
+  if (!exam) return { status: 'completed', color: '#6b7280', text: 'Completed' };
   const now = new Date();
-  const startTime = new Date(exam.startTime);
-  const endTime = new Date(exam.endTime);
+  const startTime = new Date(exam.startDate || exam.startTime);
+  const endTime = new Date(exam.endDate || exam.endTime);
   
+  if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+    return { status: 'active', color: '#059669', text: 'Active' };
+  }
+
   if (now < startTime) {
     return { status: 'upcoming', color: '#3b82f6', text: 'Upcoming' };
   } else if (now >= startTime && now <= endTime) {

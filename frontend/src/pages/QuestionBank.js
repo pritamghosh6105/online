@@ -46,8 +46,9 @@ const QuestionBank = () => {
 
   // AI Prompt State
   const [aiTopic, setAiTopic] = useState('');
+  const [aiSyllabus, setAiSyllabus] = useState('');
   const [aiDifficulty, setAiDifficulty] = useState('Medium');
-  const [aiCount, setAiCount] = useState(3);
+  const [aiCount, setAiCount] = useState(50);
   const [aiGenerating, setAiGenerating] = useState(false);
 
   // CSV text import state
@@ -98,22 +99,28 @@ const QuestionBank = () => {
     }
     try {
       setAiGenerating(true);
+      const countVal = Math.min(Math.max(parseInt(aiCount) || 50, 1), 50);
       const res = await questionBankAPI.aiGenerateQuestions({
         topic: aiTopic,
+        syllabus: aiSyllabus,
         difficulty: aiDifficulty,
-        count: aiCount
+        count: countVal
       });
 
       const gen = res.data.questions || [];
       if (gen.length > 0) {
         await questionBankAPI.importBulk(gen);
-        toast.success(`Generated & added ${gen.length} AI questions!`);
+        toast.success(`✨ Gemini AI generated & added ${gen.length} questions to Question Bank!`);
         setShowAIModal(false);
         setAiTopic('');
+        setAiSyllabus('');
         fetchQuestions();
+      } else {
+        toast.error('No questions were generated');
       }
     } catch (err) {
-      toast.error('AI question generation failed');
+      console.error('AI Question Generation error:', err);
+      toast.error(err.response?.data?.message || 'AI question generation failed');
     } finally {
       setAiGenerating(false);
     }
@@ -344,42 +351,91 @@ const QuestionBank = () => {
 
       {/* AI Generator Modal */}
       {showAIModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '28px', maxWidth: '500px', width: '100%' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '28px', maxWidth: '560px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ margin: 0, fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '8px', color: '#7c3aed' }}>
-                <Sparkles /> AI Question Generator
+                <Sparkles /> Gemini AI Question Generator
               </h2>
               <button onClick={() => setShowAIModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}><X /></button>
             </div>
             <form onSubmit={handleAIGenerate}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>Topic / Subject</label>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>
+                  Topic / Subject <span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input 
                   type="text" 
-                  placeholder="e.g., Data Structures, Quantum Physics, World History"
+                  placeholder="e.g., Data Structures & Algorithms, Organic Chemistry, Indian Polity"
                   value={aiTopic}
                   onChange={(e) => setAiTopic(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
                   required
                 />
               </div>
+
+              {/* Optional Syllabus Input */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>
+                  Syllabus / Curriculum Guidelines <span style={{ fontWeight: 400, color: '#64748b', fontSize: '0.8rem' }}>(Optional)</span>
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="e.g. Module 1: Binary Search Trees, AVL Trees & Heaps&#10;Module 2: Graph Algorithms (BFS, DFS, Shortest Path)&#10;Module 3: Dynamic Programming & Recursion"
+                  value={aiSyllabus}
+                  onChange={(e) => setAiSyllabus(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit' }}
+                />
+                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0' }}>
+                  💡 Paste your syllabus modules to generate targeted MCQs matching your exact curriculum.
+                </p>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>Difficulty</label>
-                  <select value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>Difficulty</label>
+                  <select value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}>
+                    <option value="Easy">Easy (1 Mark)</option>
+                    <option value="Medium">Medium (2 Marks)</option>
+                    <option value="Hard">Hard (3 Marks)</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>Count</label>
-                  <input type="number" min="1" max="10" value={aiCount} onChange={(e) => setAiCount(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>Question Count (Up to 50)</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="50" 
+                    value={aiCount} 
+                    onChange={(e) => setAiCount(e.target.value)} 
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} 
+                  />
                 </div>
               </div>
-              <button type="submit" disabled={aiGenerating} style={{ width: '100%', backgroundColor: '#7c3aed', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>
-                {aiGenerating ? 'Generating Questions...' : '✨ Generate & Add Questions'}
+              <button 
+                type="submit" 
+                disabled={aiGenerating} 
+                style={{ 
+                  width: '100%', 
+                  backgroundColor: aiGenerating ? '#a78bfa' : '#7c3aed', 
+                  color: '#ffffff', 
+                  border: 'none', 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  fontWeight: 700, 
+                  fontSize: '0.95rem',
+                  cursor: aiGenerating ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                {aiGenerating ? (
+                  <>✨ Generating up to {aiCount} Questions with Gemini AI...</>
+                ) : (
+                  <>✨ Generate & Add {aiCount} Questions to Question Bank</>
+                )}
               </button>
             </form>
           </div>

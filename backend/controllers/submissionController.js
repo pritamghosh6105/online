@@ -203,8 +203,15 @@ const getAllSubmissions = async (req, res) => {
     const total = await Submission.countDocuments(query);
 
     const submissions = await Submission.find(query)
-      .populate('student', 'name email studentId')
-      .populate('exam', 'title subject totalMarks')
+      .populate('student', 'name email studentId institution')
+      .populate({
+        path: 'exam',
+        select: 'title subject totalMarks createdBy institution',
+        populate: {
+          path: 'createdBy',
+          select: 'name email adminId institution role'
+        }
+      })
       .select('-answers') // Exclude detailed answers to reduce payload
       .sort({ createdAt: -1 })
       .skip(skip)

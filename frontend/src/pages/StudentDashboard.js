@@ -309,23 +309,6 @@ const StudentDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Current Grade */}
-          <div className="student-stat-card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.375rem' }}>
-                  Overall Grade
-                </p>
-                <p style={{ fontSize: '2.25rem', fontWeight: '800', color: getGradeColor(stats.averageScore || 0), margin: 0 }}>
-                  {stats.grade || 'N/A'}
-                </p>
-              </div>
-              <div style={{ width: '3.25rem', height: '3.25rem', borderRadius: '0.75rem', background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                <Star style={{ width: '1.75rem', height: '1.75rem' }} />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Quick Actions */}

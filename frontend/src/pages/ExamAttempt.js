@@ -23,7 +23,7 @@ const ExamAttempt = () => {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [examStep, setExamStep] = useState('instructions'); // 'instructions', 'face-verify', 'active'
+  const [examStep, setExamStep] = useState('active'); // 'instructions', 'face-verify', 'active'
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -37,41 +37,206 @@ const ExamAttempt = () => {
   const [copyPasteAttempts, setCopyPasteAttempts] = useState(0);
   const [faceVerified, setFaceVerified] = useState(true);
 
-  // Tab switching detection listener
+  // Advanced Tab & Window Blur Switching Detection
   useEffect(() => {
-    if (examStep === 'active') {
+    if (exam) {
+      let lastSwitchTime = 0;
+
+      const triggerViolation = (reason) => {
+        const now = Date.now();
+        if (now - lastSwitchTime < 1500) return; // Debounce 1.5s to avoid duplicate triggers
+        lastSwitchTime = now;
+
+        setTabSwitches(prev => {
+          const updated = prev + 1;
+          toast.warn(`⚠️ Proctor Warning: ${reason}! (Violation ${updated}/3)`, { autoClose: 4000 });
+
+          if (updated >= 3) {
+            toast.error('🚫 Maximum tab switch violations exceeded (3/3). Exam proctoring log updated.', { autoClose: 6000 });
+          }
+          return updated;
+        });
+      };
+
       const handleVisibilityChange = () => {
         if (document.hidden) {
-          setTabSwitches(prev => {
-            const updated = prev + 1;
-            toast.warn(`⚠️ Proctor Warning: Tab switch detected! (Violation ${updated}/3)`, { autoClose: 4000 });
-            return updated;
-          });
+          triggerViolation('Tab switch detected');
         }
       };
 
+      const handleWindowBlur = () => {
+        triggerViolation('Window blur / App switch detected');
+      };
+
       document.addEventListener('visibilitychange', handleVisibilityChange);
-      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }
-  }, [examStep]);
+      window.addEventListener('blur', handleWindowBlur);
 
-  // Copy / Paste block listener
-  useEffect(() => {
-    if (examStep === 'active') {
-      const handleCopyPaste = (e) => {
-        e.preventDefault();
-        setCopyPasteAttempts(prev => prev + 1);
-        toast.error('🚫 Copying/Pasting text is prohibited during proctored exams!');
-      };
-
-      document.addEventListener('copy', handleCopyPaste);
-      document.addEventListener('paste', handleCopyPaste);
       return () => {
-        document.removeEventListener('copy', handleCopyPaste);
-        document.removeEventListener('paste', handleCopyPaste);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('blur', handleWindowBlur);
       };
     }
-  }, [examStep]);
+  }, [exam]);
+
+  // Advanced Anti-Extension & Anti-Copy Protection
+  useEffect(() => {
+    if (exam) {
+      let lastToastTime = 0;
+
+      const notifyViolation = (msg) => {
+        const now = Date.now();
+        if (now - lastToastTime > 1500) {
+          toast.error(msg);
+          lastToastTime = now;
+        }
+      };
+
+      // 1. Selection Wiper: Immediately un-highlight any text (bypasses extension user-select CSS overrides)
+      const handleSelectionChange = () => {
+        const selection = window.getSelection();
+        if (selection && selection.toString().trim().length > 0) {
+          selection.removeAllRanges();
+          setCopyPasteAttempts(prev => prev + 1);
+          notifyViolation('🚫 Text selection is prohibited during proctored exams!');
+        }
+      };
+
+      // 2. Clipboard Poisoning: If extension bypasses JS copy handlers, overwrite copied content
+      const handleCopyHijack = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        
+        if (e.clipboardData) {
+          e.clipboardData.setData(
+            'text/plain',
+            '[SECURITY VIOLATION]: Question text copying is prohibited during proctored exams.'
+          );
+        }
+        setCopyPasteAttempts(prev => prev + 1);
+        notifyViolation('🚫 Copy attempt blocked & reported!');
+        return false;
+      };
+
+      // 3. Capturing Phase Event Blockers (useCapture = true) - executes BEFORE extension content scripts
+      const blockEventCapture = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        notifyViolation('🚫 Right-clicking and context menus are disabled during exams.');
+        return false;
+      };
+
+      const handleKeyDown = (e) => {
+        // Block PrintScreen / Screenshot attempts
+        if (e.key === 'PrintScreen' || e.keyCode === 44) {
+          e.preventDefault();
+          setCopyPasteAttempts(prev => prev + 1);
+          notifyViolation('🚫 Screen capture and screenshots are strictly prohibited!');
+        }
+
+        // Block F12, Ctrl+P, Ctrl+U, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+S, Ctrl+Shift+I/J/C
+        const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+        const key = e.key ? e.key.toLowerCase() : '';
+
+        if (
+          e.key === 'F12' ||
+          (isCtrlOrMeta && ['c', 'v', 'x', 'a', 'p', 'u', 's'].includes(key)) ||
+          (isCtrlOrMeta && e.shiftKey && ['i', 'j', 'c'].includes(key))
+        ) {
+          e.preventDefault();
+          notifyViolation('🚫 Security Action: Keyboard shortcuts & inspect tools are disabled.');
+        }
+      };
+
+      document.addEventListener('selectionchange', handleSelectionChange);
+      window.addEventListener('copy', handleCopyHijack, true);
+      window.addEventListener('cut', handleCopyHijack, true);
+      window.addEventListener('paste', handleCopyHijack, true);
+      window.addEventListener('contextmenu', blockEventCapture, true);
+      window.addEventListener('selectstart', blockEventCapture, true);
+      window.addEventListener('keydown', handleKeyDown, true);
+
+      return () => {
+        document.removeEventListener('selectionchange', handleSelectionChange);
+        window.removeEventListener('copy', handleCopyHijack, true);
+        window.removeEventListener('cut', handleCopyHijack, true);
+        window.removeEventListener('paste', handleCopyHijack, true);
+        window.removeEventListener('contextmenu', blockEventCapture, true);
+        window.removeEventListener('selectstart', blockEventCapture, true);
+        window.removeEventListener('keydown', handleKeyDown, true);
+      };
+    }
+  }, [exam]);
+
+
+
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      
+      const endTime = new Date();
+      
+      // Validate that we have answers
+      if (Object.keys(answers).length === 0) {
+        toast.error('Please answer at least one question before submitting.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Validate exam start time
+      if (!examStartTime) {
+        toast.error('Invalid exam session. Please refresh and try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      const submissionData = {
+        examId: exam._id,
+        answers: Object.keys(answers).map(questionId => ({
+          questionId: questionId,
+          selectedOption: parseInt(answers[questionId])
+        })),
+        startTime: examStartTime.toISOString(),
+        endTime: endTime.toISOString(),
+        proctorLogs: {
+          tabSwitches,
+          copyPasteAttempts,
+          faceVerified
+        }
+      };
+
+      console.log('Submitting exam with data:', submissionData);
+      
+      const response = await submissionAPI.submitExam(submissionData);
+      console.log('Submission response:', response);
+      
+      // Clear saved data
+      localStorage.removeItem(`exam_${id}_answers`);
+      localStorage.removeItem(`exam_${id}_startTime`);
+      
+      toast.success('Exam submitted successfully!');
+      navigate('/results');
+    } catch (error) {
+      console.error('Error submitting exam:', error);
+      
+      let errorMessage = 'Failed to submit exam. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.errors) {
+        errorMessage = error.response.data.errors.map(err => err.msg).join(', ');
+      }
+      
+      toast.error(errorMessage);
+      setSubmitting(false);
+    }
+  };
+
+  const handleAutoSubmit = useCallback(async () => {
+    await handleSubmit();
+    toast.warning('Time is up! Your exam has been automatically submitted.');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Fetch exam data
   useEffect(() => {
@@ -79,36 +244,41 @@ const ExamAttempt = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Timer effect
+  // Live Real-Time Timer Countdown Effect
   useEffect(() => {
-    if (exam && examStartTime && timeRemaining > 0 && examStep === 'active') {
-      const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            handleAutoSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (exam && examStartTime) {
+      const updateTimer = () => {
+        const durationSeconds = (exam.duration || 60) * 60; // Exam duration in seconds
+        const now = new Date();
+        const start = new Date(examStartTime);
+        const elapsedSeconds = Math.floor((now - start) / 1000);
+        const remaining = Math.max(0, durationSeconds - elapsedSeconds);
 
+        setTimeRemaining(remaining);
+
+        if (remaining <= 0) {
+          handleAutoSubmit();
+        }
+      };
+
+      updateTimer();
+      const timer = setInterval(updateTimer, 1000);
       return () => clearInterval(timer);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exam, examStartTime, timeRemaining, examStep]);
+  }, [exam, examStartTime, handleAutoSubmit]);
 
-  // Auto-save answers every 30 seconds
+  // Auto-save answers to localStorage
   useEffect(() => {
-    if (Object.keys(answers).length > 0 && examStep === 'active') {
+    if (Object.keys(answers).length > 0 && exam) {
       setAutoSaveStatus('saving');
       const saveTimer = setTimeout(() => {
         localStorage.setItem(`exam_${id}_answers`, JSON.stringify(answers));
         setAutoSaveStatus('saved');
-      }, 1000);
+      }, 800);
 
       return () => clearTimeout(saveTimer);
     }
-  }, [answers, id, examStep]);
+  }, [answers, id, exam]);
 
   // Allow opening new tabs but warn on page refresh/close
   useEffect(() => {
@@ -200,77 +370,7 @@ const ExamAttempt = () => {
     setCurrentQuestionIndex(index);
   };
 
-  const handleSubmit = async () => {
-    try {
-      setSubmitting(true);
-      
-      const endTime = new Date();
-      
-      // Validate that we have answers
-      if (Object.keys(answers).length === 0) {
-        toast.error('Please answer at least one question before submitting.');
-        setSubmitting(false);
-        return;
-      }
 
-      // Validate exam start time
-      if (!examStartTime) {
-        toast.error('Invalid exam session. Please refresh and try again.');
-        setSubmitting(false);
-        return;
-      }
-
-      const submissionData = {
-        examId: exam._id,
-        answers: Object.keys(answers).map(questionId => ({
-          questionId: questionId,
-          selectedOption: parseInt(answers[questionId])
-        })),
-        startTime: examStartTime.toISOString(),
-        endTime: endTime.toISOString(),
-        proctorLogs: {
-          tabSwitches,
-          copyPasteAttempts,
-          faceVerified
-        }
-      };
-
-      console.log('Submitting exam with data:', submissionData);
-      console.log('Exam ID:', exam._id);
-      console.log('Start time:', examStartTime);
-      console.log('End time:', endTime);
-      console.log('Answers count:', Object.keys(answers).length);
-      
-      const response = await submissionAPI.submitExam(submissionData);
-      console.log('Submission response:', response);
-      
-      // Clear saved data
-      localStorage.removeItem(`exam_${id}_answers`);
-      localStorage.removeItem(`exam_${id}_startTime`);
-      
-      toast.success('Exam submitted successfully!');
-      navigate('/results');
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      console.error('Error response:', error.response?.data);
-      
-      let errorMessage = 'Failed to submit exam. Please try again.';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.errors) {
-        errorMessage = error.response.data.errors.map(err => err.msg).join(', ');
-      }
-      
-      toast.error(errorMessage);
-      setSubmitting(false);
-    }
-  };
-
-  const handleAutoSubmit = useCallback(async () => {
-    await handleSubmit();
-    toast.warning('Time is up! Your exam has been automatically submitted.');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const formatTime = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -356,10 +456,22 @@ const ExamAttempt = () => {
   const progress = ((currentQuestionIndex + 1) / exam.questions.length) * 100;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f8fafc'
-    }}>
+    <div
+      onCopy={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
+      onPaste={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
+      onSelectStart={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#f8fafc',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none'
+      }}
+    >
       {/* Header */}
       <div style={{
         backgroundColor: '#ffffff',
@@ -408,6 +520,23 @@ const ExamAttempt = () => {
             alignItems: 'center',
             gap: '1rem'
           }}>
+            {tabSwitches > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: tabSwitches >= 3 ? '#fee2e2' : '#fef3c7',
+                color: tabSwitches >= 3 ? '#dc2626' : '#b45309',
+                padding: '0.35rem 0.75rem',
+                borderRadius: '0.375rem',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                border: `1px solid ${tabSwitches >= 3 ? '#fecaca' : '#fde68a'}`
+              }}>
+                <AlertTriangle style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem' }} />
+                Tab Switches: {tabSwitches}/3
+              </div>
+            )}
+
             <div style={{
               display: 'flex',
               alignItems: 'center',

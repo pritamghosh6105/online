@@ -18,16 +18,16 @@ exports.getOrCreateCertificate = async (req, res) => {
 
     const passingScore = submission.exam.passingMarks || 40;
     if (submission.percentage < passingScore) {
-      return res.status(400).json({ 
-        success: false, 
-        message: `Student score (${submission.percentage}%) is below passing threshold (${passingScore}%). Certificate not available.` 
+      return res.status(400).json({
+        success: false,
+        message: `Student score (${submission.percentage}%) is below passing threshold (${passingScore}%). Certificate not available.`
       });
     }
 
     // Check if certificate already generated
-    let cert = await Certificate.findOne({ 
-      student: submission.student._id, 
-      exam: submission.exam._id 
+    let cert = await Certificate.findOne({
+      student: submission.student._id,
+      exam: submission.exam._id
     });
 
     if (!cert) {
@@ -65,17 +65,17 @@ exports.verifyCertificate = async (req, res) => {
     const cert = await Certificate.findOne({ certificateId: certId.toUpperCase() });
 
     if (!cert) {
-      return res.status(404).json({ 
-        success: false, 
-        verified: false, 
-        message: 'Certificate ID not found or invalid' 
+      return res.status(404).json({
+        success: false,
+        verified: false,
+        message: 'Certificate ID not found or invalid'
       });
     }
 
-    res.json({ 
-      success: true, 
-      verified: true, 
-      certificate: cert 
+    res.json({
+      success: true,
+      verified: true,
+      certificate: cert
     });
   } catch (error) {
     console.error('Error verifying certificate:', error);

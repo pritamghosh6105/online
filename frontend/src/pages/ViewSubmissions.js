@@ -7,7 +7,10 @@ import {
   Clock,
   Filter,
   Search,
-  Trash2
+  Trash2,
+  Building,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import { formatDate, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -26,15 +29,16 @@ const ViewSubmissions = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [submissionsResponse, examsResponse] = await Promise.all([
         submissionAPI.getAllSubmissions({ examId: selectedExam, limit: 100 }),
         examAPI.getExams({ limit: 100 })
       ]);
-      setSubmissions(submissionsResponse.data.submissions);
-      setExams(examsResponse.data.exams);
+      setSubmissions(submissionsResponse.data.submissions || []);
+      setExams(examsResponse.data.exams || []);
     } catch (error) {
       console.error('Error fetching submissions:', error);
-      setError('Failed to load submissions');
+      setError('Failed to load submissions. Please ensure backend server is running and try again.');
     } finally {
       setLoading(false);
     }
@@ -58,17 +62,27 @@ const ViewSubmissions = () => {
   };
 
   const filteredSubmissions = submissions.filter(submission => {
-    // Filter out submissions with null exam references first
     if (!submission.exam) return false;
 
-    const studentName = submission.student.name.toLowerCase();
-    const studentEmail = submission.student.email.toLowerCase();
-    const examTitle = submission.exam.title.toLowerCase();
+    const studentName = (submission.student?.name || '').toLowerCase();
+    const studentEmail = (submission.student?.email || '').toLowerCase();
+    const studentId = (submission.student?.studentId || '').toLowerCase();
+    const examTitle = (submission.exam?.title || '').toLowerCase();
+    const subject = (submission.exam?.subject || '').toLowerCase();
+    const institution = (submission.exam?.institution || submission.student?.institution || submission.exam?.createdBy?.institution || 'Examin Platform').toLowerCase();
+    const adminName = (submission.exam?.createdBy?.name || '').toLowerCase();
+    const adminId = (submission.exam?.createdBy?.adminId || '').toLowerCase();
+    
     const search = searchTerm.toLowerCase();
 
     return studentName.includes(search) ||
       studentEmail.includes(search) ||
-      examTitle.includes(search);
+      studentId.includes(search) ||
+      examTitle.includes(search) ||
+      subject.includes(search) ||
+      institution.includes(search) ||
+      adminName.includes(search) ||
+      adminId.includes(search);
   });
 
   if (loading) {
@@ -280,7 +294,7 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'left',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Student
@@ -289,16 +303,34 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'left',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Exam / Subject
                       </th>
                       <th style={{
                         padding: '0.75rem',
+                        textAlign: 'left',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: '#374151'
+                      }}>
+                        Institution
+                      </th>
+                      <th style={{
+                        padding: '0.75rem',
+                        textAlign: 'left',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: '#374151'
+                      }}>
+                        Assigned Admin
+                      </th>
+                      <th style={{
+                        padding: '0.75rem',
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Score / Marks
@@ -307,7 +339,7 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Grade
@@ -316,7 +348,7 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Time Taken
@@ -325,7 +357,7 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Submitted
@@ -334,7 +366,7 @@ const ViewSubmissions = () => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        fontWeight: '500',
+                        fontWeight: '600',
                         color: '#374151'
                       }}>
                         Actions
@@ -349,35 +381,54 @@ const ViewSubmissions = () => {
                           borderBottom: '1px solid #e5e7eb'
                         }}
                       >
+                        {/* Student */}
                         <td style={{
                           padding: '0.75rem'
                         }}>
                           <div>
                             <p style={{
                               fontSize: '0.875rem',
-                              fontWeight: '500',
-                              color: '#1f2937'
+                              fontWeight: '600',
+                              color: '#1f2937',
+                              margin: 0
                             }}>
-                              {submission.student.name}
+                              {submission.student?.name || 'Unknown Student'}
                             </p>
                             <p style={{
                               fontSize: '0.75rem',
-                              color: '#6b7280'
+                              color: '#6b7280',
+                              margin: '0.15rem 0'
                             }}>
-                              {submission.student.email}
+                              {submission.student?.email}
                             </p>
+                            {submission.student?.studentId && (
+                              <span style={{
+                                fontSize: '0.7rem',
+                                backgroundColor: '#f1f5f9',
+                                color: '#475569',
+                                padding: '0.1rem 0.4rem',
+                                borderRadius: '0.25rem',
+                                fontFamily: 'monospace',
+                                fontWeight: '600'
+                              }}>
+                                ID: {submission.student.studentId}
+                              </span>
+                            )}
                           </div>
                         </td>
+
+                        {/* Exam / Subject */}
                         <td style={{
                           padding: '0.75rem'
                         }}>
                           <div>
                             <p style={{
                               fontSize: '0.875rem',
-                              fontWeight: '500',
-                              color: '#1f2937'
+                              fontWeight: '600',
+                              color: '#1f2937',
+                              margin: 0
                             }}>
-                              {submission.exam.title}
+                              {submission.exam?.title || 'Unknown Exam'}
                             </p>
                             <span style={{
                               display: 'inline-block',
@@ -387,10 +438,47 @@ const ViewSubmissions = () => {
                               color: '#1e40af',
                               borderRadius: '0.25rem',
                               fontSize: '0.75rem',
-                              fontWeight: '500'
+                              fontWeight: '600'
                             }}>
-                              {submission.exam.subject}
+                              {submission.exam?.subject}
                             </span>
+                          </div>
+                        </td>
+
+                        {/* Institution */}
+                        <td style={{
+                          padding: '0.75rem'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Building size={14} style={{ color: '#059669', flexShrink: 0 }} />
+                            <span style={{
+                              fontSize: '0.825rem',
+                              fontWeight: '600',
+                              color: '#065f46',
+                              backgroundColor: '#dcfce7',
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '0.375rem',
+                              display: 'inline-block'
+                            }}>
+                              {submission.exam?.institution || submission.student?.institution || submission.exam?.createdBy?.institution || 'Examin Platform'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Assigned Admin */}
+                        <td style={{
+                          padding: '0.75rem'
+                        }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <ShieldCheck size={14} style={{ color: '#2563eb', flexShrink: 0 }} />
+                              <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#1e293b' }}>
+                                {submission.exam?.createdBy?.name || 'Super Admin'}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.15rem 0 0 1.25rem' }}>
+                              {submission.exam?.createdBy?.adminId ? `Admin ID: ${submission.exam.createdBy.adminId}` : submission.exam?.createdBy?.email || 'System Administrator'}
+                            </p>
                           </div>
                         </td>
                         <td style={{

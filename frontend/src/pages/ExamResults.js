@@ -654,196 +654,167 @@ const ExamResults = () => {
                 display: 'grid',
                 gap: '1rem'
               }}>
-                {filteredSubmissions.map((submission) => (
-                  <div
-                    key={submission._id}
-                    style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem',
-                      padding: '1.5rem',
-                      backgroundColor: '#f8fafc',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = '#f1f5f9';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = '#f8fafc';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                      gap: '1rem',
-                      alignItems: 'center'
-                    }}>
-                      <div>
-                        <h3 style={{
-                          fontSize: '1.125rem',
-                          fontWeight: '600',
-                          color: '#1f2937',
-                          marginBottom: '0.5rem'
-                        }}>
-                          {submission.exam.title}
-                        </h3>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.25rem'
-                        }}>
-                          <FileText style={{
-                            width: '1rem',
-                            height: '1rem',
-                            marginRight: '0.5rem'
-                          }} />
-                          {submission.exam.subject}
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '0.875rem',
-                          color: '#6b7280'
-                        }}>
-                          <Calendar style={{
-                            width: '1rem',
-                            height: '1rem',
-                            marginRight: '0.5rem'
-                          }} />
-                          {formatDate(submission.createdAt)}
-                        </div>
-                      </div>
-
-                      <div style={{
-                        textAlign: 'center'
-                      }}>
-                        <div style={{
-                          fontSize: '2rem',
-                          fontWeight: 'bold',
-                          color: getGradeColor(submission.percentage),
-                          marginBottom: '0.25rem'
-                        }}>
-                          {submission.percentage}%
-                        </div>
-                        <div style={{
-                          fontSize: '0.875rem',
-                          color: '#6b7280',
-                          marginBottom: '0.5rem'
-                        }}>
-                          {submission.totalScore}/{submission.totalMarks} points
-                        </div>
-                        <span style={{
-                          display: 'inline-block',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold',
-                          backgroundColor: submission.percentage >= 60 ? '#d1fae5' : '#fee2e2',
-                          color: submission.percentage >= 60 ? '#065f46' : '#991b1b'
-                        }}>
-                          Grade: {getGradeLetter(submission.percentage)}
-                        </span>
-                      </div>
-
+                {filteredSubmissions.map((submission) => {
+                  const isPassed = submission.percentage >= (submission.exam?.passingMarks || 40);
+                  return (
+                    <div
+                      key={submission._id}
+                      style={{
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '0.75rem',
+                        padding: '1.25rem 1.5rem',
+                        backgroundColor: '#ffffff',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                        transition: 'all 0.2s ease-in-out'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#cbd5e1';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                      }}
+                    >
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.875rem',
-                        color: '#6b7280'
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '1rem'
                       }}>
-                        <Clock style={{
-                          width: '1rem',
-                          height: '1rem',
-                          marginRight: '0.5rem'
-                        }} />
-                        Time: {submission.timeTaken}min
-                      </div>
+                        {/* Exam Title & Metadata */}
+                        <div style={{ flex: '1 1 240px' }}>
+                          <h3 style={{
+                            fontSize: '1.15rem',
+                            fontWeight: '700',
+                            color: '#0f172a',
+                            marginBottom: '0.4rem',
+                            letterSpacing: '-0.01em'
+                          }}>
+                            {submission.exam.title}
+                          </h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              fontSize: '0.85rem',
+                              color: '#64748b',
+                              fontWeight: '500'
+                            }}>
+                              <FileText style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#94a3b8' }} />
+                              {submission.exam.subject}
+                            </div>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              fontSize: '0.85rem',
+                              color: '#64748b',
+                              fontWeight: '500'
+                            }}>
+                              <Calendar style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#94a3b8' }} />
+                              {formatDate(submission.createdAt)}
+                            </div>
+                          </div>
+                        </div>
 
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'center'
-                      }}>
+                        {/* Percentage & Score Badge */}
                         <div style={{
                           display: 'flex',
                           alignItems: 'center',
-                          backgroundColor: submission.percentage >= 60 ? '#d1fae5' : '#fee2e2',
-                          color: submission.percentage >= 60 ? '#065f46' : '#991b1b',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.375rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500'
+                          gap: '1.25rem',
+                          backgroundColor: '#f8fafc',
+                          padding: '0.65rem 1.25rem',
+                          borderRadius: '0.65rem',
+                          border: '1px solid #f1f5f9'
                         }}>
-                          {submission.percentage >= 60 ? (
-                            <CheckCircle style={{
-                              width: '1rem',
-                              height: '1rem',
-                              marginRight: '0.5rem'
-                            }} />
-                          ) : (
-                            <AlertCircle style={{
-                              width: '1rem',
-                              height: '1rem',
-                              marginRight: '0.5rem'
-                            }} />
-                          )}
-                          {submission.percentage >= 60 ? 'Passed' : 'Failed'}
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{
+                              fontSize: '1.75rem',
+                              fontWeight: '800',
+                              color: getGradeColor(submission.percentage),
+                              lineHeight: '1.1'
+                            }}>
+                              {submission.percentage}%
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600', marginTop: '2px' }}>
+                              {submission.totalScore}/{submission.totalMarks} pts
+                            </div>
+                          </div>
+                          <span style={{
+                            padding: '0.2rem 0.6rem',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            backgroundColor: isPassed ? '#dcfce7' : '#fee2e2',
+                            color: isPassed ? '#15803d' : '#b91c1c'
+                          }}>
+                            Grade: {getGradeLetter(submission.percentage)}
+                          </span>
+                        </div>
+
+                        {/* Duration & Status Badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            fontSize: '0.85rem',
+                            color: '#64748b',
+                            fontWeight: '500'
+                          }}>
+                            <Clock style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#94a3b8' }} />
+                            {submission.timeTaken || 1} min
+                          </div>
+
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            backgroundColor: isPassed ? '#ecfdf5' : '#fef2f2',
+                            color: isPassed ? '#047857' : '#dc2626',
+                            padding: '0.4rem 0.85rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                            border: `1px solid ${isPassed ? '#a7f3d0' : '#fecaca'}`
+                          }}>
+                            {isPassed ? (
+                              <CheckCircle style={{ width: '1rem', height: '1rem' }} />
+                            ) : (
+                              <AlertCircle style={{ width: '1rem', height: '1rem' }} />
+                            )}
+                            {isPassed ? 'Passed' : 'Failed'}
+                          </div>
                         </div>
                       </div>
 
-                      {/* Rank & Certificate Button */}
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
-                        {submission.rank && (
-                          <span style={{ fontSize: '0.8rem', fontWeight: 700, backgroundColor: '#fef3c7', color: '#92400e', padding: '4px 10px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Trophy style={{ width: '12px', height: '12px' }} /> Rank #{submission.rank}
-                          </span>
-                        )}
-
-                        {submission.percentage >= (submission.exam?.passingMarks || 40) && (
-                          <button 
-                            onClick={() => handleViewCertificate(submission._id)}
-                            disabled={certLoading}
-                            style={{
-                              backgroundColor: '#2563eb',
-                              color: '#ffffff',
-                              border: 'none',
-                              padding: '4px 12px',
-                              borderRadius: '6px',
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            <Award style={{ width: '14px', height: '14px' }} /> Certificate
-                          </button>
-                        )}
-                      </div>
-
-                      {/* AI Performance Breakdown */}
+                      {/* AI Performance Breakdown Banner */}
                       {submission.aiPerformanceSummary && (
-                        <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0', fontSize: '0.8rem', color: '#475569', textAlign: 'left' }}>
-                          <span style={{ color: '#7c3aed', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
-                            <Sparkles style={{ width: '12px', height: '12px' }} /> AI Insights:
-                          </span>
+                        <div style={{
+                          marginTop: '1rem',
+                          paddingTop: '0.85rem',
+                          borderTop: '1px solid #f1f5f9',
+                          fontSize: '0.825rem',
+                          color: '#475569'
+                        }}>
+                          <div style={{ color: '#6d28d9', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.35rem' }}>
+                            <Sparkles style={{ width: '0.85rem', height: '0.85rem', color: '#7c3aed' }} /> AI Analysis Insights:
+                          </div>
                           {submission.aiPerformanceSummary.strengths?.[0] && (
-                            <div style={{ color: '#059669' }}>• {submission.aiPerformanceSummary.strengths[0]}</div>
+                            <div style={{ color: '#047857', fontWeight: '500', marginBottom: '2px' }}>
+                              • {submission.aiPerformanceSummary.strengths[0]}
+                            </div>
                           )}
                           {submission.aiPerformanceSummary.recommendations?.[0] && (
-                            <div style={{ color: '#2563eb' }}>• {submission.aiPerformanceSummary.recommendations[0]}</div>
+                            <div style={{ color: '#1d4ed8', fontWeight: '500' }}>
+                              • {submission.aiPerformanceSummary.recommendations[0]}
+                            </div>
                           )}
                         </div>
                       )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
