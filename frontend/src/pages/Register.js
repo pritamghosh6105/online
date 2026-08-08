@@ -214,7 +214,7 @@ const Register = () => {
               Full Name
             </label>
             <div style={{ position: 'relative' }}>
-              <User style={{
+              <User className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -226,11 +226,12 @@ const Register = () => {
               <input
                 type="text"
                 name="name"
+                className="input-with-left-icon"
                 value={formData.name}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                  padding: '0.75rem 0.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.name ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
@@ -265,7 +266,7 @@ const Register = () => {
               Email Address
             </label>
             <div style={{ position: 'relative' }}>
-              <Mail style={{
+              <Mail className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -277,11 +278,12 @@ const Register = () => {
               <input
                 type="email"
                 name="email"
+                className="input-with-left-icon"
                 value={formData.email}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                  padding: '0.75rem 0.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.email ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
@@ -316,7 +318,7 @@ const Register = () => {
               Institution / School Name
             </label>
             <div style={{ position: 'relative' }}>
-              <Building style={{
+              <Building className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -328,6 +330,7 @@ const Register = () => {
               {approvedInstitutions.length > 0 && !customInstitution ? (
                 <select
                   name="institution"
+                  className="input-with-left-icon"
                   value={formData.institution}
                   onChange={(e) => {
                     if (e.target.value === '__other__') {
@@ -339,7 +342,7 @@ const Register = () => {
                   }}
                   style={{
                     width: '100%',
-                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                    padding: '0.75rem 0.75rem 0.75rem 2.75rem',
                     border: `1px solid ${errors.institution ? '#dc2626' : '#d1d5db'}`,
                     borderRadius: '0.375rem',
                     fontSize: '0.875rem',
@@ -357,11 +360,12 @@ const Register = () => {
                 <input
                   type="text"
                   name="institution"
+                  className="input-with-left-icon"
                   value={formData.institution}
                   onChange={handleChange}
                   style={{
                     width: '100%',
-                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                    padding: '0.75rem 0.75rem 0.75rem 2.75rem',
                     border: `1px solid ${errors.institution ? '#dc2626' : '#d1d5db'}`,
                     borderRadius: '0.375rem',
                     fontSize: '0.875rem',
@@ -399,7 +403,7 @@ const Register = () => {
               Password
             </label>
             <div style={{ position: 'relative' }}>
-              <Lock style={{
+              <Lock className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -411,11 +415,12 @@ const Register = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                className="input-with-both-icons"
                 value={formData.password}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 2.5rem 0.75rem 2.5rem',
+                  padding: '0.75rem 2.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.password ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
@@ -466,7 +471,7 @@ const Register = () => {
               Confirm Password
             </label>
             <div style={{ position: 'relative' }}>
-              <Lock style={{
+              <Lock className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -478,11 +483,12 @@ const Register = () => {
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
+                className="input-with-both-icons"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 2.5rem 0.75rem 2.5rem',
+                  padding: '0.75rem 2.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.confirmPassword ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',

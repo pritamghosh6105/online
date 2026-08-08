@@ -119,7 +119,7 @@ const Login = () => {
               Student ID or Email Address
             </label>
             <div style={{ position: 'relative' }}>
-              <Mail style={{
+              <Mail className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -131,11 +131,12 @@ const Login = () => {
               <input
                 type="email"
                 name="email"
+                className="input-with-left-icon"
                 value={formData.email}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                  padding: '0.75rem 0.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.email ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
@@ -170,7 +171,7 @@ const Login = () => {
               Password
             </label>
             <div style={{ position: 'relative' }}>
-              <Lock style={{
+              <Lock className="input-icon-left" style={{
                 position: 'absolute',
                 left: '0.75rem',
                 top: '50%',
@@ -182,11 +183,12 @@ const Login = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                className="input-with-both-icons"
                 value={formData.password}
                 onChange={handleChange}
                 style={{
                   width: '100%',
-                  padding: '0.75rem 2.5rem 0.75rem 2.5rem',
+                  padding: '0.75rem 2.75rem 0.75rem 2.75rem',
                   border: `1px solid ${errors.password ? '#dc2626' : '#d1d5db'}`,
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
