@@ -186,6 +186,15 @@ const getAllSubmissions = async (req, res) => {
 
     if (examId) {
       query.exam = examId;
+    } else if (req.user.role === 'admin' && req.user.institution) {
+      const adminExams = await Exam.find({
+        $or: [
+          { institution: req.user.institution },
+          { createdBy: req.user.id }
+        ]
+      }).select('_id');
+      const examIds = adminExams.map(e => e._id);
+      query.exam = { $in: examIds };
     }
 
     // If only stats are needed, return count of valid non-orphaned submissions

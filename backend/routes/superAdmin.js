@@ -13,15 +13,17 @@ const {
 const { protect, authorize } = require('../middleware/auth');
 
 router.use(protect);
-router.use(authorize('superadmin', 'admin'));
 
-router.get('/analytics', getPlatformAnalytics);
-router.get('/audit-logs', getAuditLogs);
-router.put('/institution-plan', updateInstitutionPlan);
-router.get('/backup', exportSystemBackup);
-router.get('/students', getStudents);
-router.delete('/students/:id', deleteStudent);
-router.post('/students/:id/resend-credentials', resendStudentCredentials);
-router.delete('/institution/:name', deleteInstitution);
+// Student management accessible by admin and superadmin
+router.get('/students', authorize('superadmin', 'admin'), getStudents);
+router.delete('/students/:id', authorize('superadmin', 'admin'), deleteStudent);
+router.post('/students/:id/resend-credentials', authorize('superadmin', 'admin'), resendStudentCredentials);
+
+// SuperAdmin exclusive routes
+router.get('/analytics', authorize('superadmin'), getPlatformAnalytics);
+router.get('/audit-logs', authorize('superadmin'), getAuditLogs);
+router.put('/institution-plan', authorize('superadmin'), updateInstitutionPlan);
+router.get('/backup', authorize('superadmin'), exportSystemBackup);
+router.delete('/institution/:name', authorize('superadmin'), deleteInstitution);
 
 module.exports = router;

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const Schedule = require('../models/Schedule');
+const { protect, authorize } = require('../middleware/auth');
 
 // @route   POST /api/schedules
 // @desc    Submit a new scheduled test request (Public)
@@ -36,8 +37,8 @@ router.post('/', async (req, res) => {
 
 // @route   GET /api/schedules
 // @desc    Get all scheduled test requests
-// @access  Public / Admin
-router.get('/', async (req, res) => {
+// @access  Private / Admin
+router.get('/', protect, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const schedules = await Schedule.find().sort({ createdAt: -1 });
     res.json({
@@ -121,8 +122,8 @@ const sendAdminCredentialsEmail = async (email, name, adminId, password, institu
 
 // @route   PUT /api/schedules/:id
 // @desc    Update schedule request status and auto-create Admin if confirmed/completed
-// @access  Admin
-router.put('/:id', async (req, res) => {
+// @access  Private (Admin)
+router.put('/:id', protect, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const { status } = req.body;
     const schedule = await Schedule.findById(req.params.id);
@@ -221,8 +222,8 @@ router.put('/:id', async (req, res) => {
 
 // @route   DELETE /api/schedules/:id
 // @desc    Delete a schedule request
-// @access  Admin
-router.delete('/:id', async (req, res) => {
+// @access  Private (Admin)
+router.delete('/:id', protect, authorize('admin', 'superadmin'), async (req, res) => {
   try {
     const schedule = await Schedule.findById(req.params.id);
     if (!schedule) {

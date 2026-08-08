@@ -145,8 +145,8 @@ const questionTemplates = {
 
 // @route   POST /api/ai-exam/generate
 // @desc    Generate AI exam questions based on topic, subject & difficulty (using Gemini API or built-in engine)
-// @access  Public / Admin
-router.post('/generate', async (req, res) => {
+// @access  Private (Admin / Student)
+router.post('/generate', protect, async (req, res) => {
   try {
     const { topic = '', subject = '', count = 5, difficulty = 'Medium' } = req.body;
 

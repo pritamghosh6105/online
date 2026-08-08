@@ -387,6 +387,13 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found or account inactive'
+      });
+    }
+
     res.json({
       success: true,
       user: {
@@ -396,6 +403,7 @@ const getMe = async (req, res) => {
         role: user.role,
         institution: user.institution,
         isApproved: user.isApproved,
+        studentId: user.studentId,
         createdAt: user.createdAt
       }
     });

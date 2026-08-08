@@ -16,6 +16,14 @@ exports.getOrCreateCertificate = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
+    // Authorization check: Students can only access their own submissions
+    if (req.user.role === 'student' && submission.student._id.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view or generate certificate for this submission'
+      });
+    }
+
     const passingScore = submission.exam.passingMarks || 40;
     if (submission.percentage < passingScore) {
       return res.status(400).json({

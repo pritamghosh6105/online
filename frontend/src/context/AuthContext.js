@@ -19,17 +19,26 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
 
-      if (token && savedUser) {
+      if (token) {
         try {
           const response = await authAPI.getMe();
-          setUser(response.data.user);
+          if (response.data?.success && response.data?.user) {
+            const userData = response.data.user;
+            setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
+          } else {
+            throw new Error('Invalid authentication response');
+          }
         } catch (error) {
           console.error('Token validation failed:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          setUser(null);
         }
+      } else {
+        localStorage.removeItem('user');
+        setUser(null);
       }
       setLoading(false);
     };
