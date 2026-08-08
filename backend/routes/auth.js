@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, login, getMe, getAdmins, getApprovedInstitutions, getPendingAdmins, approveAdmin, changeCredentials, changePassword, addAdmin, deleteAdmin } = require('../controllers/authController');
+const { register, login, getMe, getAdmins, getApprovedInstitutions, getPendingAdmins, approveAdmin, changeCredentials, changePassword, addAdmin, deleteAdmin, clearActiveExamSession } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -80,5 +80,6 @@ router.put('/change-credentials', protect, changeCredentialsValidation, changeCr
 router.put('/change-password', protect, changePassword);
 router.post('/add-admin', protect, addAdminValidation, addAdmin);
 router.delete('/admins/:id', protect, deleteAdmin);
+router.post('/clear-exam-session', protect, clearActiveExamSession);
 
 module.exports = router;

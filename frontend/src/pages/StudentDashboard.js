@@ -105,17 +105,18 @@ const StudentDashboard = () => {
       setExams(examsData);
       setSubmissions(submissionsData);
       
-      // Calculate statistics
+      // Calculate statistics with O(1) Set lookup
       const completedExams = submissionsData.length;
       const averageScore = submissionsData.length > 0 
         ? (submissionsData.reduce((sum, sub) => sum + sub.percentage, 0) / submissionsData.length).toFixed(1)
         : 0;
 
+      const submittedExamIds = new Set(
+        submissionsData.map(sub => (sub.exam?._id || sub.exam)?.toString()).filter(Boolean)
+      );
+
       const pendingExams = examsData.filter(exam => {
-        const isSubmitted = submissionsData.some(sub => {
-          const subExamId = sub.exam?._id || sub.exam;
-          return subExamId && exam?._id && subExamId.toString() === exam._id.toString();
-        });
+        const isSubmitted = submittedExamIds.has(exam._id?.toString());
         const status = getExamStatus(exam);
         return !isSubmitted && status.status !== 'completed';
       }).length;

@@ -13,6 +13,7 @@ export const authAPI = {
   addAdmin: (adminData) => api.post('/auth/add-admin', adminData),
   getAdmins: () => api.get('/auth/admins'),
   deleteAdmin: (adminId) => api.delete(`/auth/admins/${adminId}`),
+  clearExamSession: () => api.post('/auth/clear-exam-session'),
 };
 
 // Exam API

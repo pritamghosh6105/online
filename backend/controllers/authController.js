@@ -354,6 +354,24 @@ const login = async (req, res) => {
       });
     }
 
+    // Check for ongoing active exam session (Single Active Login during active exam)
+    if (user.role === 'student' && user.activeExamSession && user.activeExamSession.isActive) {
+      const sessionStartTime = new Date(user.activeExamSession.startTime || Date.now());
+      const hoursElapsed = (Date.now() - sessionStartTime.getTime()) / (1000 * 60 * 60);
+
+      // If active exam session was started within the last 6 hours, block new login
+      if (hoursElapsed < 6) {
+        return res.status(403).json({
+          success: false,
+          message: '🚫 Login Blocked: You have an ongoing active examination session running in another browser or device. Simultaneous logins during active exams are strictly prohibited.'
+        });
+      } else {
+        // Auto-expire stale exam session if older than 6 hours
+        user.activeExamSession.isActive = false;
+        await user.save();
+      }
+    }
+
     // Generate token
     const token = generateToken(user._id);
 
@@ -705,6 +723,21 @@ const changePassword = async (req, res) => {
   }
 };
 
+// @desc    Clear active exam session on logout or exam completion
+// @route   POST /api/auth/clear-exam-session
+// @access  Private
+const clearActiveExamSession = async (req, res) => {
+  try {
+    await User.findByIdAndUpdate(req.user.id, {
+      'activeExamSession.isActive': false
+    });
+    res.json({ success: true, message: 'Active exam session cleared' });
+  } catch (error) {
+    console.error('Clear active exam session error:', error);
+    res.status(500).json({ success: false, message: 'Server error while clearing exam session' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -716,5 +749,6 @@ module.exports = {
   changeCredentials,
   changePassword,
   addAdmin,
-  deleteAdmin
+  deleteAdmin,
+  clearActiveExamSession
 };

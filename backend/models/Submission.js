@@ -69,6 +69,11 @@ const submissionSchema = new mongoose.Schema({
   proctorLogs: {
     tabSwitches: { type: Number, default: 0 },
     copyPasteAttempts: { type: Number, default: 0 },
+    fullscreenViolations: { type: Number, default: 0 },
+    multiMonitorDetected: { type: Boolean, default: false },
+    audioViolations: { type: Number, default: 0 },
+    devToolsAttempts: { type: Number, default: 0 },
+    isTerminatedForCheating: { type: Boolean, default: false },
     faceVerified: { type: Boolean, default: true },
     suspiciousFlags: [{ timestamp: Date, reason: String }]
   },

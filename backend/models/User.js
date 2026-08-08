@@ -61,6 +61,12 @@ const userSchema = new mongoose.Schema({
   plan: {
     type: String,
     default: 'Free'
+  },
+  activeExamSession: {
+    examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam', default: null },
+    sessionToken: { type: String, default: null },
+    startTime: { type: Date, default: null },
+    isActive: { type: Boolean, default: false }
   }
 }, {
   timestamps: true

@@ -51,7 +51,6 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
-    fetchPendingAdmins();
   }, []);
 
   const fetchPendingAdmins = async () => {
@@ -81,23 +80,23 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch stats only for initial load (much faster)
-      const [examsStatsResponse, submissionsStatsResponse] = await Promise.all([
-        examAPI.getExams({ statsOnly: true }),
-        submissionAPI.getAllSubmissions({ statsOnly: true })
+      // Fetch stats, page 1 exams, and pending admins concurrently in 1 parallel batch
+      const [examsStatsResponse, submissionsStatsResponse, examsResponse, pendingAdminsRes] = await Promise.all([
+        examAPI.getExams({ statsOnly: true }).catch(() => ({ data: { count: 0 } })),
+        submissionAPI.getAllSubmissions({ statsOnly: true }).catch(() => ({ data: { count: 0 } })),
+        examAPI.getExams({ page: 1, limit: 10 }).catch(() => ({ data: { exams: [] } })),
+        authAPI.getPendingAdmins().catch(() => ({ data: { pendingAdmins: [] } }))
       ]);
 
       setStats({
-        examsCount: examsStatsResponse.data.count || 0,
-        submissionsCount: submissionsStatsResponse.data.count || 0
+        examsCount: examsStatsResponse.data?.count || 0,
+        submissionsCount: submissionsStatsResponse.data?.count || 0
       });
 
-      // Fetch limited recent exams for display (only first page)
-      const examsResponse = await examAPI.getExams({ page: 1, limit: 10 });
-      setExams(examsResponse.data.exams || []);
-
+      setExams(examsResponse.data?.exams || []);
+      setPendingAdmins(pendingAdminsRes.data?.pendingAdmins || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);

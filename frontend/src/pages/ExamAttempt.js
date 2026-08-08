@@ -32,10 +32,131 @@ const ExamAttempt = () => {
   const [submitting, setSubmitting] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
 
-  // Proctoring State
+  // Level 1 & Level 3 Proctoring State
   const [tabSwitches, setTabSwitches] = useState(0);
   const [copyPasteAttempts, setCopyPasteAttempts] = useState(0);
+  const [fullscreenViolations, setFullscreenViolations] = useState(0);
+  const [multiMonitorDetected, setMultiMonitorDetected] = useState(false);
+  const [audioViolations, setAudioViolations] = useState(0);
+  const [devToolsAttempts, setDevToolsAttempts] = useState(0);
   const [faceVerified, setFaceVerified] = useState(true);
+
+  // Helper for Fisher-Yates array shuffling
+  const shuffleArray = (arr) => {
+    if (!Array.isArray(arr)) return arr;
+    const array = [...arr];
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  const requestFullscreenMode = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(err => console.warn('Fullscreen request error:', err));
+    }
+  };
+
+  // Fullscreen Change Monitor (Level 1)
+  useEffect(() => {
+    if (exam) {
+      const handleFullscreenChange = () => {
+        if (!document.fullscreenElement) {
+          setFullscreenViolations(prev => {
+            const updated = prev + 1;
+            toast.warn(`⚠️ Fullscreen Warning: Fullscreen mode exited! (Violation ${updated}/3)`, { autoClose: 4000 });
+            return updated;
+          });
+        }
+      };
+
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }
+  }, [exam]);
+
+  // Multi-Monitor Detector (Level 3)
+  useEffect(() => {
+    if (exam) {
+      const checkScreenExtension = () => {
+        if (window.screen && (window.screen.isExtended || (window.screen.availWidth && window.screen.availWidth > window.screen.width * 1.5))) {
+          setMultiMonitorDetected(true);
+          toast.warn('⚠️ Proctor Warning: Extended display or multi-monitor setup detected!', { autoClose: 5000 });
+        }
+      };
+      checkScreenExtension();
+    }
+  }, [exam]);
+
+  // Audio / Speech Noise Monitor (Level 3)
+  useEffect(() => {
+    if (!exam) return;
+    let audioCtx = null;
+    let stream = null;
+    let intervalId = null;
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(s => {
+          stream = s;
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const analyser = audioCtx.createAnalyser();
+          const source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+          analyser.fftSize = 256;
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          let highVolCount = 0;
+          intervalId = setInterval(() => {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const avg = sum / dataArray.length;
+
+            if (avg > 45) { // Sound volume threshold
+              highVolCount++;
+              if (highVolCount >= 3) {
+                setAudioViolations(prev => prev + 1);
+                toast.warn('⚠️ Audio Warning: Background noise or speech detected!', { autoClose: 3500 });
+                highVolCount = 0;
+              }
+            } else {
+              highVolCount = Math.max(0, highVolCount - 1);
+            }
+          }, 1500);
+        })
+        .catch(err => {
+          console.warn('Proctor audio monitor skipped (mic permission omitted):', err);
+        });
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (audioCtx) audioCtx.close();
+    };
+  }, [exam]);
+
+  // DevTools Debugger Detector (Level 3)
+  useEffect(() => {
+    if (!exam) return;
+    const devToolsTimer = setInterval(() => {
+      const startTime = performance.now();
+      // eslint-disable-next-line no-debugger
+      debugger;
+      const endTime = performance.now();
+      if (endTime - startTime > 100) {
+        setDevToolsAttempts(prev => {
+          const updated = prev + 1;
+          toast.error('🚫 Security Action: Developer Tools inspection detected!', { autoClose: 5000 });
+          return updated;
+        });
+      }
+    }, 3000);
+    return () => clearInterval(devToolsTimer);
+  }, [exam]);
 
   // Advanced Tab & Window Blur Switching Detection
   useEffect(() => {
@@ -44,16 +165,12 @@ const ExamAttempt = () => {
 
       const triggerViolation = (reason) => {
         const now = Date.now();
-        if (now - lastSwitchTime < 1500) return; // Debounce 1.5s to avoid duplicate triggers
+        if (now - lastSwitchTime < 1500) return; // Debounce 1.5s
         lastSwitchTime = now;
 
         setTabSwitches(prev => {
           const updated = prev + 1;
           toast.warn(`⚠️ Proctor Warning: ${reason}! (Violation ${updated}/3)`, { autoClose: 4000 });
-
-          if (updated >= 3) {
-            toast.error('🚫 Maximum tab switch violations exceeded (3/3). Exam proctoring log updated.', { autoClose: 6000 });
-          }
           return updated;
         });
       };
@@ -171,25 +288,31 @@ const ExamAttempt = () => {
 
 
 
-  const handleSubmit = async () => {
+  // Auto-Submit on Proctoring Violation Limit Exceeded
+  useEffect(() => {
+    if (exam && !submitting) {
+      if (tabSwitches >= 3 || fullscreenViolations >= 3 || devToolsAttempts >= 2) {
+        toast.error('🚫 Security Termination: Maximum proctoring violations exceeded. Exam auto-submitting...', { autoClose: 6000 });
+        handleSubmit(true);
+      }
+    }
+  }, [tabSwitches, fullscreenViolations, devToolsAttempts, exam, submitting]);
+
+  const handleSubmit = async (isTerminated = false) => {
     try {
       setSubmitting(true);
       
       const endTime = new Date();
       
-      // Validate that we have answers
-      if (Object.keys(answers).length === 0) {
+      // Validate that we have answers (unless auto-terminated for cheating)
+      if (!isTerminated && Object.keys(answers).length === 0) {
         toast.error('Please answer at least one question before submitting.');
         setSubmitting(false);
         return;
       }
 
       // Validate exam start time
-      if (!examStartTime) {
-        toast.error('Invalid exam session. Please refresh and try again.');
-        setSubmitting(false);
-        return;
-      }
+      const startTimeISO = examStartTime ? examStartTime.toISOString() : new Date().toISOString();
 
       const submissionData = {
         examId: exam._id,
@@ -197,11 +320,16 @@ const ExamAttempt = () => {
           questionId: questionId,
           selectedOption: parseInt(answers[questionId])
         })),
-        startTime: examStartTime.toISOString(),
+        startTime: startTimeISO,
         endTime: endTime.toISOString(),
         proctorLogs: {
           tabSwitches,
           copyPasteAttempts,
+          fullscreenViolations,
+          multiMonitorDetected,
+          audioViolations,
+          devToolsAttempts,
+          isTerminatedForCheating: Boolean(isTerminated),
           faceVerified
         }
       };
@@ -215,7 +343,11 @@ const ExamAttempt = () => {
       localStorage.removeItem(`exam_${id}_answers`);
       localStorage.removeItem(`exam_${id}_startTime`);
       
-      toast.success('Exam submitted successfully!');
+      if (isTerminated) {
+        toast.error('🚫 Exam terminated & submitted due to severe proctoring violations.');
+      } else {
+        toast.success('Exam submitted successfully!');
+      }
       navigate('/results');
     } catch (error) {
       console.error('Error submitting exam:', error);
@@ -311,6 +443,15 @@ const ExamAttempt = () => {
       if (now > endTime) {
         setError('This exam has already ended.');
         return;
+      }
+
+      // Shuffle questions and options per student session (Level 1 Anti-Cheat)
+      if (examData.questions && Array.isArray(examData.questions)) {
+        const shuffledQuestions = shuffleArray(examData.questions).map(q => ({
+          ...q,
+          options: shuffleArray(q.options.map((opt, idx) => (typeof opt === 'object' ? { ...opt, originalIndex: idx } : { text: opt, originalIndex: idx })))
+        }));
+        examData.questions = shuffledQuestions;
       }
 
       setExam(examData);
@@ -658,59 +799,63 @@ const ExamAttempt = () => {
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
-              {currentQuestion.options.map((option, index) => (
-                <label
-                  key={index}
-                  style={{
-                    display: 'block',
-                    padding: '1rem',
-                    border: '2px solid',
-                    borderColor: answers[currentQuestion._id] === index ? '#3b82f6' : '#e5e7eb',
-                    borderRadius: '0.5rem',
-                    marginBottom: '0.75rem',
-                    cursor: 'pointer',
-                    backgroundColor: answers[currentQuestion._id] === index ? '#eff6ff' : '#ffffff',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (answers[currentQuestion._id] !== index) {
-                      e.target.style.borderColor = '#d1d5db';
-                      e.target.style.backgroundColor = '#f9fafb';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (answers[currentQuestion._id] !== index) {
-                      e.target.style.borderColor = '#e5e7eb';
-                      e.target.style.backgroundColor = '#ffffff';
-                    }
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}>
-                    <input
-                      type="radio"
-                      name={currentQuestion._id}
-                      value={index}
-                      checked={answers[currentQuestion._id] === index}
-                      onChange={() => handleAnswerChange(currentQuestion._id, index)}
-                      style={{
-                        marginRight: '0.75rem',
-                        width: '1.25rem',
-                        height: '1.25rem'
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '1rem',
-                      color: '#374151',
-                      lineHeight: '1.5'
+              {currentQuestion.options.map((option, index) => {
+                const optIndex = option.originalIndex !== undefined ? option.originalIndex : index;
+                const isSelected = answers[currentQuestion._id] === optIndex;
+                return (
+                  <label
+                    key={index}
+                    style={{
+                      display: 'block',
+                      padding: '1rem',
+                      border: '2px solid',
+                      borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
+                      borderRadius: '0.5rem',
+                      marginBottom: '0.75rem',
+                      cursor: 'pointer',
+                      backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) {
+                        e.target.style.borderColor = '#d1d5db';
+                        e.target.style.backgroundColor = '#f9fafb';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) {
+                        e.target.style.borderColor = '#e5e7eb';
+                        e.target.style.backgroundColor = '#ffffff';
+                      }
+                    }}
+                  >
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center'
                     }}>
-                      {option.text || option}
-                    </span>
-                  </div>
-                </label>
-              ))}
+                      <input
+                        type="radio"
+                        name={currentQuestion._id}
+                        value={optIndex}
+                        checked={isSelected}
+                        onChange={() => handleAnswerChange(currentQuestion._id, optIndex)}
+                        style={{
+                          marginRight: '0.75rem',
+                          width: '1.25rem',
+                          height: '1.25rem'
+                        }}
+                      />
+                      <span style={{
+                        fontSize: '1rem',
+                        color: '#374151',
+                        lineHeight: '1.5'
+                      }}>
+                        {option.text || option}
+                      </span>
+                    </div>
+                  </label>
+                );
+              })}
             </div>
 
             {/* Navigation Buttons */}

@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const Exam = require('../models/Exam');
 const Submission = require('../models/Submission');
+const User = require('../models/User');
 
 // @desc    Create exam
 // @route   POST /api/exams
@@ -96,33 +97,30 @@ const getExams = async (req, res) => {
 
     const exams = await examQuery.lean();
 
-    // For students, hide correct answers
+    // For list view, strip heavy option texts & full strings to make dashboard loading ultra-fast
+    const lightExams = exams.map(exam => {
+      const examObj = { ...exam };
+      if (Array.isArray(examObj.questions)) {
+        examObj.questions = examObj.questions.map(q => ({ _id: q._id, marks: q.marks }));
+      }
+      return examObj;
+    });
+
     if (req.user.role === 'student') {
-      const sanitizedExams = exams.map(exam => {
-        const examObj = exam;
-        examObj.questions = examObj.questions.map(q => ({
-          _id: q._id,
-          question: q.question,
-          options: q.options.map(opt => ({ text: opt.text })),
-          marks: q.marks
-        }));
-        return examObj;
-      });
-      
       return res.json({
         success: true,
-        count: sanitizedExams.length,
-        exams: sanitizedExams
+        count: lightExams.length,
+        exams: lightExams
       });
     }
 
     res.json({
       success: true,
-      count: exams.length,
+      count: lightExams.length,
       total,
       page: parseInt(page),
       pages: Math.ceil(total / parseInt(limit)),
-      exams
+      exams: lightExams
     });
   } catch (error) {
     console.error('Get exams error:', error);
@@ -169,6 +167,15 @@ const getExam = async (req, res) => {
           message: 'You have already submitted this exam'
         });
       }
+
+      // Register active exam session on student User record
+      await User.findByIdAndUpdate(req.user.id, {
+        activeExamSession: {
+          examId: exam._id,
+          startTime: new Date(),
+          isActive: true
+        }
+      });
 
       // Hide correct answers for students
       const examObj = exam.toObject();

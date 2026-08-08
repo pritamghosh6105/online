@@ -83,7 +83,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authAPI.clearExamSession();
+    } catch (err) {
+      console.warn('Could not clear active exam session on server:', err);
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

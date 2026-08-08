@@ -52,7 +52,13 @@ const LiveMonitoring = () => {
         {submissions.map((sub, idx) => {
           const tabSwitches = sub.proctorLogs?.tabSwitches || 0;
           const copyPaste = sub.proctorLogs?.copyPasteAttempts || 0;
-          const hasViolations = tabSwitches > 1 || copyPaste > 0;
+          const fullscreenExits = sub.proctorLogs?.fullscreenViolations || 0;
+          const devTools = sub.proctorLogs?.devToolsAttempts || 0;
+          const audioViolations = sub.proctorLogs?.audioViolations || 0;
+          const multiMonitor = sub.proctorLogs?.multiMonitorDetected || false;
+          const isTerminated = sub.proctorLogs?.isTerminatedForCheating || false;
+
+          const hasViolations = tabSwitches > 1 || copyPaste > 0 || fullscreenExits > 0 || devTools > 0 || audioViolations > 0 || multiMonitor || isTerminated;
 
           return (
             <div key={sub._id || idx} style={{
@@ -60,9 +66,9 @@ const LiveMonitoring = () => {
               borderRadius: '16px',
               overflow: 'hidden',
               boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
-              border: hasViolations ? '2px solid #ef4444' : '1px solid #e2e8f0'
+              border: isTerminated ? '2px solid #7f1d1d' : hasViolations ? '2px solid #ef4444' : '1px solid #e2e8f0'
             }}>
-              {/* Simulated Camera Feed Container */}
+              {/* Camera Feed Container */}
               <div style={{
                 height: '160px',
                 backgroundColor: '#0f172a',
@@ -102,7 +108,21 @@ const LiveMonitoring = () => {
                   ● LIVE STREAM
                 </span>
 
-                {hasViolations && (
+                {isTerminated ? (
+                  <span style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: '#7f1d1d',
+                    color: '#ffffff',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: '4px'
+                  }}>
+                    ⛔ TERMINATED
+                  </span>
+                ) : hasViolations && (
                   <span style={{
                     position: 'absolute',
                     top: '10px',
@@ -131,9 +151,19 @@ const LiveMonitoring = () => {
                   {sub.exam?.title || 'Active Exam'}
                 </p>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                  <span>Tab Switches: <strong style={{ color: tabSwitches > 1 ? '#ef4444' : '#10b981' }}>{tabSwitches}</strong></span>
-                  <span>Copy/Paste: <strong style={{ color: copyPaste > 0 ? '#ef4444' : '#10b981' }}>{copyPaste}</strong></span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Tab Switches: <strong style={{ color: tabSwitches > 1 ? '#ef4444' : '#10b981' }}>{tabSwitches}</strong></span>
+                    <span>Copy/Paste: <strong style={{ color: copyPaste > 0 ? '#ef4444' : '#10b981' }}>{copyPaste}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Fullscreen Exits: <strong style={{ color: fullscreenExits > 0 ? '#ef4444' : '#10b981' }}>{fullscreenExits}</strong></span>
+                    <span>DevTools: <strong style={{ color: devTools > 0 ? '#ef4444' : '#10b981' }}>{devTools}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Audio Noise: <strong style={{ color: audioViolations > 0 ? '#f59e0b' : '#10b981' }}>{audioViolations}</strong></span>
+                    <span>Multi-Monitor: <strong style={{ color: multiMonitor ? '#ef4444' : '#10b981' }}>{multiMonitor ? 'YES' : 'NO'}</strong></span>
+                  </div>
                 </div>
               </div>
             </div>

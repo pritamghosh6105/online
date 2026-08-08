@@ -1,6 +1,7 @@
 const { validationResult } = require('express-validator');
 const Submission = require('../models/Submission');
 const Exam = require('../models/Exam');
+const User = require('../models/User');
 
 // @desc    Submit exam
 // @route   POST /api/submissions
@@ -125,6 +126,11 @@ const submitExam = async (req, res) => {
       proctorLogs: {
         tabSwitches: proctorLogs?.tabSwitches || 0,
         copyPasteAttempts: proctorLogs?.copyPasteAttempts || 0,
+        fullscreenViolations: proctorLogs?.fullscreenViolations || 0,
+        multiMonitorDetected: Boolean(proctorLogs?.multiMonitorDetected),
+        audioViolations: proctorLogs?.audioViolations || 0,
+        devToolsAttempts: proctorLogs?.devToolsAttempts || 0,
+        isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating),
         faceVerified: proctorLogs?.faceVerified !== false
       },
       aiPerformanceSummary: {
@@ -132,6 +138,11 @@ const submitExam = async (req, res) => {
         weaknesses,
         recommendations
       }
+    });
+
+    // Clear active exam session for student upon submission
+    await User.findByIdAndUpdate(req.user.id, {
+      'activeExamSession.isActive': false
     });
 
     await submission.populate([

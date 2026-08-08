@@ -19,13 +19,22 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 
 ## ✨ Features & Capabilities
 
-### 🛡️ Proctoring & Anti-Cheating Suite
-* **Anti-Chrome Extension Defense**: 3-layer security system using capturing-phase event listeners (`useCapture = true`, `stopImmediatePropagation()`) to intercept events before Chrome extensions (e.g. *Absolute Enable Right Click & Copy*) can run content scripts.
-* **Text Selection Wiper**: Real-time `selectionchange` listener invoking `window.getSelection().removeAllRanges()` to immediately un-highlight text if an extension forces CSS `user-select: text !important`.
-* **Clipboard Data Poisoning**: Automatically overwrites hijacked copy payloads with security warning text (`[SECURITY VIOLATION]: Question text copying is prohibited...`).
-* **Debounced Dual Tab & Window Blur Detection**: Detects browser tab switching (`visibilitychange`) and application/window switching (`window.blur`) with real-time header violation badge (`Tab Switches: X/3`).
+## ✨ Features & Capabilities
+
+### 🛡️ Advanced Anti-Cheating & Proctoring Suite (Level 1 & Level 3)
+* **Single Active Login Control**: Strictly prevents simultaneous logins during active exam sessions. If a student is taking an ongoing test on Browser A, any secondary login attempt from Browser B using the same credentials is **denied & blocked**.
+* **Mandatory Fullscreen Mode & Exit Detector (Level 1)**: Prompts student into browser fullscreen mode upon test start. Monitors `fullscreenchange` and logs `fullscreenViolations` if fullscreen is exited.
+* **Violation Limit Auto-Submission (Level 1)**: Automatically terminates and submits tests with an `isTerminatedForCheating` flag if tab switches (>= 3/3), fullscreen exits (>= 3/3), or DevTools attempts occur.
+* **Fisher-Yates Question & Option Randomization (Level 1)**: Shuffles question order and option choices per student session while preserving accurate backend answer grading.
+* **Multi-Monitor & Extended Display Detector (Level 3)**: Detects if secondary monitors or extended displays are active (`window.screen.isExtended` / window geometry checks) and logs `multiMonitorDetected`.
+* **Web Audio Noise & Speech Detector (Level 3)**: Captures microphone input via Web Audio API (`AnalyserNode`) to measure sound volume (RMS) and flag sustained background noise or talking (`audioViolations`).
+* **DevTools Debugger Timing Inspector (Level 3)**: Periodically measures script execution delay around `debugger` statements to detect if Chrome/Browser Developer Tools are opened (`devToolsAttempts`).
+* **Anti-Chrome Extension Defense**: 3-layer security system using capturing-phase event listeners (`useCapture = true`, `stopImmediatePropagation()`) to intercept events before extensions can run content scripts.
+* **Text Selection Wiper**: Real-time `selectionchange` listener invoking `window.getSelection().removeAllRanges()` to un-highlight text instantly.
+* **Clipboard Data Poisoning**: Overwrites copy payloads with security violation warning text (`[SECURITY VIOLATION]: Question text copying is prohibited...`).
+* **Debounced Tab & Window Blur Detection**: Detects browser tab switching (`visibilitychange`) and application switching (`window.blur`).
 * **Keyboard Shortcut & Screenshot Blocking**: Intercepts `PrintScreen`, `F12`, `Ctrl+Shift+I/J/C`, `Ctrl+P`, `Ctrl+U`, `Ctrl+C`, `Ctrl+V`, `Ctrl+X`, `Ctrl+A`, `Ctrl+S`.
-* **Live Proctor Monitoring Feed**: Real-time instructor view (`/admin/live-monitoring`) for active exam tracking.
+* **Comprehensive Live Proctor Feed**: Real-time instructor view (`/admin/live-monitoring`) showing live tab switches, copy/paste, fullscreen exits, DevTools, audio noise, multi-monitor flags, and terminated badges.
 
 ### ⏱️ Live Real-Time Countdown Timer Engine
 * **Freeze-Proof Timer Engine**: Calculates exact remaining seconds dynamically from `new Date()` vs `examStartTime` every 1000ms, eliminating timer freezing, pauses, or drift.
@@ -221,6 +230,8 @@ flowchart TD
 * `POST /api/question-bank/import` — Bulk import questions via JSON/CSV
 
 ### Authentication (`/api/auth`)
+* `POST /api/auth/login` — Login user with single-session enforcement during active exams
+* `POST /api/auth/clear-exam-session` — Clear active exam session flag upon logout/test submit
 * `PUT /api/auth/change-password` — Change password for authenticated users (Students & Admins)
 * `PUT /api/auth/change-credentials` — Update password & Admin ID for sub-admins
 * `GET /api/auth/admins` — Fetch all system administrators with formatted 11-digit Admin IDs
