@@ -33,7 +33,11 @@ const loginValidation = [
     .withMessage('Email or Student ID is required'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage('Password is required'),
+  body('loginType')
+    .optional()
+    .isIn(['student', 'admin'])
+    .withMessage('Login type must be student or admin')
 ];
 
 const changeCredentialsValidation = [

@@ -58,10 +58,13 @@ const StudentLogin = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-    const result = await login(formData);
+    setErrors({});
+    const result = await login({ ...formData, loginType: 'student' });
 
     if (result.success) {
       navigate('/dashboard');
+    } else {
+      setErrors({ form: result.message });
     }
     setLoading(false);
   };
@@ -143,6 +146,22 @@ const StudentLogin = () => {
             Sign in with your 11-digit Student ID or Email
           </p>
         </div>
+
+        {/* Error Banner */}
+        {errors.form && (
+          <div style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            padding: '0.75rem 1rem',
+            borderRadius: '0.5rem',
+            fontSize: '0.875rem',
+            marginBottom: '1.25rem',
+            fontWeight: '500'
+          }}>
+            🚫 {errors.form}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit}>

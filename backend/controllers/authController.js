@@ -324,7 +324,7 @@ const login = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
+    const { email, password, loginType } = req.body;
 
     // Check for user by email OR studentId using a single query (one DB round-trip)
     const user = await User.findOne({ $or: [{ email }, { studentId: email }] }).select('+password');
@@ -343,6 +343,21 @@ const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
+      });
+    }
+
+    // CRITICAL ROLE CHECK BASED ON LOGIN PORTAL TYPE
+    if (loginType === 'student' && user.role !== 'student') {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to use Student Login.'
+      });
+    }
+
+    if (loginType === 'admin' && user.role !== 'admin' && user.role !== 'superadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to use Admin Login.'
       });
     }
 

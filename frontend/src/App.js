@@ -87,9 +87,21 @@ function App() {
           <Route 
             path="/student" 
             element={
-              user && user.role === 'student' ? 
-              <StudentDashboard /> : 
-              <Navigate to="/dashboard" />
+              user ? (
+                user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
+              ) : (
+                <Navigate to="/student-login" />
+              )
+            } 
+          />
+          <Route 
+            path="/student/dashboard" 
+            element={
+              user ? (
+                user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
+              ) : (
+                <Navigate to="/student-login" />
+              )
             } 
           />
           <Route 
@@ -123,9 +135,21 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              isAdmin(user) ? 
-              <AdminDashboard /> : 
-              <Navigate to="/dashboard" />
+              user ? (
+                isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
+              ) : (
+                <Navigate to="/admin-login" />
+              )
+            } 
+          />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              user ? (
+                isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
+              ) : (
+                <Navigate to="/admin-login" />
+              )
             } 
           />
           <Route 
