@@ -80,12 +80,13 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Fetch stats, page 1 exams, and pending admins concurrently in 1 parallel batch
-      const [examsStatsResponse, submissionsStatsResponse, examsResponse, pendingAdminsRes] = await Promise.all([
+      // Fetch stats, page 1 exams, pending admins, and submissions concurrently in 1 parallel batch
+      const [examsStatsResponse, submissionsStatsResponse, examsResponse, pendingAdminsRes, submissionsResponse] = await Promise.all([
         examAPI.getExams({ statsOnly: true }).catch(() => ({ data: { count: 0 } })),
         submissionAPI.getAllSubmissions({ statsOnly: true }).catch(() => ({ data: { count: 0 } })),
         examAPI.getExams({ page: 1, limit: 10 }).catch(() => ({ data: { exams: [] } })),
-        authAPI.getPendingAdmins().catch(() => ({ data: { pendingAdmins: [] } }))
+        authAPI.getPendingAdmins().catch(() => ({ data: { pendingAdmins: [] } })),
+        submissionAPI.getAllSubmissions({ page: 1, limit: 100 }).catch(() => ({ data: { submissions: [] } }))
       ]);
 
       setStats({
@@ -95,6 +96,7 @@ const AdminDashboard = () => {
 
       setExams(examsResponse.data?.exams || []);
       setPendingAdmins(pendingAdminsRes.data?.pendingAdmins || []);
+      setSubmissions(submissionsResponse.data?.submissions || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -105,9 +107,8 @@ const AdminDashboard = () => {
 
   const fetchStudentData = async () => {
     try {
-      // Fetch submissions only when student modal is opened
       const submissionsResponse = await submissionAPI.getAllSubmissions({ page: 1, limit: 100 });
-      setSubmissions(submissionsResponse.data.submissions || []);
+      setSubmissions(submissionsResponse.data?.submissions || []);
     } catch (error) {
       console.error('Error fetching student data:', error);
     }
@@ -549,7 +550,7 @@ const AdminDashboard = () => {
             </span>
           </div>
 
-          <div style={{ padding: '1.5rem' }}>
+          <div className="admin-card-content-body" style={{ padding: '1.25rem' }}>
             {error && (
               <div style={{
                 backgroundColor: '#fef2f2',
@@ -632,34 +633,38 @@ const AdminDashboard = () => {
                     style={{
                       border: '1px solid #e2e8f0',
                       borderRadius: '0.75rem',
-                      padding: '1.25rem',
+                      padding: '1.15rem',
                       backgroundColor: '#ffffff',
                       transition: 'all 0.2s',
-                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.03)'
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.03)',
+                      boxSizing: 'border-box',
+                      maxWidth: '100%',
+                      overflow: 'hidden'
                     }}
                   >
                     <div className="exam-card-header" style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                       marginBottom: '0.75rem',
-                      gap: '0.75rem'
+                      gap: '0.5rem',
+                      width: '100%',
+                      boxSizing: 'border-box'
                     }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ minWidth: 0, flex: 1, paddingRight: '0.25rem' }}>
                         <h3 style={{
                           margin: '0 0 0.25rem 0',
-                          fontSize: '1.05rem',
+                          fontSize: '1rem',
                           fontWeight: '700',
                           color: '#0f172a',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          lineHeight: '1.35',
+                          wordBreak: 'break-word'
                         }}>
                           {exam.title || `Subject: ${exam.subject}`}
                         </h3>
                         <p style={{
                           color: '#64748b',
-                          fontSize: '0.85rem',
+                          fontSize: '0.825rem',
                           margin: 0,
                           fontWeight: '500'
                         }}>
@@ -670,20 +675,26 @@ const AdminDashboard = () => {
                       <div className="exam-card-actions" style={{
                         display: 'flex',
                         gap: '0.5rem',
-                        flexShrink: 0
+                        flexShrink: 0,
+                        alignItems: 'center'
                       }}>
                         <Link
                           to={`/admin/submissions?examId=${exam._id}`}
+                          className="exam-action-icon-btn view-btn"
                           style={{
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             backgroundColor: '#059669',
                             color: '#ffffff',
-                            borderRadius: '0.375rem',
+                            borderRadius: '0.45rem',
                             textDecoration: 'none',
                             width: '36px',
-                            height: '36px'
+                            height: '36px',
+                            minHeight: '36px',
+                            maxHeight: '36px',
+                            boxSizing: 'border-box',
+                            flexShrink: 0
                           }}
                           title="View Submissions"
                         >
@@ -691,17 +702,23 @@ const AdminDashboard = () => {
                         </Link>
                         <button
                           onClick={() => handleDeleteExam(exam._id)}
+                          className="exam-action-icon-btn delete-btn"
                           style={{
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             backgroundColor: '#dc2626',
                             color: '#ffffff',
-                            borderRadius: '0.375rem',
+                            borderRadius: '0.45rem',
                             border: 'none',
                             cursor: 'pointer',
                             width: '36px',
-                            height: '36px'
+                            height: '36px',
+                            minHeight: '36px',
+                            maxHeight: '36px',
+                            boxSizing: 'border-box',
+                            flexShrink: 0,
+                            padding: 0
                           }}
                           title="Delete Exam"
                         >
@@ -713,24 +730,26 @@ const AdminDashboard = () => {
                     <div className="exam-card-meta-grid" style={{
                       display: 'flex',
                       flexWrap: 'wrap',
-                      gap: '0.75rem 1.25rem',
+                      gap: '0.65rem 1.15rem',
                       paddingTop: '0.75rem',
-                      borderTop: '1px solid #f1f5f9'
+                      borderTop: '1px solid #f1f5f9',
+                      width: '100%',
+                      boxSizing: 'border-box'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                        <Clock style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#3b82f6' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.825rem' }}>
+                        <Clock style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#3b82f6', flexShrink: 0 }} />
                         Duration: {formatDuration(exam.duration)}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                        <FileText style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#8b5cf6' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.825rem' }}>
+                        <FileText style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#8b5cf6', flexShrink: 0 }} />
                         Questions: {exam.questions?.length || 0}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                        <Award style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#f59e0b' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.825rem' }}>
+                        <Award style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#f59e0b', flexShrink: 0 }} />
                         Total Marks: {exam.totalMarks}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
-                        <Calendar style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#10b981' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.825rem' }}>
+                        <Calendar style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem', color: '#10b981', flexShrink: 0 }} />
                         Created: {formatDate(exam.createdAt)}
                       </div>
                     </div>

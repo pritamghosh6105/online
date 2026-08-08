@@ -388,24 +388,82 @@ button, input, select, textarea {
   }
 
   /* Mobile Responsive Exam Card Layout */
+  .admin-card-content-body {
+    padding: 0.75rem 0.85rem !important;
+  }
+
   .exam-card-item {
-    padding: 0.85rem 1rem !important;
+    padding: 0.85rem 0.85rem !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .exam-card-header {
     align-items: flex-start !important;
     gap: 0.5rem !important;
+    width: 100% !important;
   }
 
   .exam-card-meta-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.5rem 0.75rem !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem 0.85rem !important;
+    width: 100% !important;
   }
 
   .exam-card-meta-grid > div {
     font-size: 0.78rem !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Ensure Action Buttons (Link vs Button) Have 100% Identical Dimensions */
+  .exam-action-icon-btn,
+  .exam-card-actions a,
+  .exam-card-actions button {
+    min-height: 36px !important;
+    height: 36px !important;
+    max-height: 36px !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0.45rem !important;
+  }
+
+  /* Fix Option Radio Button and Remove Option Button Stretching in Create Exam */
+  button.option-radio-btn,
+  .option-radio-btn {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    min-width: 1.5rem !important;
+    min-height: 1.5rem !important;
+    max-width: 1.5rem !important;
+    max-height: 1.5rem !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
+  }
+
+  button.remove-option-btn,
+  .remove-option-btn {
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    min-width: 2.25rem !important;
+    min-height: 2.25rem !important;
+    max-width: 2.25rem !important;
+    max-height: 2.25rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
   }
 }
 

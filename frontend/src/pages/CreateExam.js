@@ -852,6 +852,7 @@ const CreateExam = () => {
                   >
                     <button
                       type="button"
+                      className="option-radio-btn"
                       onClick={() => handleCorrectAnswerChange(index)}
                       style={{
                         display: 'flex',
@@ -859,11 +860,18 @@ const CreateExam = () => {
                         justifyContent: 'center',
                         width: '1.5rem',
                         height: '1.5rem',
+                        minWidth: '1.5rem',
+                        minHeight: '1.5rem',
+                        maxWidth: '1.5rem',
+                        maxHeight: '1.5rem',
                         borderRadius: '50%',
                         border: `2px solid ${option.isCorrect ? '#059669' : '#d1d5db'}`,
                         backgroundColor: option.isCorrect ? '#059669' : '#ffffff',
                         color: '#ffffff',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                        padding: 0,
+                        boxSizing: 'border-box'
                       }}
                     >
                       {option.isCorrect && <Check style={{ width: '0.75rem', height: '0.75rem' }} />}
@@ -878,25 +886,34 @@ const CreateExam = () => {
                         border: '1px solid #d1d5db',
                         borderRadius: '0.375rem',
                         fontSize: '0.875rem',
-                        outline: 'none'
+                        outline: 'none',
+                        minWidth: 0
                       }}
                       placeholder={`Option ${index + 1}`}
                     />
                     {currentQuestion.options.length > 2 && (
                       <button
                         type="button"
+                        className="remove-option-btn"
                         onClick={() => removeOption(index)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          width: '2rem',
-                          height: '2rem',
+                          width: '2.25rem',
+                          height: '2.25rem',
+                          minWidth: '2.25rem',
+                          minHeight: '2.25rem',
+                          maxWidth: '2.25rem',
+                          maxHeight: '2.25rem',
                           backgroundColor: '#dc2626',
                           color: '#ffffff',
                           border: 'none',
                           borderRadius: '0.375rem',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          padding: 0,
+                          boxSizing: 'border-box'
                         }}
                       >
                         <X style={{ width: '1rem', height: '1rem' }} />
