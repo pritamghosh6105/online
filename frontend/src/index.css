@@ -386,6 +386,27 @@ button, input, select, textarea {
     width: 100% !important;
     -webkit-overflow-scrolling: touch !important;
   }
+
+  /* Mobile Responsive Exam Card Layout */
+  .exam-card-item {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .exam-card-header {
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  .exam-card-meta-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem 0.75rem !important;
+  }
+
+  .exam-card-meta-grid > div {
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+  }
 }
 
 @media (min-width: 1024px) {

@@ -628,135 +628,110 @@ const AdminDashboard = () => {
                 {exams.map((exam) => (
                   <div
                     key={exam._id}
+                    className="exam-card-item"
                     style={{
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.5rem',
-                      padding: '1.5rem',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                      e.currentTarget.style.borderColor = '#3b82f6';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.75rem',
+                      padding: '1.25rem',
+                      backgroundColor: '#ffffff',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.03)'
                     }}
                   >
-                    <div style={{
+                    <div className="exam-card-header" style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '1rem'
+                      alignItems: 'center',
+                      marginBottom: '0.75rem',
+                      gap: '0.75rem'
                     }}>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h3 style={{
+                          margin: '0 0 0.25rem 0',
+                          fontSize: '1.05rem',
+                          fontWeight: '700',
+                          color: '#0f172a',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {exam.title || `Subject: ${exam.subject}`}
+                        </h3>
                         <p style={{
-                          color: '#6b7280',
-                          fontSize: '0.875rem',
-                          marginBottom: '1rem'
+                          color: '#64748b',
+                          fontSize: '0.85rem',
+                          margin: 0,
+                          fontWeight: '500'
                         }}>
                           Subject: {exam.subject}
                         </p>
-
-                        <div style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: '1rem',
-                          marginBottom: '1rem'
-                        }}>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: '#6b7280',
-                            fontSize: '0.875rem'
-                          }}>
-                            <Clock style={{
-                              width: '1rem',
-                              height: '1rem',
-                              marginRight: '0.5rem'
-                            }} />
-                            Duration: {formatDuration(exam.duration)}
-                          </div>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: '#6b7280',
-                            fontSize: '0.875rem'
-                          }}>
-                            <FileText style={{
-                              width: '1rem',
-                              height: '1rem',
-                              marginRight: '0.5rem'
-                            }} />
-                            Questions: {exam.questions?.length || 0}
-                          </div>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            color: '#6b7280',
-                            fontSize: '0.875rem'
-                          }}>
-                            <Award style={{
-                              width: '1rem',
-                              height: '1rem',
-                              marginRight: '0.5rem'
-                            }} />
-                            Total Marks: {exam.totalMarks}
-                          </div>
-                        </div>
-
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          color: '#6b7280',
-                          fontSize: '0.875rem'
-                        }}>
-                          <Calendar style={{
-                            width: '1rem',
-                            height: '1rem',
-                            marginRight: '0.5rem'
-                          }} />
-                          Created: {formatDate(exam.createdAt)}
-                        </div>
                       </div>
 
-                      <div style={{
+                      <div className="exam-card-actions" style={{
                         display: 'flex',
-                        gap: '0.5rem'
+                        gap: '0.5rem',
+                        flexShrink: 0
                       }}>
                         <Link
                           to={`/admin/submissions?examId=${exam._id}`}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             backgroundColor: '#059669',
                             color: '#ffffff',
-                            padding: '0.5rem',
                             borderRadius: '0.375rem',
                             textDecoration: 'none',
-                            fontSize: '0.875rem'
+                            width: '36px',
+                            height: '36px'
                           }}
                           title="View Submissions"
                         >
-                          <Eye style={{ width: '1rem', height: '1rem' }} />
+                          <Eye style={{ width: '1.1rem', height: '1.1rem' }} />
                         </Link>
                         <button
                           onClick={() => handleDeleteExam(exam._id)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             backgroundColor: '#dc2626',
                             color: '#ffffff',
-                            padding: '0.5rem',
                             borderRadius: '0.375rem',
                             border: 'none',
                             cursor: 'pointer',
-                            fontSize: '0.875rem'
+                            width: '36px',
+                            height: '36px'
                           }}
                           title="Delete Exam"
                         >
-                          <Trash2 style={{ width: '1rem', height: '1rem' }} />
+                          <Trash2 style={{ width: '1.1rem', height: '1.1rem' }} />
                         </button>
+                      </div>
+                    </div>
+
+                    <div className="exam-card-meta-grid" style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem 1.25rem',
+                      paddingTop: '0.75rem',
+                      borderTop: '1px solid #f1f5f9'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                        <Clock style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#3b82f6' }} />
+                        Duration: {formatDuration(exam.duration)}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                        <FileText style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#8b5cf6' }} />
+                        Questions: {exam.questions?.length || 0}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                        <Award style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#f59e0b' }} />
+                        Total Marks: {exam.totalMarks}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                        <Calendar style={{ width: '0.95rem', height: '0.95rem', marginRight: '0.4rem', color: '#10b981' }} />
+                        Created: {formatDate(exam.createdAt)}
                       </div>
                     </div>
                   </div>
