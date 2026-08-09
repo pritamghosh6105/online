@@ -64,7 +64,7 @@ const StudentDashboard = () => {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
       });
-      setPasswordSuccess('✅ Password changed successfully!');
+      setPasswordSuccess('Password changed successfully!');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setTimeout(() => {
         setShowChangePasswordModal(false);
@@ -221,14 +221,14 @@ const StudentDashboard = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
               <div className="hero-badge" style={{ display: 'inline-flex', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.15)', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', backdropFilter: 'blur(4px)' }}>
-                🎓 STUDENT PORTAL
+                STUDENT PORTAL
               </div>
               <h1 style={{ fontSize: '1.65rem', fontWeight: '800', margin: 0, letterSpacing: '-0.025em' }}>
                 Welcome back, {user?.name || 'Student'}!
               </h1>
               <p style={{ color: '#93c5fd', fontSize: '0.875rem', marginTop: '0.25rem', marginBottom: 0 }}>
                 {user?.studentId ? `Student ID: ${user.studentId} • ` : ''}
-                {user?.institution ? `🏫 School: ${user.institution} • ` : ''}
+                {user?.institution ? `School: ${user.institution} • ` : ''}
                 View upcoming exams & check results.
               </p>
             </div>

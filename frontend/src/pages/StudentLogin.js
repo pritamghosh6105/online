@@ -159,7 +159,7 @@ const StudentLogin = () => {
             marginBottom: '1.25rem',
             fontWeight: '500'
           }}>
-            🚫 {errors.form}
+            {errors.form}
           </div>
         )}
 

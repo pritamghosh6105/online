@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
-import AdminLogin from './pages/AdminLogin';
-import StudentLogin from './pages/StudentLogin';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import StudentDashboard from './pages/StudentDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import ExamAttempt from './pages/ExamAttempt';
-import ExamResults from './pages/ExamResults';
-import CreateExam from './pages/CreateExam';
-import ViewSubmissions from './pages/ViewSubmissions';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import LoadingSpinner from './components/LoadingSpinner';
-import Home from './pages/Home';
-import QuestionBank from './pages/QuestionBank';
-import StudentQuestionBank from './pages/StudentQuestionBank';
-import LiveMonitoring from './pages/LiveMonitoring';
-import PricingPlans from './pages/PricingPlans';
-import CertificateVerify from './pages/CertificateVerify';
+
+// Lazy-loaded page components for Code-Splitting & fast initial load
+const Home = lazy(() => import('./pages/Home'));
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const StudentLogin = lazy(() => import('./pages/StudentLogin'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SuperAdminDashboard = lazy(() => import('./pages/SuperAdminDashboard'));
+const ExamAttempt = lazy(() => import('./pages/ExamAttempt'));
+const ExamResults = lazy(() => import('./pages/ExamResults'));
+const CreateExam = lazy(() => import('./pages/CreateExam'));
+const ViewSubmissions = lazy(() => import('./pages/ViewSubmissions'));
+const QuestionBank = lazy(() => import('./pages/QuestionBank'));
+const StudentQuestionBank = lazy(() => import('./pages/StudentQuestionBank'));
+const LiveMonitoring = lazy(() => import('./pages/LiveMonitoring'));
+const CertificateVerify = lazy(() => import('./pages/CertificateVerify'));
 
 // Check if user is admin or superadmin
 const isAdmin = (u) => u && (u.role === 'admin' || u.role === 'superadmin' || u.email === 'admin@examin.com');
@@ -35,7 +36,8 @@ function App() {
     <div className="App">
       {user && <Navbar />}
       <main className="main-content">
-        <Routes>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
           {/* Public Landing Home Route */}
           <Route 
             path="/" 
@@ -44,10 +46,6 @@ function App() {
 
           {/* Public Certificate Verification */}
           <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
-          <Route 
-            path="/pricing" 
-            element={user && user.role === 'student' ? <Navigate to="/dashboard" /> : <PricingPlans />} 
-          />
 
           {/* Public Auth Routes */}
           <Route 
@@ -188,6 +186,7 @@ function App() {
           {/* 404 Route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
       </main>
     </div>
   );

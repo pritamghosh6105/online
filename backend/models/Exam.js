@@ -96,6 +96,11 @@ const examSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Performance Indexes for fast dashboard and listing lookups
+examSchema.index({ institution: 1, isActive: 1, status: 1 });
+examSchema.index({ createdBy: 1, createdAt: -1 });
+examSchema.index({ startDate: 1, endDate: 1 });
+
 // Calculate total marks before saving
 examSchema.pre('save', function(next) {
   this.totalMarks = this.questions.reduce((total, question) => total + question.marks, 0);

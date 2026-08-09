@@ -25,7 +25,7 @@ const LiveMonitoring = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner text="Connecting to Proctoring Live Feed..." />;
+    return <LoadingSpinner text="Loading Violation Reports & Proctoring Feed..." />;
   }
 
   return (
@@ -33,7 +33,7 @@ const LiveMonitoring = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Eye style={{ color: '#ef4444' }} /> Live Exam Proctoring Feed
+            <Eye style={{ color: '#ef4444' }} /> Violation Reported & Proctoring Feed
           </h1>
           <p style={{ margin: '4px 0 0', color: '#64748b' }}>
             Real-time monitoring of test-taker webcam streams, tab switching violations, and proctor flags.
@@ -56,7 +56,7 @@ const LiveMonitoring = () => {
           const devTools = sub.proctorLogs?.devToolsAttempts || 0;
           const audioViolations = sub.proctorLogs?.audioViolations || 0;
           const multiMonitor = sub.proctorLogs?.multiMonitorDetected || false;
-          const isTerminated = sub.proctorLogs?.isTerminatedForCheating || false;
+          const isTerminated = Boolean(sub.proctorLogs?.isTerminatedForCheating) && (tabSwitches >= 3 || fullscreenExits >= 3 || devTools >= 2 || copyPaste >= 5);
 
           const hasViolations = tabSwitches > 1 || copyPaste > 0 || fullscreenExits > 0 || devTools > 0 || audioViolations > 0 || multiMonitor || isTerminated;
 
@@ -120,7 +120,7 @@ const LiveMonitoring = () => {
                     padding: '3px 8px',
                     borderRadius: '4px'
                   }}>
-                    ⛔ TERMINATED
+                    TERMINATED
                   </span>
                 ) : hasViolations && (
                   <span style={{

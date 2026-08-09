@@ -198,7 +198,7 @@ const Register = () => {
               fontWeight: '600',
               textAlign: 'center'
             }}>
-              ⚠️ {errors.general}
+              {errors.general}
             </div>
           )}
 
@@ -683,11 +683,10 @@ const Register = () => {
                 margin: 0,
                 lineHeight: '1.4'
               }}>
-                📧 An email with your credentials has been sent to <strong>{studentIdData.email}</strong>.
-                <br />
-                <span style={{ fontSize: '0.78rem', color: '#1e3a8a', display: 'inline-block', marginTop: '0.35rem' }}>
-                  ℹ️ <em>If you don't see it in your primary inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</em>
-                </span>
+                An email with your credentials has been sent to <strong>{studentIdData.email}</strong>.
+              </p>
+              <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                <em>If you don't see it in your primary inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</em>
               </p>
             </div>
 

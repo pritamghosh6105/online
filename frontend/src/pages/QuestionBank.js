@@ -14,7 +14,9 @@ import {
   X,
   Send,
   CheckSquare,
-  Square
+  Square,
+  Info,
+  Building2
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -125,7 +127,7 @@ const QuestionBank = () => {
       const gen = res.data.questions || [];
       if (gen.length > 0) {
         await questionBankAPI.importBulk(gen);
-        toast.success(`✨ Gemini AI generated & added ${gen.length} questions to Question Bank!`);
+        toast.success(`Gemini AI generated & added ${gen.length} questions to Question Bank!`);
         setShowAIModal(false);
         setAiTopic('');
         setAiSyllabus('');
@@ -143,22 +145,62 @@ const QuestionBank = () => {
 
   const handleImportCSV = async (e) => {
     e.preventDefault();
+    if (!csvText || !csvText.trim()) {
+      toast.error('Please paste JSON or CSV text to import');
+      return;
+    }
+
     try {
       let parsed = [];
-      try {
-        parsed = JSON.parse(csvText);
-      } catch (e) {
-        toast.error('Invalid JSON/CSV format. Provide an array of question objects.');
+      const trimmed = csvText.trim();
+
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+          const jsonObj = JSON.parse(trimmed);
+          if (Array.isArray(jsonObj)) {
+            parsed = jsonObj;
+          } else if (jsonObj && Array.isArray(jsonObj.questions)) {
+            parsed = jsonObj.questions;
+          } else if (jsonObj && jsonObj.question) {
+            parsed = [jsonObj];
+          }
+        } catch (jsonErr) {
+          toast.error('Invalid JSON format. Please check JSON syntax (quotes, commas, brackets).');
+          return;
+        }
+      } else {
+        // Simple CSV parser fallback
+        const lines = trimmed.split('\n').map(l => l.trim()).filter(Boolean);
+        parsed = lines.map((line) => {
+          const parts = line.split(',').map(p => p.trim().replace(/^["']|["']$/g, ''));
+          if (parts.length >= 3) {
+            const questionText = parts[0];
+            const opts = parts.slice(1, -1);
+            const ansText = parts[parts.length - 1];
+            return {
+              question: questionText,
+              options: opts.length > 0 ? opts : parts.slice(1),
+              correctAnswer: ansText
+            };
+          }
+          return null;
+        }).filter(Boolean);
+      }
+
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        toast.error('Could not parse valid questions. Provide an array of question objects or CSV lines.');
         return;
       }
 
-      await questionBankAPI.importBulk(parsed);
-      toast.success(`Successfully imported ${parsed.length} questions!`);
+      const res = await questionBankAPI.importBulk(parsed);
+      const importedCount = res.data?.count || parsed.length;
+      toast.success(`Successfully imported ${importedCount} question(s) into Question Bank!`);
       setShowImportModal(false);
       setCsvText('');
       fetchQuestions();
     } catch (err) {
-      toast.error('Import failed');
+      console.error('Import questions error:', err);
+      toast.error(err.response?.data?.message || 'Import failed. Check question format.');
     }
   };
 
@@ -242,7 +284,7 @@ const QuestionBank = () => {
         category: publishForm.category
       });
 
-      toast.success(`🎉 Question Bank published to students! (${res.data.publishedCount || targetQuestionIds.length} MCQs active for ${user?.institution || 'your admin students'})`);
+      toast.success(`Question Bank published to students! (${res.data.publishedCount || targetQuestionIds.length} MCQs active for ${user?.institution || 'your admin students'})`);
       setShowPublishModal(false);
       setSelectedQuestionIds([]);
       fetchQuestions();
@@ -363,7 +405,7 @@ const QuestionBank = () => {
         <div style={{
           backgroundColor: selectedCount > 0 ? '#ecfdf5' : '#ffffff',
           border: `1px solid ${selectedCount > 0 ? '#a7f3d0' : '#e2e8f0'}`,
-          padding: '12px 20px',
+          padding: '14px 18px',
           borderRadius: '12px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -371,36 +413,38 @@ const QuestionBank = () => {
           marginBottom: '20px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           flexWrap: 'wrap',
-          gap: '12px'
+          gap: '14px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: '1 1 280px', flexWrap: 'wrap' }}>
             <button
               onClick={toggleSelectAll}
               style={{
                 backgroundColor: '#f1f5f9',
                 border: '1px solid #cbd5e1',
-                padding: '6px 12px',
-                borderRadius: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                color: '#334155'
+                gap: '8px',
+                color: '#334155',
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}
             >
               {selectedCount === questions.length && questions.length > 0 ? (
-                <CheckSquare style={{ width: '16px', height: '16px', color: '#059669' }} />
+                <CheckSquare style={{ width: '16px', height: '16px', color: '#059669', flexShrink: 0 }} />
               ) : (
-                <Square style={{ width: '16px', height: '16px', color: '#64748b' }} />
+                <Square style={{ width: '16px', height: '16px', color: '#64748b', flexShrink: 0 }} />
               )}
-              {selectedCount === questions.length && questions.length > 0 ? 'Deselect All' : `Select All (${questions.length})`}
+              <span>{selectedCount === questions.length && questions.length > 0 ? 'Deselect All' : `Select All (${questions.length})`}</span>
             </button>
-            <span style={{ fontSize: '0.9rem', color: '#334155', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.875rem', color: '#334155', fontWeight: 600, flex: '1 1 180px', lineHeight: '1.4' }}>
               {selectedCount > 0 ? (
-                <span style={{ color: '#059669' }}>
-                  ✅ {selectedCount} question(s) selected
+                <span style={{ color: '#059669', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle style={{ width: '15px', height: '15px' }} /> {selectedCount} question(s) selected
                 </span>
               ) : (
                 <span style={{ color: '#64748b' }}>
@@ -410,7 +454,7 @@ const QuestionBank = () => {
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: '1 1 auto', justifyContent: 'flex-end' }}>
             {selectedCount > 0 && (
               <button
                 onClick={handleBulkDelete}
@@ -418,18 +462,21 @@ const QuestionBank = () => {
                   backgroundColor: '#dc2626',
                   color: '#ffffff',
                   border: 'none',
-                  padding: '8px 16px',
+                  padding: '9px 16px',
                   borderRadius: '8px',
                   fontWeight: 700,
                   fontSize: '0.875rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)'
+                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)',
+                  whiteSpace: 'nowrap',
+                  flex: '1 1 auto'
                 }}
               >
-                <Trash2 style={{ width: '15px', height: '15px' }} />
+                <Trash2 style={{ width: '15px', height: '15px', flexShrink: 0 }} />
                 Delete Selected ({selectedCount})
               </button>
             )}
@@ -440,17 +487,20 @@ const QuestionBank = () => {
                 backgroundColor: '#059669',
                 color: '#ffffff',
                 border: 'none',
-                padding: '8px 16px',
+                padding: '9px 16px',
                 borderRadius: '8px',
                 fontWeight: 700,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px'
+                justifyContent: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                flex: '1 1 auto'
               }}
             >
-              <Send style={{ width: '15px', height: '15px' }} />
+              <Send style={{ width: '15px', height: '15px', flexShrink: 0 }} />
               {selectedCount > 0 ? `Publish Selected (${selectedCount}) Question Bank` : 'Publish All Question Bank'}
             </button>
           </div>
@@ -655,8 +705,8 @@ const QuestionBank = () => {
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Target Students</span>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#2563eb' }}>
-                  🏫 {user?.institution || 'All Students under Admin'}
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Building2 style={{ width: '14px', height: '14px' }} /> {user?.institution || 'All Students under Admin'}
                 </div>
               </div>
             </div>
@@ -682,9 +732,15 @@ const QuestionBank = () => {
                 padding: '12px',
                 marginBottom: '20px',
                 fontSize: '0.825rem',
-                color: '#1e40af'
+                color: '#1e40af',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '6px'
               }}>
-                💡 <strong>Practice Mode:</strong> Published Question Bank questions will be accessible by your students on their dashboard for self-paced study with instant answer keys and explanations (not an exam).
+                <Info style={{ width: '16px', height: '16px', flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong>Practice Mode:</strong> Published Question Bank questions will be accessible by your students on their dashboard for self-paced study with instant answer keys and explanations (not an exam).
+                </div>
               </div>
 
               <button
@@ -708,9 +764,9 @@ const QuestionBank = () => {
                 }}
               >
                 {publishing ? (
-                  <>📚 Publishing Question Bank to Students...</>
+                  <><BookOpen style={{ width: '18px', height: '18px' }} /> Publishing Question Bank to Students...</>
                 ) : (
-                  <>📚 Confirm & Publish Question Bank ({targetQuestionsForPublish.length} MCQs)</>
+                  <><BookOpen style={{ width: '18px', height: '18px' }} /> Confirm & Publish Question Bank ({targetQuestionsForPublish.length} MCQs)</>
                 )}
               </button>
             </form>
@@ -831,8 +887,8 @@ const QuestionBank = () => {
                   onChange={(e) => setAiSyllabus(e.target.value)}
                   style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit' }}
                 />
-                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0' }}>
-                  💡 Paste your syllabus modules to generate targeted MCQs matching your exact curriculum.
+                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Info style={{ width: '14px', height: '14px' }} /> Paste your syllabus modules to generate targeted MCQs matching your exact curriculum.
                 </p>
               </div>
 
@@ -877,9 +933,9 @@ const QuestionBank = () => {
                 }}
               >
                 {aiGenerating ? (
-                  <>✨ Generating up to {aiCount} Questions with Gemini AI...</>
+                  <><Sparkles style={{ width: '18px', height: '18px' }} /> Generating up to {aiCount} Questions with Gemini AI...</>
                 ) : (
-                  <>✨ Generate & Add {aiCount} Questions to Question Bank</>
+                  <><Sparkles style={{ width: '18px', height: '18px' }} /> Generate & Add {aiCount} Questions to Question Bank</>
                 )}
               </button>
             </form>

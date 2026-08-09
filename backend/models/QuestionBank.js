@@ -59,4 +59,9 @@ const questionBankSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Performance Indexes for Question Bank queries
+questionBankSchema.index({ category: 1, isPublished: 1 });
+questionBankSchema.index({ createdBy: 1, createdAt: -1 });
+questionBankSchema.index({ institution: 1, isPublished: 1 });
+
 module.exports = mongoose.model('QuestionBank', questionBankSchema);

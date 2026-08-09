@@ -99,7 +99,7 @@ const CreateExam = () => {
           questions: [...prev.questions, ...formattedQuestions]
         }));
 
-        toast.success(`✨ ${generated.source || 'AI'} generated ${generated.questions.length} questions for "${topicToUse}"!`);
+        toast.success(`${generated.source || 'AI'} generated ${generated.questions.length} questions for "${topicToUse}"!`);
         setShowAiModal(false);
       }
     } catch (err) {
@@ -309,7 +309,7 @@ const CreateExam = () => {
           newErrors[err.param || err.path] = err.msg || err.message || 'Invalid value';
         });
         setErrors(prev => ({ ...prev, ...newErrors }));
-        alert(`❌ Exam Validation Failed:\n\n${errorList}`);
+        alert(`Exam Validation Failed:\n\n${errorList}`);
         toast.error('Exam validation failed. Please check the inputs.');
       } else {
         toast.error(error.response?.data?.message || 'Failed to create exam');
@@ -1053,11 +1053,11 @@ const CreateExam = () => {
                         <span>Q{index + 1}. {question.question}</span>
                         {question.isAiGenerated ? (
                           <span style={{ backgroundColor: '#f3e8ff', color: '#7e22ce', fontSize: '0.7rem', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: '700', border: '1px solid #d8b4fe' }}>
-                            ✨ AI Generated ({question.source || 'AI'})
+                            AI Generated ({question.source || 'AI'})
                           </span>
                         ) : (
-                          <span style={{ backgroundColor: '#f1f5f9', color: '#475569', fontSize: '0.7rem', padding: '0.15rem 0.55rem', borderRadius: '9999px', fontWeight: '700', border: '1px solid #cbd5e1' }}>
-                            ✏️ Manual
+                          <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
+                            Manual
                           </span>
                         )}
                       </h4>

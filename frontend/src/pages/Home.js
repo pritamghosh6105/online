@@ -21,7 +21,10 @@ import {
   Zap,
   ChevronRight,
   Linkedin,
-  Mail
+  Mail,
+  Sparkles,
+  Building2,
+  BarChart3
 } from 'lucide-react';
 
 const Home = () => {
@@ -698,7 +701,7 @@ const Home = () => {
             borderColor: '#BFDBFE'
           }}>
             <Cpu style={{ width: '0.9rem', height: '0.9rem' }} />
-            Next-Generation Engine
+            Complete Platform Capabilities
           </div>
           <h2 style={{
             fontSize: '2.5rem',
@@ -707,101 +710,97 @@ const Home = () => {
             color: '#0F172A',
             marginBottom: '0.75rem'
           }}>
-            Intelligent Features Built for Testing Integrity
+            Powerful Features Built for Modern Online Testing
           </h2>
-          <p style={{ color: '#475569', fontSize: '1.1rem', maxWidth: '640px', margin: '0 auto' }}>
-            Advanced micro-interactions, AI proctoring algorithms, and instant assessment workflows.
+          <p style={{ color: '#475569', fontSize: '1.1rem', maxWidth: '680px', margin: '0 auto' }}>
+            Everything your institution needs — from AI question authoring to multi-level proctoring and verifiable digital certificates.
           </p>
         </div>
 
-        {/* 3 Scroll-Triggered / Animated White Glassmorphism Bento Cards */}
+        {/* 6 High-Impact Glassmorphism Feature Bento Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '2rem'
         }}>
-          {/* Card 1: AI Proctoring (Rotating Shield Icon) */}
-          <div className="glass-card" style={{ padding: '2.5rem 2rem', position: 'relative', backgroundColor: '#FFFFFF' }}>
+          {/* Card 1: Gemini AI Question Generator & Bank */}
+          <div className="glass-card" style={{ padding: '2.25rem 2rem', position: 'relative', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '1.25rem' }}>
             <div style={{
               width: '3.5rem',
               height: '3.5rem',
               borderRadius: '1rem',
-              backgroundColor: '#EEF2FF',
-              border: '1px solid #C7D2FE',
+              backgroundColor: '#F3E8FF',
+              border: '1px solid #D8B4FE',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#4F46E5',
+              color: '#7E22CE',
               marginBottom: '1.5rem'
             }}>
-              <Shield className="icon-rotate-shield" style={{ width: '1.8rem', height: '1.8rem' }} />
+              <Sparkles style={{ width: '1.8rem', height: '1.8rem' }} />
             </div>
 
-            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
-              AI Proctoring
+            <h3 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
+              AI Question Bank & Syllabus Generator
             </h3>
 
-            <p style={{ color: '#475569', fontSize: '0.975rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
-              Continuous automated video analysis detects secondary devices, tab switches, and unauthorized face movements in real-time.
+            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
+              Generate targeted MCQs instantly from raw syllabus text using Gemini AI, import JSON/CSV pools, and publish practice sets directly to student dashboards.
             </p>
 
             <div style={{ display: 'grid', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#4F46E5' }} /> Facial Detection & Recognition
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#7E22CE' }} /> Gemini 1.5 Pro MCQ Generation
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#4F46E5' }} /> Automated Flagging Log
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#7E22CE' }} /> Bulk CSV & JSON Import/Export
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#7E22CE' }} /> Self-Paced Student Study Portal
               </div>
             </div>
           </div>
 
-          {/* Card 2: Instant Results (Ticking Clock Icon) */}
-          <div className="glass-card" style={{ padding: '2.5rem 2rem', position: 'relative', backgroundColor: '#FFFFFF' }}>
+          {/* Card 3: Anti-Copy & Secure Testing Environment */}
+          <div className="glass-card" style={{ padding: '2.25rem 2rem', position: 'relative', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '1.25rem' }}>
             <div style={{
               width: '3.5rem',
               height: '3.5rem',
               borderRadius: '1rem',
-              backgroundColor: '#EFF6FF',
-              border: '1px solid #BFDBFE',
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#2563EB',
+              color: '#DC2626',
               marginBottom: '1.5rem'
             }}>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Clock style={{ width: '1.8rem', height: '1.8rem' }} />
-                <span className="icon-tick-clock-hand" style={{
-                  position: 'absolute',
-                  width: '2px',
-                  height: '8px',
-                  backgroundColor: '#2563EB',
-                  top: '4px',
-                  borderRadius: '1px'
-                }} />
-              </div>
+              <Lock style={{ width: '1.8rem', height: '1.8rem' }} />
             </div>
 
-            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
-              Instant Results
+            <h3 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
+              Anti-Copy & Secure Testing Environment
             </h3>
 
-            <p style={{ color: '#475569', fontSize: '0.975rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
-              Auto-grading engine calculates scores, letter grades (A+, A, B, C), and detailed question breakdowns immediately upon submission.
+            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
+              Enforces full-screen mode, blocks copy/paste shortcuts, wipes text selection, and logs security violations without disrupting test navigation.
             </p>
 
             <div style={{ display: 'grid', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#2563EB' }} /> Zero-Latency Auto Evaluation
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#DC2626' }} /> Clipboard Poisoning & Shortcut Block
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#2563EB' }} /> Automated Grade Scale Allocation
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#DC2626' }} /> Fullscreen Enforcement & Violation Limits
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#DC2626' }} /> Right-Click Context Menu Support
               </div>
             </div>
           </div>
 
-          {/* Card 3: Encrypted Browser (Rising Bar Chart Icon) */}
-          <div className="glass-card" style={{ padding: '2.5rem 2rem', position: 'relative', backgroundColor: '#FFFFFF' }}>
+          {/* Card 5: Instant Scoring & AI Analytics Insights */}
+          <div className="glass-card" style={{ padding: '2.25rem 2rem', position: 'relative', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '1.25rem' }}>
             <div style={{
               width: '3.5rem',
               height: '3.5rem',
@@ -814,28 +813,26 @@ const Home = () => {
               color: '#059669',
               marginBottom: '1.5rem'
             }}>
-              {/* Animated Rising Bar Chart Icon */}
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '1.6rem' }}>
-                <span className="animate-bar-1" style={{ width: '5px', height: '40%', backgroundColor: '#059669', borderRadius: '2px' }} />
-                <span className="animate-bar-2" style={{ width: '5px', height: '80%', backgroundColor: '#059669', borderRadius: '2px' }} />
-                <span className="animate-bar-3" style={{ width: '5px', height: '60%', backgroundColor: '#059669', borderRadius: '2px' }} />
-              </div>
+              <BarChart3 style={{ width: '1.8rem', height: '1.8rem' }} />
             </div>
 
-            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
-              Encrypted Browser
+            <h3 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
+              Instant Scoring & AI Performance Insights
             </h3>
 
-            <p style={{ color: '#475569', fontSize: '0.975rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
-              Locked-down environment disables clipboard copying, developer tools, extra monitors, and unapproved browser extensions.
+            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
+              Delivers zero-latency score calculation upon submission, alongside AI-generated strengths, weaknesses, and custom study recommendations.
             </p>
 
             <div style={{ display: 'grid', gap: '0.5rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#059669' }} /> Anti-Copy & Anti-Paste Protection
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#059669' }} /> Instant Score & Grade Allocation (A+ to F)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
-                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#059669' }} /> 256-Bit JWT Token Auth
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#059669' }} /> AI Strengths & Weakness Analysis
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#059669' }} /> Class Rank & Score Analytics Cards
               </div>
             </div>
           </div>

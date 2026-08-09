@@ -96,6 +96,9 @@ const submissionSchema = new mongoose.Schema({
 
 // Ensure one submission per student per exam
 submissionSchema.index({ student: 1, exam: 1 }, { unique: true });
+submissionSchema.index({ student: 1, createdAt: -1 });
+submissionSchema.index({ exam: 1, createdAt: -1 });
+submissionSchema.index({ totalScore: -1 });
 
 // Calculate percentage before saving
 submissionSchema.pre('save', function(next) {

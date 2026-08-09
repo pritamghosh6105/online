@@ -130,7 +130,11 @@ const submitExam = async (req, res) => {
         multiMonitorDetected: Boolean(proctorLogs?.multiMonitorDetected),
         audioViolations: proctorLogs?.audioViolations || 0,
         devToolsAttempts: proctorLogs?.devToolsAttempts || 0,
-        isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating),
+        isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating) && (
+          (proctorLogs?.tabSwitches || 0) >= 3 || 
+          (proctorLogs?.fullscreenViolations || 0) >= 3 || 
+          (proctorLogs?.devToolsAttempts || 0) >= 2
+        ),
         faceVerified: proctorLogs?.faceVerified !== false
       },
       aiPerformanceSummary: {

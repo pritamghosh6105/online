@@ -67,7 +67,7 @@ const StudentQuestionBank = () => {
             letterSpacing: '0.05em',
             textTransform: 'uppercase'
           }}>
-            📚 Student Study Portal
+            Student Study Portal
           </span>
           <h1 style={{ margin: '8px 0 6px', fontSize: '1.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px' }}>
             <BookOpen style={{ width: '28px', height: '28px' }} /> Published Question Bank

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ExaminLogo from './ExaminLogo';
-import { User, LogOut, BookOpen, Menu, X, Award, PlusCircle, FileText } from 'lucide-react';
+import { User, LogOut, BookOpen, Menu, X, Award, PlusCircle, FileText, ShieldAlert } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -67,23 +67,7 @@ const Navbar = () => {
             Dashboard
           </Link>
 
-          {isAdminUser && (
-            <Link 
-              to="/pricing" 
-              style={{
-                color: '#38bdf8',
-                textDecoration: 'none',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.925rem',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-                outline: 'none'
-              }}
-            >
-              Plans & Pricing
-            </Link>
-          )}
+
           
           {user?.role === 'student' && (
             <>
@@ -163,7 +147,7 @@ const Navbar = () => {
                   outline: 'none'
                 }}
               >
-                Live Feed
+                Violation Reported
               </Link>
 
               <Link 
@@ -342,25 +326,7 @@ const Navbar = () => {
             Dashboard
           </Link>
 
-          {isAdminUser && (
-            <Link
-              to="/pricing"
-              onClick={closeMobileMenu}
-              style={{
-                color: '#38bdf8',
-                textDecoration: 'none',
-                padding: '0.6rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.95rem',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#1f2937'
-              }}
-            >
-              <Award style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
-              Plans & Pricing
-            </Link>
-          )}
+
 
           {user?.role === 'student' && (
             <>
@@ -436,8 +402,8 @@ const Navbar = () => {
                   backgroundColor: '#1f2937'
                 }}
               >
-                <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
-                Live Feed
+                <ShieldAlert style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
+                Violation Reported
               </Link>
 
               <Link

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { examAPI, submissionAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -10,7 +10,10 @@ import {
   Send,
   Timer,
   FileText,
-  User
+  User,
+  Award,
+  CheckCircle,
+  ShieldAlert
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -23,7 +26,8 @@ const ExamAttempt = () => {
   const [exam, setExam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [examStep, setExamStep] = useState('active'); // 'instructions', 'face-verify', 'active'
+  const [examStep, setExamStep] = useState('instructions'); // 'instructions', 'active'
+  const [agreedToRules, setAgreedToRules] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -31,6 +35,8 @@ const ExamAttempt = () => {
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
+
+  const submittingRef = useRef(false);
 
   // Level 1 & Level 3 Proctoring State
   const [tabSwitches, setTabSwitches] = useState(0);
@@ -63,10 +69,11 @@ const ExamAttempt = () => {
   useEffect(() => {
     if (exam) {
       const handleFullscreenChange = () => {
+        if (submittingRef.current) return;
         if (!document.fullscreenElement) {
           setFullscreenViolations(prev => {
             const updated = prev + 1;
-            toast.warn(`⚠️ Fullscreen Warning: Fullscreen mode exited! (Violation ${updated}/3)`, { autoClose: 4000 });
+            toast.warn(`Fullscreen Warning: Fullscreen mode exited! (Violation ${updated}/3)`, { autoClose: 4000 });
             return updated;
           });
         }
@@ -83,7 +90,7 @@ const ExamAttempt = () => {
       const checkScreenExtension = () => {
         if (window.screen && (window.screen.isExtended || (window.screen.availWidth && window.screen.availWidth > window.screen.width * 1.5))) {
           setMultiMonitorDetected(true);
-          toast.warn('⚠️ Proctor Warning: Extended display or multi-monitor setup detected!', { autoClose: 5000 });
+          toast.warn('Proctor Warning: Extended display or multi-monitor setup detected!', { autoClose: 5000 });
         }
       };
       checkScreenExtension();
@@ -119,7 +126,7 @@ const ExamAttempt = () => {
               highVolCount++;
               if (highVolCount >= 3) {
                 setAudioViolations(prev => prev + 1);
-                toast.warn('⚠️ Audio Warning: Background noise or speech detected!', { autoClose: 3500 });
+                toast.warn('Audio Warning: Background noise or speech detected!', { autoClose: 3500 });
                 highVolCount = 0;
               }
             } else {
@@ -139,23 +146,9 @@ const ExamAttempt = () => {
     };
   }, [exam]);
 
-  // DevTools Debugger Detector (Level 3)
+  // DevTools Monitoring (Disabled debugger loop to prevent false positive terminations)
   useEffect(() => {
     if (!exam) return;
-    const devToolsTimer = setInterval(() => {
-      const startTime = performance.now();
-      // eslint-disable-next-line no-debugger
-      debugger;
-      const endTime = performance.now();
-      if (endTime - startTime > 100) {
-        setDevToolsAttempts(prev => {
-          const updated = prev + 1;
-          toast.error('🚫 Security Action: Developer Tools inspection detected!', { autoClose: 5000 });
-          return updated;
-        });
-      }
-    }, 3000);
-    return () => clearInterval(devToolsTimer);
   }, [exam]);
 
   // Advanced Tab & Window Blur Switching Detection
@@ -164,13 +157,14 @@ const ExamAttempt = () => {
       let lastSwitchTime = 0;
 
       const triggerViolation = (reason) => {
+        if (submittingRef.current) return;
         const now = Date.now();
         if (now - lastSwitchTime < 1500) return; // Debounce 1.5s
         lastSwitchTime = now;
 
         setTabSwitches(prev => {
           const updated = prev + 1;
-          toast.warn(`⚠️ Proctor Warning: ${reason}! (Violation ${updated}/3)`, { autoClose: 4000 });
+          toast.warn(`Proctor Warning: ${reason}! (Violation ${updated}/3)`, { autoClose: 4000 });
           return updated;
         });
       };
@@ -208,18 +202,18 @@ const ExamAttempt = () => {
         }
       };
 
-      // 1. Selection Wiper: Immediately un-highlight any text (bypasses extension user-select CSS overrides)
+      // Selection Wiper: Prevents text highlighting with mouse or keyboard
       const handleSelectionChange = () => {
+        if (submittingRef.current) return;
         const selection = window.getSelection();
         if (selection && selection.toString().trim().length > 0) {
           selection.removeAllRanges();
-          setCopyPasteAttempts(prev => prev + 1);
-          notifyViolation('🚫 Text selection is prohibited during proctored exams!');
         }
       };
 
-      // 2. Clipboard Poisoning: If extension bypasses JS copy handlers, overwrite copied content
+      // Clipboard Hijack: Prevent copying and pasting exam content
       const handleCopyHijack = (e) => {
+        if (submittingRef.current) return;
         e.preventDefault();
         e.stopPropagation();
         if (e.stopImmediatePropagation) e.stopImmediatePropagation();
@@ -227,29 +221,21 @@ const ExamAttempt = () => {
         if (e.clipboardData) {
           e.clipboardData.setData(
             'text/plain',
-            '[SECURITY VIOLATION]: Question text copying is prohibited during proctored exams.'
+            '[SECURITY VIOLATION]: Copying/Pasting exam content is strictly prohibited.'
           );
         }
         setCopyPasteAttempts(prev => prev + 1);
-        notifyViolation('🚫 Copy attempt blocked & reported!');
-        return false;
-      };
-
-      // 3. Capturing Phase Event Blockers (useCapture = true) - executes BEFORE extension content scripts
-      const blockEventCapture = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-        notifyViolation('🚫 Right-clicking and context menus are disabled during exams.');
+        notifyViolation('Copy/Paste attempt blocked & reported!');
         return false;
       };
 
       const handleKeyDown = (e) => {
+        if (submittingRef.current) return;
         // Block PrintScreen / Screenshot attempts
         if (e.key === 'PrintScreen' || e.keyCode === 44) {
           e.preventDefault();
           setCopyPasteAttempts(prev => prev + 1);
-          notifyViolation('🚫 Screen capture and screenshots are strictly prohibited!');
+          notifyViolation('Screen capture and screenshots are strictly prohibited!');
         }
 
         // Block F12, Ctrl+P, Ctrl+U, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+A, Ctrl+S, Ctrl+Shift+I/J/C
@@ -262,7 +248,8 @@ const ExamAttempt = () => {
           (isCtrlOrMeta && e.shiftKey && ['i', 'j', 'c'].includes(key))
         ) {
           e.preventDefault();
-          notifyViolation('🚫 Security Action: Keyboard shortcuts & inspect tools are disabled.');
+          setCopyPasteAttempts(prev => prev + 1);
+          notifyViolation('Copy/Paste shortcuts & inspect tools are disabled during exams.');
         }
       };
 
@@ -270,8 +257,6 @@ const ExamAttempt = () => {
       window.addEventListener('copy', handleCopyHijack, true);
       window.addEventListener('cut', handleCopyHijack, true);
       window.addEventListener('paste', handleCopyHijack, true);
-      window.addEventListener('contextmenu', blockEventCapture, true);
-      window.addEventListener('selectstart', blockEventCapture, true);
       window.addEventListener('keydown', handleKeyDown, true);
 
       return () => {
@@ -279,8 +264,6 @@ const ExamAttempt = () => {
         window.removeEventListener('copy', handleCopyHijack, true);
         window.removeEventListener('cut', handleCopyHijack, true);
         window.removeEventListener('paste', handleCopyHijack, true);
-        window.removeEventListener('contextmenu', blockEventCapture, true);
-        window.removeEventListener('selectstart', blockEventCapture, true);
         window.removeEventListener('keydown', handleKeyDown, true);
       };
     }
@@ -290,23 +273,27 @@ const ExamAttempt = () => {
 
   // Auto-Submit on Proctoring Violation Limit Exceeded
   useEffect(() => {
-    if (exam && !submitting) {
+    if (exam && !submittingRef.current && !submitting) {
       if (tabSwitches >= 3 || fullscreenViolations >= 3 || devToolsAttempts >= 2) {
-        toast.error('🚫 Security Termination: Maximum proctoring violations exceeded. Exam auto-submitting...', { autoClose: 6000 });
+        toast.error('Security Termination: Maximum proctoring violations exceeded. Exam auto-submitting...', { autoClose: 6000 });
         handleSubmit(true);
       }
     }
   }, [tabSwitches, fullscreenViolations, devToolsAttempts, exam, submitting]);
 
   const handleSubmit = async (isTerminated = false) => {
+    const isTerminatedBool = isTerminated === true;
+    if (submittingRef.current && !isTerminatedBool) return;
+    submittingRef.current = true;
+    setSubmitting(true);
+
     try {
-      setSubmitting(true);
-      
       const endTime = new Date();
       
       // Validate that we have answers (unless auto-terminated for cheating)
-      if (!isTerminated && Object.keys(answers).length === 0) {
+      if (!isTerminatedBool && Object.keys(answers).length === 0) {
         toast.error('Please answer at least one question before submitting.');
+        submittingRef.current = false;
         setSubmitting(false);
         return;
       }
@@ -329,7 +316,7 @@ const ExamAttempt = () => {
           multiMonitorDetected,
           audioViolations,
           devToolsAttempts,
-          isTerminatedForCheating: Boolean(isTerminated),
+          isTerminatedForCheating: isTerminatedBool,
           faceVerified
         }
       };
@@ -343,10 +330,18 @@ const ExamAttempt = () => {
       localStorage.removeItem(`exam_${id}_answers`);
       localStorage.removeItem(`exam_${id}_startTime`);
       
-      if (isTerminated) {
-        toast.error('🚫 Exam terminated & submitted due to severe proctoring violations.');
+      if (isTerminatedBool) {
+        toast.error('Exam terminated & submitted due to severe proctoring violations.');
       } else {
         toast.success('Exam submitted successfully!');
+      }
+
+      if (document.fullscreenElement) {
+        try {
+          await document.exitFullscreen();
+        } catch (e) {
+          // ignore
+        }
       }
       navigate('/results');
     } catch (error) {
@@ -467,12 +462,11 @@ const ExamAttempt = () => {
         const remaining = Math.max(0, duration - elapsed);
         setTimeRemaining(remaining);
         setExamStartTime(startTime);
+        setExamStep('active');
       } else {
-        // Start new attempt
-        const startTime = new Date();
-        setExamStartTime(startTime);
+        // New attempt: show instructions screen first
         setTimeRemaining(duration);
-        localStorage.setItem(`exam_${id}_startTime`, startTime.toISOString());
+        setExamStep('instructions');
       }
 
       // Load saved answers
@@ -593,6 +587,208 @@ const ExamAttempt = () => {
 
   if (!exam) return null;
 
+  const startActualExam = () => {
+    if (!agreedToRules) {
+      toast.error('Please accept the exam guidelines and agreement before starting.');
+      return;
+    }
+    const startTime = new Date();
+    setExamStartTime(startTime);
+    setTimeRemaining((exam.duration || 60) * 60);
+    localStorage.setItem(`exam_${id}_startTime`, startTime.toISOString());
+    requestFullscreenMode();
+    setExamStep('active');
+  };
+
+  // Pre-Exam Instructions & Guidelines Screen
+  if (examStep === 'instructions') {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f8fafc',
+        padding: '40px 20px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <div style={{
+          maxWidth: '800px',
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+          border: '1px solid #e2e8f0',
+          padding: '36px',
+          overflow: 'hidden'
+        }}>
+          {/* Header */}
+          <div style={{
+            borderBottom: '2px solid #f1f5f9',
+            paddingBottom: '20px',
+            marginBottom: '24px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <span style={{
+                backgroundColor: '#e0e7ff',
+                color: '#3730a3',
+                fontSize: '0.75rem',
+                fontWeight: '800',
+                padding: '4px 12px',
+                borderRadius: '9999px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}>
+                Pre-Exam Instructions
+              </span>
+              <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', margin: '8px 0 4px' }}>
+                {exam.title}
+              </h1>
+              <p style={{ color: '#64748b', margin: 0, fontSize: '0.95rem' }}>
+                Subject: <strong>{exam.subject}</strong> {exam.institution ? `• ${exam.institution}` : ''}
+              </p>
+            </div>
+            
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                border: '1px solid #cbd5e1',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <ArrowLeft style={{ width: '16px', height: '16px' }} /> Cancel & Back
+            </button>
+          </div>
+
+          {/* Exam Quick Specs Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: '16px',
+            marginBottom: '28px'
+          }}>
+            <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Timer style={{ width: '22px', height: '22px', color: '#2563eb', margin: '0 auto 6px' }} />
+              <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Duration</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{exam.duration} Minutes</div>
+            </div>
+
+            <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <FileText style={{ width: '22px', height: '22px', color: '#059669', margin: '0 auto 6px' }} />
+              <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Questions</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{exam.questions.length} MCQs</div>
+            </div>
+
+            <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Award style={{ width: '22px', height: '22px', color: '#7c3aed', margin: '0 auto 6px' }} />
+              <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Total Marks</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{exam.totalMarks || exam.questions.length} Marks</div>
+            </div>
+
+            <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <CheckCircle style={{ width: '22px', height: '22px', color: '#d97706', margin: '0 auto 6px' }} />
+              <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Passing Criteria</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{exam.passingMarks || 40}%</div>
+            </div>
+          </div>
+
+          {/* Instructions List */}
+          <div style={{ marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldAlert style={{ width: '20px', height: '20px', color: '#2563eb' }} /> Important Exam Rules & Anti-Cheating Guidelines
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', backgroundColor: '#eff6ff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                <CheckCircle style={{ width: '18px', height: '18px', color: '#2563eb', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.9rem', color: '#1e3a8a', lineHeight: '1.4' }}>
+                  <strong>Timer & Auto-Submit:</strong> The examination timer starts immediately once you click "I Understand & Start Exam". The system automatically submits your answers when the timer reaches zero.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', backgroundColor: '#fef2f2', padding: '12px 16px', borderRadius: '10px', border: '1px solid #fecaca' }}>
+                <AlertTriangle style={{ width: '18px', height: '18px', color: '#dc2626', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.9rem', color: '#991b1b', lineHeight: '1.4' }}>
+                  <strong>Proctoring Enforcement:</strong> Fullscreen mode is required. Switching tabs, minimizing windows, text copying, developer tools, or multi-monitor extension will trigger proctoring violations and auto-terminate your attempt.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', backgroundColor: '#f0fdf4', padding: '12px 16px', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                <CheckCircle style={{ width: '18px', height: '18px', color: '#166534', flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ fontSize: '0.9rem', color: '#14532d', lineHeight: '1.4' }}>
+                  <strong>Auto-Saving Progress:</strong> Your selected answers are continuously auto-saved. You can navigate back and forth between questions using the Question Palette or Next/Previous buttons.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Student Declaration & Start Button */}
+          <div style={{ borderTop: '2px solid #f1f5f9', paddingTop: '24px' }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              cursor: 'pointer',
+              fontSize: '0.925rem',
+              color: '#334155',
+              fontWeight: 600,
+              marginBottom: '20px',
+              backgroundColor: '#f8fafc',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <input
+                type="checkbox"
+                checked={agreedToRules}
+                onChange={(e) => setAgreedToRules(e.target.checked)}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
+              />
+              <span>I have read all instructions and agree to abide by the proctoring guidelines.</span>
+            </label>
+
+            <button
+              onClick={startActualExam}
+              disabled={!agreedToRules}
+              style={{
+                width: '100%',
+                backgroundColor: agreedToRules ? '#059669' : '#94a3b8',
+                color: '#ffffff',
+                border: 'none',
+                padding: '16px',
+                borderRadius: '10px',
+                fontWeight: 800,
+                fontSize: '1.1rem',
+                cursor: agreedToRules ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: agreedToRules ? '0 4px 14px rgba(5, 150, 105, 0.3)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Send style={{ width: '20px', height: '20px' }} /> I Understand & Start Exam
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const currentQuestion = exam.questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / exam.questions.length) * 100;
 
@@ -601,7 +797,6 @@ const ExamAttempt = () => {
       onCopy={(e) => e.preventDefault()}
       onCut={(e) => e.preventDefault()}
       onPaste={(e) => e.preventDefault()}
-      onContextMenu={(e) => e.preventDefault()}
       onSelectStart={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
       style={{
@@ -1124,7 +1319,7 @@ const ExamAttempt = () => {
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                onClick={() => handleSubmit(false)}
                 disabled={submitting}
                 style={{
                   flex: 1,

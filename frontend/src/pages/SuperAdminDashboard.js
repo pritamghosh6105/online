@@ -97,7 +97,7 @@ const SuperAdminDashboard = () => {
     try {
       setActionLoading(true);
       const res = await superAdminAPI.resendStudentCredentials(studentId);
-      alert(`✅ Email Dispatched!\n\n${res.data?.message || 'Credentials email sent to student.'}`);
+      alert(`Email Dispatched!\n\n${res.data?.message || 'Credentials email sent to student.'}`);
       fetchSuperAdminData();
     } catch (err) {
       console.error('Resend credentials error:', err);
@@ -132,7 +132,7 @@ const SuperAdminDashboard = () => {
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      alert('✅ Platform database backup JSON downloaded successfully!');
+      alert('Platform database backup JSON downloaded successfully!');
     } catch (err) {
       alert('Failed to download system backup');
     }
@@ -144,7 +144,7 @@ const SuperAdminDashboard = () => {
       const createdAdmin = res.data?.createdAdmin;
       
       if (createdAdmin) {
-        alert(`✅ Request Approved!\n\n👑 Admin Account Configured for ${createdAdmin.name}:\n• Institution: ${createdAdmin.institution}\n• Email: ${createdAdmin.email}\n• Admin ID: ${createdAdmin.adminId}\n• Password: ${createdAdmin.password}\n\n📧 Admin login credentials email dispatched to ${createdAdmin.email}!`);
+        alert(`Request Approved!\n\nAdmin Account Configured for ${createdAdmin.name}:\n• Institution: ${createdAdmin.institution}\n• Email: ${createdAdmin.email}\n• Admin ID: ${createdAdmin.adminId}\n• Password: ${createdAdmin.password}\n\nAdmin login credentials email dispatched to ${createdAdmin.email}!`);
       } else {
         alert(`Schedule status updated to "${status}".`);
       }
@@ -171,7 +171,7 @@ const SuperAdminDashboard = () => {
       setActionLoading(true);
       const res = await authAPI.approveAdmin(adminId);
       if (res.data?.success) {
-        alert(`✅ Institution "${institutionName}" & Admin approved successfully!`);
+        alert(`Institution "${institutionName}" & Admin approved successfully!`);
         fetchSuperAdminData();
       }
     } catch (err) {
@@ -248,7 +248,7 @@ const SuperAdminDashboard = () => {
                 backdropFilter: 'blur(4px)',
                 color: '#fef08a'
               }}>
-                <ShieldCheck size={16} /> 👑 SUPER ADMIN CONTROL CENTER
+                <ShieldCheck size={16} /> SUPER ADMIN CONTROL CENTER
               </div>
               <h1 style={{ fontSize: '1.85rem', fontWeight: '800', margin: 0, letterSpacing: '-0.025em' }}>
                 System Governance & Institution Management
@@ -739,7 +739,7 @@ const SuperAdminDashboard = () => {
 
                         {schoolAdmins.length > 0 && (
                           <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: '#475569' }}>
-                            👑 <strong>Admin:</strong> {schoolAdmins[0].name} ({schoolAdmins[0].email})
+                            <strong>Admin:</strong> {schoolAdmins[0].name} ({schoolAdmins[0].email})
                           </p>
                         )}
                       </div>
@@ -844,7 +844,7 @@ const SuperAdminDashboard = () => {
                             fontSize: '0.8rem',
                             fontWeight: '700'
                           }}>
-                            {(admin.role === 'superadmin' || admin.email === 'admin@examin.com' || !admin.institution) ? '👑 Super Admin Only' : `🏫 ${admin.institution}`}
+                            {(admin.role === 'superadmin' || admin.email === 'admin@examin.com' || !admin.institution) ? 'Super Admin Only' : admin.institution}
                           </span>
                         </td>
                         <td style={{ padding: '0.875rem 1rem' }}>
@@ -946,7 +946,7 @@ const SuperAdminDashboard = () => {
                             fontSize: '0.85rem',
                             letterSpacing: '0.05em'
                           }}>
-                            🆔 {st.studentId}
+                            {st.studentId}
                           </span>
                         </td>
                         <td style={{ padding: '0.875rem 1rem', fontWeight: '600', color: '#0f172a' }}>
@@ -965,7 +965,7 @@ const SuperAdminDashboard = () => {
                             fontWeight: '600',
                             border: '1px solid #cbd5e1'
                           }}>
-                            🏫 {st.institution || 'General'}
+                            {st.institution || 'General'}
                           </span>
                         </td>
                         <td style={{ padding: '0.875rem 1rem', color: '#64748b', fontSize: '0.8rem' }}>
@@ -1056,7 +1056,7 @@ const SuperAdminDashboard = () => {
                         </span>
                         {exam.institution && (
                           <span style={{ backgroundColor: '#dcfce7', color: '#166534', padding: '0.15rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: '600' }}>
-                            🏫 {exam.institution}
+                            {exam.institution}
                           </span>
                         )}
                       </div>

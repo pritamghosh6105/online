@@ -88,22 +88,84 @@ exports.createQuestion = async (req, res) => {
 // Bulk import questions from array/CSV json
 exports.importBulkQuestions = async (req, res) => {
   try {
-    const { questions } = req.body;
-    if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    let { questions } = req.body;
+    if (!questions) {
       return res.status(400).json({ success: false, message: 'No questions provided for bulk import' });
     }
 
-    const formatted = questions.map(q => ({
-      question: q.question,
-      category: q.category || 'General',
-      subject: q.subject || 'General',
-      difficulty: q.difficulty || 'Medium',
-      options: q.options || [],
-      marks: q.marks || 1,
-      explanation: q.explanation || '',
-      institution: req.user?.institution || '',
-      createdBy: req.user?._id
-    }));
+    if (!Array.isArray(questions)) {
+      if (typeof questions === 'object' && questions !== null) {
+        if (Array.isArray(questions.questions)) {
+          questions = questions.questions;
+        } else if (questions.question) {
+          questions = [questions];
+        }
+      }
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid questions format. Provide an array of question objects.' });
+    }
+
+    const formatted = questions.map(q => {
+      const targetAnswer = q.correctAnswer !== undefined ? q.correctAnswer : q.answer;
+      let rawOpts = Array.isArray(q.options) ? q.options : [];
+      
+      let normOpts = rawOpts.map((opt, idx) => {
+        if (typeof opt === 'string') {
+          let isCorrect = false;
+          if (typeof targetAnswer === 'number') {
+            isCorrect = idx === targetAnswer;
+          } else if (typeof targetAnswer === 'string') {
+            const trimmedTarget = targetAnswer.trim().toLowerCase();
+            const trimmedOpt = opt.trim().toLowerCase();
+            if (trimmedTarget === trimmedOpt) {
+              isCorrect = true;
+            } else if (['a', 'b', 'c', 'd', 'e'].includes(trimmedTarget)) {
+              isCorrect = idx === (trimmedTarget.charCodeAt(0) - 97);
+            } else if (!isNaN(parseInt(trimmedTarget))) {
+              isCorrect = idx === parseInt(trimmedTarget);
+            }
+          }
+          return { text: opt, isCorrect };
+        } else if (typeof opt === 'object' && opt !== null) {
+          const text = opt.text || opt.option || opt.value || opt.label || String(opt);
+          let isCorrect = Boolean(opt.isCorrect || opt.correct || opt.is_correct || opt.correctAnswer);
+          if (!isCorrect && targetAnswer !== undefined) {
+            if (typeof targetAnswer === 'number' && idx === targetAnswer) {
+              isCorrect = true;
+            } else if (typeof targetAnswer === 'string') {
+              const trimmedTarget = targetAnswer.trim().toLowerCase();
+              const trimmedText = String(text).trim().toLowerCase();
+              if (trimmedTarget === trimmedText) {
+                isCorrect = true;
+              } else if (['a', 'b', 'c', 'd', 'e'].includes(trimmedTarget)) {
+                isCorrect = idx === (trimmedTarget.charCodeAt(0) - 97);
+              }
+            }
+          }
+          return { text, isCorrect };
+        }
+        return { text: String(opt), isCorrect: false };
+      });
+
+      // Ensure at least one option is marked as correct
+      if (normOpts.length > 0 && !normOpts.some(o => o.isCorrect)) {
+        normOpts[0].isCorrect = true;
+      }
+
+      return {
+        question: q.question || 'Untitled Question',
+        category: q.category || 'General',
+        subject: q.subject || q.category || 'General',
+        difficulty: q.difficulty || 'Medium',
+        options: normOpts,
+        marks: Number(q.marks) || 1,
+        explanation: q.explanation || '',
+        institution: req.user?.institution || '',
+        createdBy: req.user?._id
+      };
+    });
 
     const inserted = await QuestionBank.insertMany(formatted);
 
@@ -119,7 +181,7 @@ exports.importBulkQuestions = async (req, res) => {
     res.status(201).json({ success: true, message: `Successfully imported ${inserted.length} questions`, count: inserted.length });
   } catch (error) {
     console.error('Error bulk importing questions:', error);
-    res.status(500).json({ success: false, message: 'Failed to bulk import questions' });
+    res.status(500).json({ success: false, message: error.message || 'Failed to bulk import questions' });
   }
 };
 
