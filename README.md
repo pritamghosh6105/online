@@ -173,55 +173,6 @@ examin/
 
 ---
 
-## ⚡ Key API Endpoints
-
-### Vision AI Exam Detector & AI Builder (`/api/ai-exam`)
-* `POST /api/ai-exam/generate` — Generate structured MCQs using Google Gemini AI
-* `POST /api/ai-exam/detect` — Inspect question images/text against active database sessions & log suspicious activity
-
-### Question Bank (`/api/question-bank`)
-* `GET /api/question-bank` — List and filter questions by category/difficulty
-* `POST /api/question-bank` — Add new question
-* `POST /api/question-bank/import` — Bulk import questions via JSON/CSV
-
-### Authentication (`/api/auth`)
-* `POST /api/auth/login` — Login user with single-session enforcement during active exams
-* `POST /api/auth/clear-exam-session` — Clear active exam session flag upon logout/test submit
-* `PUT /api/auth/change-password` — Change password for authenticated users (Students & Admins)
-* `PUT /api/auth/change-credentials` — Update password & Admin ID for sub-admins
-* `GET /api/auth/approved-institutions` — List approved connected schools for registration
-
----
-
-## 🛠️ Environment Configuration & Setup
-
-### Environment Variables Template (`backend/.env`)
-
-> [!IMPORTANT]
-> Never commit actual API keys, database credentials, or email passwords to version control. Use `.env` locally.
-
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=5000
-
-# Database
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/examin?retryWrites=true
-
-# JWT Secret
-JWT_SECRET=your_jwt_secret_key_here
-
-# Email Configuration (Gmail SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_gmail_app_password_here
-
-# Google Gemini AI API Key
-GEMINI_API_KEY=your_google_gemini_api_key_here
-```
-
----
 
 ## 🚀 Quick Start & Development
 
@@ -245,6 +196,5 @@ Runs on `http://localhost:3000`
 
 ## ✅ Quality & Build Status
 
-* **CI/CD Pipeline**: Configured with GitHub Actions (`.github/workflows/ci.yml`).
 * **Backend API**: Node.js / Express API fully operational with Google Gemini AI & Vision AI Exam-Question Detector.
 * **Frontend App**: Production React 18 build verified with zero errors.
