@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { examAPI, aiExamAPI } from '../api';
+import { examAPI, aiExamAPI, authAPI } from '../api';
+import { useAuth } from '../context/AuthContext';
 import {
   BookOpen,
   Plus,
@@ -18,6 +19,23 @@ import { toast } from 'react-toastify';
 
 const CreateExam = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin' || user?.email === 'admin@examin.com';
+
+  const [approvedInstitutions, setApprovedInstitutions] = useState([]);
+
+  useEffect(() => {
+    fetchInstitutions();
+  }, []);
+
+  const fetchInstitutions = async () => {
+    try {
+      const res = await authAPI.getApprovedInstitutions();
+      setApprovedInstitutions(res.data?.institutions || []);
+    } catch (err) {
+      console.error('Error fetching approved institutions:', err);
+    }
+  };
 
   const getDefaultDates = () => {
     const now = new Date();
@@ -41,6 +59,7 @@ const CreateExam = () => {
     title: '',
     subject: '',
     duration: 60,
+    institution: user?.institution || '',
     startDate: defaults.startDate,
     endDate: defaults.endDate,
     questions: []
@@ -295,7 +314,11 @@ const CreateExam = () => {
       const response = await examAPI.createExam(examData);
       console.log('Exam created successfully:', response);
       toast.success('Exam created successfully!');
-      navigate('/admin');
+      if (isSuperAdmin) {
+        navigate('/super-admin');
+      } else {
+        navigate('/admin');
+      }
     } catch (error) {
       console.error('Error creating exam:', error);
       console.error('Error response:', error.response?.data);
@@ -671,6 +694,65 @@ const CreateExam = () => {
                       {errors.subject}
                     </p>
                   )}
+                </div>
+
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    color: '#1e293b',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Target Institution / School
+                  </label>
+                  {isSuperAdmin ? (
+                    <select
+                      name="institution"
+                      value={examData.institution}
+                      onChange={handleExamDataChange}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: '#0f172a',
+                        backgroundColor: '#ffffff'
+                      }}
+                    >
+                      <option value="">🏢 All Institutions (Global / All Students)</option>
+                      {approvedInstitutions.map((inst) => (
+                        <option key={inst} value={inst}>
+                          🏫 {inst}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      name="institution"
+                      value={examData.institution || user?.institution || 'General'}
+                      readOnly
+                      disabled
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                        backgroundColor: '#f8fafc',
+                        color: '#64748b',
+                        fontWeight: '600'
+                      }}
+                    />
+                  )}
+                  <p style={{ margin: '0.3rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                    {isSuperAdmin
+                      ? 'Select the specific institution for this exam, or choose "All Institutions" for global availability.'
+                      : 'Automatically assigned to your institution.'}
+                  </p>
                 </div>
               </div>
 

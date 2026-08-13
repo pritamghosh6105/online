@@ -60,31 +60,78 @@ const ExamAttempt = () => {
     return array;
   };
 
+  // Cross-browser Fullscreen Element Helper
+  const getFullscreenElement = () => {
+    return (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.webkitIsFullScreen ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement ||
+      null
+    );
+  };
+
   const requestFullscreenMode = () => {
     const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen().catch(err => console.warn('Fullscreen request error:', err));
+    try {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => console.warn('Fullscreen request error:', err));
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    } catch (e) {
+      console.warn('Fullscreen mode error:', e);
     }
   };
 
-  // Fullscreen Change Monitor (Level 1)
+  // Fullscreen Change & Violation Monitor (Level 1)
   useEffect(() => {
-    if (exam) {
-      const handleFullscreenChange = () => {
-        if (submittingRef.current) return;
-        if (!document.fullscreenElement) {
+    if (!exam || examStep !== 'active') return;
+
+    let debounceTimer = null;
+
+    const handleFullscreenChange = () => {
+      if (submittingRef.current) return;
+
+      const fsElement = getFullscreenElement();
+      const isFsActive = Boolean(fsElement);
+
+      if (!isFsActive) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
           setFullscreenViolations(prev => {
             const updated = prev + 1;
-            toast.warn(`Fullscreen Warning: Fullscreen mode exited! (Violation ${updated}/3)`, { autoClose: 4000 });
+            if (updated >= 3) {
+              toast.error('❌ Security Termination: 3 Fullscreen violations reached. Auto-terminating exam NOW!', { autoClose: 7000 });
+              terminatedTriggeredRef.current = true;
+              handleSubmit(true);
+            } else {
+              toast.error(`🚨 Fullscreen Warning: Fullscreen mode exited! (Violation ${updated}/3)`, { autoClose: 5000 });
+            }
             return updated;
           });
-        }
-      };
+        }, 250);
+      }
+    };
 
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-      return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    }
-  }, [exam]);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, [exam, examStep]);
 
   // Multi-Monitor Detector (Level 3)
   useEffect(() => {
@@ -273,18 +320,37 @@ const ExamAttempt = () => {
 
 
 
+  const terminatedTriggeredRef = useRef(false);
+
   // Auto-Submit on Proctoring Violation Limit Exceeded
   useEffect(() => {
-    if (exam && !submittingRef.current && !submitting) {
-      if (tabSwitches >= 3 || fullscreenViolations >= 3 || devToolsAttempts >= 2) {
+    if (exam && !terminatedTriggeredRef.current) {
+      const isViolationLimitExceeded = (
+        tabSwitches >= 3 ||
+        fullscreenViolations >= 3 ||
+        devToolsAttempts >= 2 ||
+        copyPasteAttempts >= 5 ||
+        audioViolations >= 5
+      );
+
+      if (isViolationLimitExceeded) {
+        terminatedTriggeredRef.current = true;
         toast.error('Security Termination: Maximum proctoring violations exceeded. Exam auto-submitting...', { autoClose: 6000 });
         handleSubmit(true);
       }
     }
-  }, [tabSwitches, fullscreenViolations, devToolsAttempts, exam, submitting]);
+  }, [tabSwitches, fullscreenViolations, devToolsAttempts, copyPasteAttempts, audioViolations, exam]);
 
   const handleSubmit = async (isTerminated = false) => {
-    const isTerminatedBool = isTerminated === true;
+    const isViolationLimitExceeded = (
+      tabSwitches >= 3 ||
+      fullscreenViolations >= 3 ||
+      devToolsAttempts >= 2 ||
+      copyPasteAttempts >= 5 ||
+      audioViolations >= 5
+    );
+
+    const isTerminatedBool = isTerminated === true || isViolationLimitExceeded;
     if (submittingRef.current && !isTerminatedBool) return;
     submittingRef.current = true;
     setSubmitting(true);
@@ -292,12 +358,14 @@ const ExamAttempt = () => {
     try {
       const endTime = new Date();
 
-      // Validate that we have answers (unless auto-terminated for cheating)
+      // Warn if no answers selected (unless auto-terminated for cheating)
       if (!isTerminatedBool && Object.keys(answers).length === 0) {
-        toast.error('Please answer at least one question before submitting.');
-        submittingRef.current = false;
-        setSubmitting(false);
-        return;
+        const confirmZero = window.confirm('You have not selected any answers. Are you sure you want to submit your exam now?');
+        if (!confirmZero) {
+          submittingRef.current = false;
+          setSubmitting(false);
+          return;
+        }
       }
 
       // Validate exam start time
@@ -348,6 +416,7 @@ const ExamAttempt = () => {
       navigate('/results');
     } catch (error) {
       console.error('Error submitting exam:', error);
+      submittingRef.current = false;
 
       let errorMessage = 'Failed to submit exam. Please try again.';
       if (error.response?.data?.message) {
@@ -1346,6 +1415,62 @@ const ExamAttempt = () => {
                 {submitting ? 'Submitting...' : 'Yes, Submit'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Mode Re-entry Overlay Modal */}
+      {examStep === 'active' && !getFullscreenElement() && !submitting && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.94)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          color: '#ffffff',
+          textAlign: 'center',
+          padding: '2rem'
+        }}>
+          <div style={{
+            backgroundColor: '#1e293b',
+            padding: '2.5rem',
+            borderRadius: '1rem',
+            border: '2px solid #ef4444',
+            boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.4)',
+            maxWidth: '520px',
+            width: '100%'
+          }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>🚨</div>
+            <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#f87171', marginBottom: '0.75rem' }}>
+              FULLSCREEN MODE REQUIRED
+            </h2>
+            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: '1.6' }}>
+              You have exited full-screen mode or window focus. Exiting fullscreen mode registers an automatic proctoring violation. Return to fullscreen immediately to continue your exam.
+            </p>
+            <button
+              onClick={requestFullscreenMode}
+              style={{
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                border: 'none',
+                padding: '0.9rem 2rem',
+                borderRadius: '0.5rem',
+                fontWeight: '800',
+                fontSize: '1.05rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(239, 68, 68, 0.5)',
+                transition: 'all 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              🖥️ Click Here to Re-enter Fullscreen Mode
+            </button>
           </div>
         </div>
       )}

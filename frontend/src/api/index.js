@@ -92,6 +92,6 @@ export const superAdminAPI = {
   getBackup: () => api.get('/superadmin/backup'),
   getStudents: () => api.get('/superadmin/students'),
   deleteStudent: (id) => api.delete(`/superadmin/students/${id}`),
-  resendStudentCredentials: (id) => api.post(`/superadmin/students/${id}/resend-credentials`),
+  resendStudentCredentials: (id, customPassword) => api.post(`/superadmin/students/${id}/resend-credentials`, { customPassword }),
   deleteInstitution: (name) => api.delete(`/superadmin/institution/${encodeURIComponent(name)}`)
 };

@@ -28,12 +28,11 @@ const submitExam = async (req, res) => {
       });
     }
 
-    // Check if exam is currently active
-    const now = new Date();
-    if (!exam.isActive || now < exam.startDate || now > exam.endDate) {
+    // Check if exam is active
+    if (!exam.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Exam is not currently available'
+        message: 'Exam has been disabled by administrator'
       });
     }
 
@@ -130,10 +129,12 @@ const submitExam = async (req, res) => {
         multiMonitorDetected: Boolean(proctorLogs?.multiMonitorDetected),
         audioViolations: proctorLogs?.audioViolations || 0,
         devToolsAttempts: proctorLogs?.devToolsAttempts || 0,
-        isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating) && (
+        isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating) || (
           (proctorLogs?.tabSwitches || 0) >= 3 ||
           (proctorLogs?.fullscreenViolations || 0) >= 3 ||
-          (proctorLogs?.devToolsAttempts || 0) >= 2
+          (proctorLogs?.devToolsAttempts || 0) >= 2 ||
+          (proctorLogs?.copyPasteAttempts || 0) >= 5 ||
+          (proctorLogs?.audioViolations || 0) >= 5
         ),
         faceVerified: proctorLogs?.faceVerified !== false
       },
@@ -203,7 +204,7 @@ const getMySubmissions = async (req, res) => {
 // @access  Private (Admin only)
 const getAllSubmissions = async (req, res) => {
   try {
-    const { examId, page = 1, limit = 50, statsOnly = false } = req.query;
+    const { examId, page = 1, limit = 50, statsOnly = false, onlyViolations = false, institution } = req.query;
     let query = {};
 
     if (examId) {
@@ -216,7 +217,42 @@ const getAllSubmissions = async (req, res) => {
         ]
       }).select('_id');
       const examIds = adminExams.map(e => e._id);
-      query.exam = { $in: examIds };
+
+      const instStudents = await User.find({ institution: req.user.institution, role: 'student' }).select('_id');
+      const studentIds = instStudents.map(s => s._id);
+
+      query.$or = [
+        { exam: { $in: examIds } },
+        { student: { $in: studentIds } }
+      ];
+    } else if (institution && institution !== 'all') {
+      const instExams = await Exam.find({ institution }).select('_id');
+      const examIds = instExams.map(e => e._id);
+      
+      const instStudents = await User.find({ institution, role: 'student' }).select('_id');
+      const studentIds = instStudents.map(s => s._id);
+
+      query.$or = [
+        { exam: { $in: examIds } },
+        { student: { $in: studentIds } }
+      ];
+    }
+
+    if (onlyViolations === 'true') {
+      query.$and = query.$and || [];
+      query.$and.push({
+        $or: [
+          { 'proctorLogs.tabSwitches': { $gt: 0 } },
+          { 'proctorLogs.copyPasteAttempts': { $gt: 0 } },
+          { 'proctorLogs.fullscreenViolations': { $gt: 0 } },
+          { 'proctorLogs.devToolsAttempts': { $gt: 0 } },
+          { 'proctorLogs.audioViolations': { $gt: 0 } },
+          { 'proctorLogs.multiMonitorDetected': true },
+          { 'proctorLogs.isTerminatedForCheating': true },
+          { 'proctorLogs.faceVerified': false },
+          { 'proctorLogs.suspiciousFlags.0': { $exists: true } }
+        ]
+      });
     }
 
     // If only stats are needed, return count of valid non-orphaned submissions

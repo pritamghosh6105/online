@@ -140,19 +140,31 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
-// Resend credentials email to student
+// Resend credentials email to student with actual Student ID and set password
 exports.resendStudentCredentials = async (req, res) => {
   try {
+    const { customPassword } = req.body || {};
     const student = await User.findById(req.params.id);
     if (!student) {
       return res.status(404).json({ success: false, message: 'Student account not found' });
     }
 
-    const nodemailer = require('nodemailer');
-    const tempPass = 'Student@' + (student.studentId ? student.studentId.slice(-4) : '1234');
-    student.password = tempPass;
+    // Ensure student has a valid studentId
+    if (!student.studentId) {
+      const timestamp = Date.now().toString();
+      const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      student.studentId = timestamp.slice(-8) + random;
+    }
+
+    // Determine password to send and update in database
+    const passwordToSend = (customPassword && customPassword.trim()) 
+      ? customPassword.trim() 
+      : 'Student@' + student.studentId.slice(-4);
+      
+    student.password = passwordToSend; // User pre-save hook will hash password with bcrypt
     await student.save();
 
+    const nodemailer = require('nodemailer');
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -166,30 +178,33 @@ exports.resendStudentCredentials = async (req, res) => {
       }
     });
 
-    await transporter.sendMail({
+    const mailOptions = {
       from: `"Examin Platform" <${process.env.SMTP_USER}>`,
       replyTo: process.env.SMTP_USER,
       to: student.email,
-      subject: `Your Examin Student Credentials - Student ID: ${student.studentId}`,
+      subject: `Official Examin Login Credentials - Student ID: ${student.studentId}`,
       html: `
         <div style="font-family: Arial, sans-serif; padding: 25px; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
           <h2 style="color: #2563eb; margin-top: 0;">Welcome to Examin!</h2>
           <p style="font-size: 15px; color: #334155;">Dear <strong>${student.name}</strong>,</p>
-          <p style="font-size: 15px; color: #334155;">Here are your official account credentials for logging into the platform:</p>
-          <div style="background-color: #f1f5f9; padding: 18px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
-            <p style="margin: 6px 0; font-size: 16px;"><strong>Student ID:</strong> <span style="color: #2563eb; font-weight: 800;">${student.studentId}</span></p>
-            <p style="margin: 6px 0; font-size: 15px;"><strong>Password:</strong> ${tempPass}</p>
+          <p style="font-size: 15px; color: #334155;">Here are your official account credentials for logging into the Examin platform:</p>
+          <div style="background-color: #f1f5f9; padding: 18px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #2563eb;">
+            <p style="margin: 6px 0; font-size: 16px;"><strong>Student ID (Login ID):</strong> <span style="color: #2563eb; font-weight: 800; font-family: monospace; font-size: 1.1rem;">${student.studentId}</span></p>
+            <p style="margin: 6px 0; font-size: 16px;"><strong>Password:</strong> <span style="color: #0f172a; font-weight: 800; font-family: monospace; font-size: 1.1rem;">${passwordToSend}</span></p>
+            <p style="margin: 6px 0; font-size: 14px; color: #64748b;"><strong>Institution:</strong> ${student.institution || 'General'}</p>
           </div>
-          <p style="font-size: 14px; color: #64748b;">Use your 11-digit Student ID (<code>${student.studentId}</code>) to sign in.</p>
+          <p style="font-size: 14px; color: #334155;">You can sign into your student portal using your 11-digit Student ID (<code>${student.studentId}</code>) or registered email address (<code>${student.email}</code>).</p>
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
           <p style="font-size: 12px; color: #94a3b8;">If you cannot find this email in your Inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.</p>
         </div>
       `
-    });
+    };
+
+    await transporter.sendMail(mailOptions);
 
     res.json({
       success: true,
-      message: `Credentials email dispatched to ${student.email} (Student ID: ${student.studentId}, Password: ${tempPass})`
+      message: `Credentials email dispatched successfully!\n\n• Email: ${student.email}\n• Student ID: ${student.studentId}\n• Password: ${passwordToSend}`
     });
   } catch (error) {
     console.error('Error resending credentials email:', error);

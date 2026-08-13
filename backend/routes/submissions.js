@@ -18,8 +18,8 @@ const submissionValidation = [
     .isMongoId()
     .withMessage('Valid exam ID is required'),
   body('answers')
-    .isArray({ min: 1 })
-    .withMessage('At least one answer is required'),
+    .isArray()
+    .withMessage('Answers array is required'),
   body('answers.*.questionId')
     .isMongoId()
     .withMessage('Valid question ID is required'),
@@ -35,7 +35,7 @@ const submissionValidation = [
 ];
 
 // Routes
-router.post('/', protect, authorize('student'), submissionValidation, submitExam);
+router.post('/', protect, authorize('student', 'admin', 'superadmin'), submissionValidation, submitExam);
 router.get('/my', protect, authorize('student'), getMySubmissions);
 router.get('/leaderboard/:examId', protect, getExamLeaderboard);
 router.get('/', protect, authorize('admin', 'superadmin'), getAllSubmissions);

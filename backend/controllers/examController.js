@@ -65,10 +65,12 @@ const getExams = async (req, res) => {
         ];
       }
     } else if (req.user.role === 'admin' && req.user.institution) {
-      // Sub-admins view exams for their institution or created by them
+      // Sub-admins view exams for their institution, global exams, or created by them
       query = {
         $or: [
           { institution: req.user.institution },
+          { institution: '' },
+          { institution: { $exists: false } },
           { createdBy: req.user.id }
         ]
       };

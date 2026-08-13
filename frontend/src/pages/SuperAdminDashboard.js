@@ -33,6 +33,7 @@ const SuperAdminDashboard = () => {
   const [, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState(null);
+  const [selectedInstitutionFilter, setSelectedInstitutionFilter] = useState('all');
 
   const allSchoolNames = [...new Set([
     ...approvedInstitutions,
@@ -40,6 +41,26 @@ const SuperAdminDashboard = () => {
     ...studentsList.map(s => s.institution).filter(Boolean),
     ...allExams.map(e => e.institution).filter(Boolean)
   ])].filter(name => name && name.trim() !== '' && !['Global / SuperAdmin', 'Global', 'Super Admin', 'Super Admin Only', 'N/A'].includes(name.trim()));
+
+  const filteredStudentsList = selectedInstitutionFilter === 'all'
+    ? studentsList
+    : studentsList.filter(s => (s.institution || 'General').toLowerCase() === selectedInstitutionFilter.toLowerCase());
+
+  const filteredApprovedAdmins = selectedInstitutionFilter === 'all'
+    ? approvedAdmins
+    : approvedAdmins.filter(a => (a.institution || 'Global').toLowerCase() === selectedInstitutionFilter.toLowerCase());
+
+  const filteredPendingAdmins = selectedInstitutionFilter === 'all'
+    ? pendingAdmins
+    : pendingAdmins.filter(a => (a.institution || '').toLowerCase() === selectedInstitutionFilter.toLowerCase());
+
+  const filteredAllExams = selectedInstitutionFilter === 'all'
+    ? allExams
+    : allExams.filter(e => (e.institution || 'General').toLowerCase() === selectedInstitutionFilter.toLowerCase());
+
+  const filteredSchedules = selectedInstitutionFilter === 'all'
+    ? schedules
+    : schedules.filter(s => (s.institution || '').toLowerCase() === selectedInstitutionFilter.toLowerCase());
 
   useEffect(() => {
     fetchSuperAdminData();
@@ -92,12 +113,19 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  const handleResendStudentCredentials = async (studentId, email) => {
-    if (!window.confirm(`Resend account credentials email (Student ID & Password) to "${email}"?`)) return;
+  const handleResendStudentCredentials = async (studentId, email, name, currentStudentId) => {
+    const defaultPass = 'Student@' + (currentStudentId ? currentStudentId.slice(-4) : '1234');
+    const customPassPrompt = window.prompt(
+      `Resend login credentials email to student "${name}" (${email})?\n\n• Student ID: ${currentStudentId || 'N/A'}\n\nEnter a password to set for this student (or leave blank to use default "${defaultPass}"):`,
+      ''
+    );
+
+    if (customPassPrompt === null) return; // Cancelled
+
     try {
       setActionLoading(true);
-      const res = await superAdminAPI.resendStudentCredentials(studentId);
-      alert(`Email Dispatched!\n\n${res.data?.message || 'Credentials email sent to student.'}`);
+      const res = await superAdminAPI.resendStudentCredentials(studentId, customPassPrompt.trim());
+      alert(`✅ Credentials Email Dispatched!\n\n${res.data?.message || 'Credentials email sent to student.'}`);
       fetchSuperAdminData();
     } catch (err) {
       console.error('Resend credentials error:', err);
@@ -437,6 +465,76 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
+        {/* Institution Filter Bar for Super Admin Multi-Tenancy */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <Building style={{ color: '#2563eb', width: '22px', height: '22px' }} />
+            <div>
+              <span style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', display: 'block' }}>
+                Multi-Tenant Institution Selector
+              </span>
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                Filter Super Admin views for specific schools or global overview
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <select
+              value={selectedInstitutionFilter}
+              onChange={(e) => setSelectedInstitutionFilter(e.target.value)}
+              style={{
+                padding: '0.55rem 1rem',
+                borderRadius: '0.5rem',
+                border: '2px solid #2563eb',
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="all">🏢 All Institutions (Global Control)</option>
+              {allSchoolNames.map((school) => (
+                <option key={school} value={school}>
+                  🏫 {school}
+                </option>
+              ))}
+            </select>
+
+            {selectedInstitutionFilter !== 'all' && (
+              <button
+                onClick={() => setSelectedInstitutionFilter('all')}
+                style={{
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  padding: '0.55rem 0.85rem',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.8rem',
+                  fontWeight: '700',
+                  cursor: 'pointer'
+                }}
+              >
+                Reset Filter
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Tab Navigation */}
         <div className="tab-bar-scrollable" style={{
           display: 'flex',
@@ -464,7 +562,7 @@ const SuperAdminDashboard = () => {
             }}
           >
             <Calendar size={18} />
-            Scheduled Test Requests ({schedules.length})
+            Scheduled Test Requests ({filteredSchedules.length})
           </button>
 
           <button
@@ -506,7 +604,7 @@ const SuperAdminDashboard = () => {
             }}
           >
             <ShieldCheck size={18} />
-            System Admins ({approvedAdmins.length})
+            System Admins ({filteredApprovedAdmins.length})
           </button>
 
           <button
@@ -527,7 +625,7 @@ const SuperAdminDashboard = () => {
             }}
           >
             <UserCheck size={18} />
-            Registered Students ({studentsList.length})
+            Registered Students ({filteredStudentsList.length})
           </button>
 
           <button
@@ -548,7 +646,7 @@ const SuperAdminDashboard = () => {
             }}
           >
             <BookOpen size={18} />
-            All Platform Exams ({allExams.length})
+            All Platform Exams ({filteredAllExams.length})
           </button>
         </div>
 
@@ -909,14 +1007,14 @@ const SuperAdminDashboard = () => {
                 </p>
               </div>
               <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.35rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: '700' }}>
-                Total Students: {studentsList.length}
+                Total Students: {filteredStudentsList.length}
               </span>
             </div>
 
-            {studentsList.length === 0 ? (
+            {filteredStudentsList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px dashed #cbd5e1' }}>
                 <UserCheck size={36} color="#94a3b8" style={{ marginBottom: '0.5rem' }} />
-                <p style={{ color: '#64748b', fontWeight: '600', margin: 0 }}>No student accounts registered yet.</p>
+                <p style={{ color: '#64748b', fontWeight: '600', margin: 0 }}>No student accounts found for this institution filter.</p>
                 <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.25rem' }}>Students will appear here with their 11-digit Student ID and Institution once registered.</p>
               </div>
             ) : (
@@ -933,7 +1031,7 @@ const SuperAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {studentsList.map((st) => (
+                    {filteredStudentsList.map((st) => (
                       <tr key={st.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                         <td style={{ padding: '0.875rem 1rem' }}>
                           <span style={{
@@ -974,7 +1072,7 @@ const SuperAdminDashboard = () => {
                         <td style={{ padding: '0.875rem 1rem', textAlign: 'right' }}>
                           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
                             <button
-                              onClick={() => handleResendStudentCredentials(st.id, st.email)}
+                              onClick={() => handleResendStudentCredentials(st.id, st.email, st.name, st.studentId)}
                               disabled={actionLoading}
                               title="Resend account credentials email to student"
                               style={{
