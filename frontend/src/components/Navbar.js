@@ -42,14 +42,14 @@ const Navbar = () => {
         <ExaminLogo size={28} to="/dashboard" textColor="#ffffff" showSubtext={false} />
 
         {/* Desktop Navigation Links */}
-        <div className="desktop-nav" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div className="desktop-nav" style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '1rem',
           whiteSpace: 'nowrap'
         }}>
-          <Link 
-            to="/dashboard" 
+          <Link
+            to="/dashboard"
             style={{
               color: '#d1d5db',
               textDecoration: 'none',
@@ -68,11 +68,11 @@ const Navbar = () => {
           </Link>
 
 
-          
+
           {user?.role === 'student' && (
             <>
-              <Link 
-                to="/question-bank" 
+              <Link
+                to="/question-bank"
                 style={{
                   color: '#10b981',
                   textDecoration: 'none',
@@ -92,8 +92,8 @@ const Navbar = () => {
               >
                 Question Bank
               </Link>
-              <Link 
-                to="/results" 
+              <Link
+                to="/results"
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
@@ -112,11 +112,11 @@ const Navbar = () => {
               </Link>
             </>
           )}
-          
+
           {isAdminUser && (
             <>
-              <Link 
-                to="/admin/question-bank" 
+              <Link
+                to="/admin/question-bank"
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
@@ -134,8 +134,8 @@ const Navbar = () => {
                 Question Bank
               </Link>
 
-              <Link 
-                to="/admin/live-monitoring" 
+              <Link
+                to="/admin/live-monitoring"
                 style={{
                   color: '#ef4444',
                   textDecoration: 'none',
@@ -150,8 +150,8 @@ const Navbar = () => {
                 Violation Reported
               </Link>
 
-              <Link 
-                to="/admin/create-exam" 
+              <Link
+                to="/admin/create-exam"
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
@@ -169,8 +169,8 @@ const Navbar = () => {
                 Create Exam
               </Link>
 
-              <Link 
-                to="/admin/submissions" 
+              <Link
+                to="/admin/submissions"
                 style={{
                   color: '#d1d5db',
                   textDecoration: 'none',
@@ -192,9 +192,9 @@ const Navbar = () => {
         </div>
 
         {/* Desktop User Menu */}
-        <div className="desktop-user-menu" style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div className="desktop-user-menu" style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '1rem',
           whiteSpace: 'nowrap',
           flexShrink: 0
@@ -222,8 +222,8 @@ const Navbar = () => {
               {(user?.role === 'superadmin' || user?.email === 'admin@examin.com') ? 'SUPER ADMIN' : user?.role}
             </span>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleLogout}
             style={{
               display: 'flex',
@@ -387,7 +387,7 @@ const Navbar = () => {
                 <BookOpen style={{ width: '1.1rem', height: '1.1rem', marginRight: '0.6rem' }} />
                 Question Bank
               </Link>
-              
+
               <Link
                 to="/admin/live-monitoring"
                 onClick={closeMobileMenu}

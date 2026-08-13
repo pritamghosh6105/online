@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const questionSchema = new mongoose.Schema({
   question: {
@@ -84,6 +85,13 @@ const examSchema = new mongoose.Schema({
     enableCopyPasteBlock: { type: Boolean, default: true },
     maxTabSwitchesAllowed: { type: Number, default: 3 }
   },
+  examCode: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    uppercase: true
+  },
   startDate: {
     type: Date,
     required: [true, 'Start date is required']
@@ -100,15 +108,22 @@ const examSchema = new mongoose.Schema({
 examSchema.index({ institution: 1, isActive: 1, status: 1 });
 examSchema.index({ createdBy: 1, createdAt: -1 });
 examSchema.index({ startDate: 1, endDate: 1 });
+examSchema.index({ examCode: 1 });
 
-// Calculate total marks before saving
-examSchema.pre('save', function(next) {
-  this.totalMarks = this.questions.reduce((total, question) => total + question.marks, 0);
+// Calculate total marks & auto-generate cryptographically secure examCode before saving
+examSchema.pre('save', function (next) {
+  if (Array.isArray(this.questions)) {
+    this.totalMarks = this.questions.reduce((total, question) => total + (question.marks || 1), 0);
+  }
+  if (!this.examCode) {
+    const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+    this.examCode = `EXAM-${randomHex}`;
+  }
   next();
 });
 
 // Virtual for checking if exam is currently active
-examSchema.virtual('isCurrentlyActive').get(function() {
+examSchema.virtual('isCurrentlyActive').get(function () {
   const now = new Date();
   return this.isActive && this.status === 'Published' && now >= this.startDate && now <= this.endDate;
 });

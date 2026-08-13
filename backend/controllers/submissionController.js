@@ -131,8 +131,8 @@ const submitExam = async (req, res) => {
         audioViolations: proctorLogs?.audioViolations || 0,
         devToolsAttempts: proctorLogs?.devToolsAttempts || 0,
         isTerminatedForCheating: Boolean(proctorLogs?.isTerminatedForCheating) && (
-          (proctorLogs?.tabSwitches || 0) >= 3 || 
-          (proctorLogs?.fullscreenViolations || 0) >= 3 || 
+          (proctorLogs?.tabSwitches || 0) >= 3 ||
+          (proctorLogs?.fullscreenViolations || 0) >= 3 ||
           (proctorLogs?.devToolsAttempts || 0) >= 2
         ),
         faceVerified: proctorLogs?.faceVerified !== false
@@ -146,8 +146,15 @@ const submitExam = async (req, res) => {
 
     // Clear active exam session for student upon submission
     await User.findByIdAndUpdate(req.user.id, {
-      'activeExamSession.isActive': false
+      'activeExamSession.isActive': false,
+      'activeExamSession.examId': null
     });
+
+    const ExamSession = require('../models/ExamSession');
+    await ExamSession.updateMany(
+      { student: req.user.id, exam: examId, isActive: true },
+      { $set: { isActive: false, endTime: new Date() } }
+    );
 
     await submission.populate([
       { path: 'student', select: 'name email institution' },
@@ -219,7 +226,7 @@ const getAllSubmissions = async (req, res) => {
         .populate('student', '_id')
         .populate('exam', '_id')
         .lean();
-      
+
       const validCount = allSubs.filter(sub => sub.student && sub.exam).length;
       return res.json({
         success: true,

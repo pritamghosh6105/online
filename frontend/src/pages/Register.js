@@ -21,7 +21,6 @@ const Register = () => {
   const [errors, setErrors] = useState({});
   const [showStudentIdModal, setShowStudentIdModal] = useState(false);
   const [studentIdData, setStudentIdData] = useState(null);
-  const [customInstitution, setCustomInstitution] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -327,19 +326,12 @@ const Register = () => {
                 height: '1rem',
                 color: '#9ca3af'
               }} />
-              {approvedInstitutions.length > 0 && !customInstitution ? (
+              {approvedInstitutions.length > 0 ? (
                 <select
                   name="institution"
                   className="input-with-left-icon"
                   value={formData.institution}
-                  onChange={(e) => {
-                    if (e.target.value === '__other__') {
-                      setCustomInstitution(true);
-                      setFormData(prev => ({ ...prev, institution: '' }));
-                    } else {
-                      handleChange(e);
-                    }
-                  }}
+                  onChange={handleChange}
                   style={{
                     width: '100%',
                     padding: '0.75rem 0.75rem 0.75rem 2.75rem',
@@ -354,7 +346,6 @@ const Register = () => {
                   {approvedInstitutions.map((inst, i) => (
                     <option key={i} value={inst}>{inst}</option>
                   ))}
-                  <option value="__other__">+ Register New Institution Name</option>
                 </select>
               ) : (
                 <input
@@ -375,15 +366,6 @@ const Register = () => {
                 />
               )}
             </div>
-            {approvedInstitutions.length > 0 && customInstitution && (
-              <button
-                type="button"
-                onClick={() => setCustomInstitution(false)}
-                style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.75rem', marginTop: '0.25rem', cursor: 'pointer' }}
-              >
-                ← Back to approved list
-              </button>
-            )}
             {errors.institution && (
               <p style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
                 {errors.institution}

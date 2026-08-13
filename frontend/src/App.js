@@ -38,154 +38,154 @@ function App() {
       <main className="main-content">
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-          {/* Public Landing Home Route */}
-          <Route 
-            path="/" 
-            element={!user ? <Home /> : <Navigate to="/dashboard" />} 
-          />
+            {/* Public Landing Home Route */}
+            <Route
+              path="/"
+              element={!user ? <Home /> : <Navigate to="/dashboard" />}
+            />
 
-          {/* Public Certificate Verification */}
-          <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
+            {/* Public Certificate Verification */}
+            <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
 
-          {/* Public Auth Routes */}
-          <Route 
-            path="/login" 
-            element={!user ? <StudentLogin /> : <Navigate to="/dashboard" />} 
-          />
-          <Route 
-            path="/student-login" 
-            element={!user ? <StudentLogin /> : <Navigate to="/dashboard" />} 
-          />
-          <Route 
-            path="/admin-login" 
-            element={!user ? <AdminLogin /> : <Navigate to="/dashboard" />} 
-          />
-          <Route 
-            path="/register" 
-            element={!user ? <Register /> : <Navigate to="/dashboard" />} 
-          />
-          
-          {/* Protected Routes */}
-          <Route 
-            path="/dashboard" 
-            element={user ? <Dashboard /> : <Navigate to="/login" />} 
-          />
+            {/* Public Auth Routes */}
+            <Route
+              path="/login"
+              element={!user ? <StudentLogin /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/student-login"
+              element={!user ? <StudentLogin /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/admin-login"
+              element={!user ? <AdminLogin /> : <Navigate to="/dashboard" />}
+            />
+            <Route
+              path="/register"
+              element={!user ? <Register /> : <Navigate to="/dashboard" />}
+            />
 
-          {/* Super Admin Route */}
-          <Route 
-            path="/super-admin" 
-            element={
-              user && (user.role === 'superadmin' || user.email === 'admin@examin.com') ? 
-              <SuperAdminDashboard /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          
-          {/* Student Routes */}
-          <Route 
-            path="/student" 
-            element={
-              user ? (
-                user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
-              ) : (
-                <Navigate to="/student-login" />
-              )
-            } 
-          />
-          <Route 
-            path="/student/dashboard" 
-            element={
-              user ? (
-                user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
-              ) : (
-                <Navigate to="/student-login" />
-              )
-            } 
-          />
-          <Route 
-            path="/exam/:id" 
-            element={
-              user && user.role === 'student' ? 
-              <ExamAttempt /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/results" 
-            element={
-              user && user.role === 'student' ? 
-              <ExamResults /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/question-bank" 
-            element={
-              user ? (
-                user.role === 'student' ? <StudentQuestionBank /> : <QuestionBank />
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-          
-          {/* Admin Routes */}
-          <Route 
-            path="/admin" 
-            element={
-              user ? (
-                isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
-              ) : (
-                <Navigate to="/admin-login" />
-              )
-            } 
-          />
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              user ? (
-                isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
-              ) : (
-                <Navigate to="/admin-login" />
-              )
-            } 
-          />
-          <Route 
-            path="/admin/question-bank" 
-            element={
-              isAdmin(user) ? 
-              <QuestionBank /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/admin/live-monitoring" 
-            element={
-              isAdmin(user) ? 
-              <LiveMonitoring /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/admin/create-exam" 
-            element={
-              isAdmin(user) ? 
-              <CreateExam /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/admin/submissions" 
-            element={
-              isAdmin(user) ? 
-              <ViewSubmissions /> : 
-              <Navigate to="/dashboard" />
-            } 
-          />
-          
-          {/* 404 Route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={user ? <Dashboard /> : <Navigate to="/login" />}
+            />
+
+            {/* Super Admin Route */}
+            <Route
+              path="/super-admin"
+              element={
+                user && (user.role === 'superadmin' || user.email === 'admin@examin.com') ?
+                  <SuperAdminDashboard /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+
+            {/* Student Routes */}
+            <Route
+              path="/student"
+              element={
+                user ? (
+                  user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
+                ) : (
+                  <Navigate to="/student-login" />
+                )
+              }
+            />
+            <Route
+              path="/student/dashboard"
+              element={
+                user ? (
+                  user.role === 'student' ? <StudentDashboard /> : <Navigate to="/dashboard" />
+                ) : (
+                  <Navigate to="/student-login" />
+                )
+              }
+            />
+            <Route
+              path="/exam/:id"
+              element={
+                user && user.role === 'student' ?
+                  <ExamAttempt /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                user && user.role === 'student' ?
+                  <ExamResults /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+            <Route
+              path="/question-bank"
+              element={
+                user ? (
+                  user.role === 'student' ? <StudentQuestionBank /> : <QuestionBank />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                user ? (
+                  isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
+                ) : (
+                  <Navigate to="/admin-login" />
+                )
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                user ? (
+                  isAdmin(user) ? <AdminDashboard /> : <Navigate to="/dashboard" />
+                ) : (
+                  <Navigate to="/admin-login" />
+                )
+              }
+            />
+            <Route
+              path="/admin/question-bank"
+              element={
+                isAdmin(user) ?
+                  <QuestionBank /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+            <Route
+              path="/admin/live-monitoring"
+              element={
+                isAdmin(user) ?
+                  <LiveMonitoring /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+            <Route
+              path="/admin/create-exam"
+              element={
+                isAdmin(user) ?
+                  <CreateExam /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+            <Route
+              path="/admin/submissions"
+              element={
+                isAdmin(user) ?
+                  <ViewSubmissions /> :
+                  <Navigate to="/dashboard" />
+              }
+            />
+
+            {/* 404 Route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
         </Suspense>
       </main>
     </div>

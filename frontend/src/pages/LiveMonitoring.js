@@ -40,7 +40,7 @@ const LiveMonitoring = () => {
           </p>
         </div>
 
-        <button 
+        <button
           onClick={fetchActiveAttempts}
           style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
         >

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { examAPI, submissionAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { 
-  AlertTriangle, 
-  ArrowLeft, 
+import {
+  AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Save,
   Send,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ActiveExamWatermark from '../components/ActiveExamWatermark';
 
 const ExamAttempt = () => {
   const { id } = useParams();
@@ -24,6 +25,7 @@ const ExamAttempt = () => {
   const { user } = useAuth();
 
   const [exam, setExam] = useState(null);
+  const [activeExamSession, setActiveExamSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [examStep, setExamStep] = useState('instructions'); // 'instructions', 'active'
@@ -217,7 +219,7 @@ const ExamAttempt = () => {
         e.preventDefault();
         e.stopPropagation();
         if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-        
+
         if (e.clipboardData) {
           e.clipboardData.setData(
             'text/plain',
@@ -289,7 +291,7 @@ const ExamAttempt = () => {
 
     try {
       const endTime = new Date();
-      
+
       // Validate that we have answers (unless auto-terminated for cheating)
       if (!isTerminatedBool && Object.keys(answers).length === 0) {
         toast.error('Please answer at least one question before submitting.');
@@ -322,14 +324,14 @@ const ExamAttempt = () => {
       };
 
       console.log('Submitting exam with data:', submissionData);
-      
+
       const response = await submissionAPI.submitExam(submissionData);
       console.log('Submission response:', response);
-      
+
       // Clear saved data
       localStorage.removeItem(`exam_${id}_answers`);
       localStorage.removeItem(`exam_${id}_startTime`);
-      
+
       if (isTerminatedBool) {
         toast.error('Exam terminated & submitted due to severe proctoring violations.');
       } else {
@@ -346,14 +348,14 @@ const ExamAttempt = () => {
       navigate('/results');
     } catch (error) {
       console.error('Error submitting exam:', error);
-      
+
       let errorMessage = 'Failed to submit exam. Please try again.';
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.errors) {
         errorMessage = error.response.data.errors.map(err => err.msg).join(', ');
       }
-      
+
       toast.error(errorMessage);
       setSubmitting(false);
     }
@@ -424,17 +426,21 @@ const ExamAttempt = () => {
       setLoading(true);
       const response = await examAPI.getExam(id);
       const examData = response.data.exam;
-      
+
+      if (response.data.activeExamSession) {
+        setActiveExamSession(response.data.activeExamSession);
+      }
+
       // Check if exam is active
       const now = new Date();
       const startTime = new Date(examData.startDate);
       const endTime = new Date(examData.endDate);
-      
+
       if (now < startTime) {
         setError('This exam has not started yet.');
         return;
       }
-      
+
       if (now > endTime) {
         setError('This exam has already ended.');
         return;
@@ -450,11 +456,11 @@ const ExamAttempt = () => {
       }
 
       setExam(examData);
-      
+
       // Initialize timer
       const duration = examData.duration * 60; // Convert minutes to seconds
       const savedStartTime = localStorage.getItem(`exam_${id}_startTime`);
-      
+
       if (savedStartTime) {
         // Resume existing attempt
         const startTime = new Date(savedStartTime);
@@ -511,7 +517,7 @@ const ExamAttempt = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
@@ -652,7 +658,7 @@ const ExamAttempt = () => {
                 Subject: <strong>{exam.subject}</strong> {exam.institution ? `• ${exam.institution}` : ''}
               </p>
             </div>
-            
+
             <button
               onClick={() => navigate('/dashboard')}
               style={{
@@ -850,7 +856,7 @@ const ExamAttempt = () => {
               </span>
             </div>
           </div>
-          
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -882,7 +888,7 @@ const ExamAttempt = () => {
               <Save style={{ width: '1rem', height: '1rem', marginRight: '0.25rem' }} />
               {autoSaveStatus === 'saving' ? 'Saving...' : 'Auto-saved'}
             </div>
-            
+
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -955,151 +961,154 @@ const ExamAttempt = () => {
             </div>
           </div>
 
-          {/* Question Card */}
-          <div className="question-card-container" style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '0.5rem',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            border: '1px solid #e5e7eb',
-            padding: '2rem'
-          }}>
-            <div style={{
-              marginBottom: '2rem'
-            }}>
+          {/* Machine-Readable Active Exam Watermark Container */}
+          <ActiveExamWatermark
+            isExamActive={activeExamSession?.isExamActive !== false}
+            examCode={activeExamSession?.examCode || exam?.examCode || 'EXAM-ACTIVE'}
+            sessionToken={activeExamSession?.sessionToken || 'SESS-ACTIVE'}
+            examTitle={exam?.title || 'Active Examination'}
+            subject={exam?.subject || ''}
+          >
+            {/* Question Card */}
+            <div className="question-card-container">
+              <div style={{
+                marginBottom: '2rem'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '1rem'
+                }}>
+                  <h2 style={{
+                    fontSize: '1.25rem',
+                    fontWeight: '600',
+                    color: '#1f2937',
+                    lineHeight: '1.6'
+                  }}>
+                    {currentQuestion.question}
+                  </h2>
+                  <span style={{
+                    backgroundColor: '#f3f4f6',
+                    color: '#374151',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.75rem',
+                    fontWeight: '500'
+                  }}>
+                    {currentQuestion.marks || 1} {(currentQuestion.marks || 1) === 1 ? 'mark' : 'marks'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '2rem' }}>
+                {currentQuestion.options.map((option, index) => {
+                  const optIndex = option.originalIndex !== undefined ? option.originalIndex : index;
+                  const isSelected = answers[currentQuestion._id] === optIndex;
+                  return (
+                    <label
+                      key={index}
+                      style={{
+                        display: 'block',
+                        padding: '1rem',
+                        border: '2px solid',
+                        borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
+                        borderRadius: '0.5rem',
+                        marginBottom: '0.75rem',
+                        cursor: 'pointer',
+                        backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.target.style.borderColor = '#d1d5db';
+                          e.target.style.backgroundColor = '#f9fafb';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.backgroundColor = '#ffffff';
+                        }
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <input
+                          type="radio"
+                          name={currentQuestion._id}
+                          value={optIndex}
+                          checked={isSelected}
+                          onChange={() => handleAnswerChange(currentQuestion._id, optIndex)}
+                          style={{
+                            marginRight: '0.75rem',
+                            width: '1.25rem',
+                            height: '1.25rem'
+                          }}
+                        />
+                        <span style={{
+                          fontSize: '1rem',
+                          color: '#374151',
+                          lineHeight: '1.5'
+                        }}>
+                          {option.text || option}
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Navigation Buttons */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                marginBottom: '1rem'
+                alignItems: 'center'
               }}>
-                <h2 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  lineHeight: '1.6'
-                }}>
-                  {currentQuestion.question}
-                </h2>
-                <span style={{
-                  backgroundColor: '#f3f4f6',
-                  color: '#374151',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.75rem',
-                  fontWeight: '500'
-                }}>
-                  {currentQuestion.marks || 1} {(currentQuestion.marks || 1) === 1 ? 'mark' : 'marks'}
-                </span>
+                <button
+                  onClick={handlePreviousQuestion}
+                  disabled={currentQuestionIndex === 0}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: currentQuestionIndex === 0 ? '#f3f4f6' : '#6b7280',
+                    color: currentQuestionIndex === 0 ? '#9ca3af' : '#ffffff',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  <ArrowLeft style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
+                  Previous
+                </button>
+
+                <button
+                  onClick={handleNextQuestion}
+                  disabled={currentQuestionIndex === exam.questions.length - 1}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: currentQuestionIndex === exam.questions.length - 1 ? '#f3f4f6' : '#3b82f6',
+                    color: currentQuestionIndex === exam.questions.length - 1 ? '#9ca3af' : '#ffffff',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    cursor: currentQuestionIndex === exam.questions.length - 1 ? 'not-allowed' : 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Next
+                  <ArrowRight style={{ width: '1rem', height: '1rem', marginLeft: '0.5rem' }} />
+                </button>
               </div>
             </div>
-
-            <div style={{ marginBottom: '2rem' }}>
-              {currentQuestion.options.map((option, index) => {
-                const optIndex = option.originalIndex !== undefined ? option.originalIndex : index;
-                const isSelected = answers[currentQuestion._id] === optIndex;
-                return (
-                  <label
-                    key={index}
-                    style={{
-                      display: 'block',
-                      padding: '1rem',
-                      border: '2px solid',
-                      borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
-                      borderRadius: '0.5rem',
-                      marginBottom: '0.75rem',
-                      cursor: 'pointer',
-                      backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) {
-                        e.target.style.borderColor = '#d1d5db';
-                        e.target.style.backgroundColor = '#f9fafb';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) {
-                        e.target.style.borderColor = '#e5e7eb';
-                        e.target.style.backgroundColor = '#ffffff';
-                      }
-                    }}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <input
-                        type="radio"
-                        name={currentQuestion._id}
-                        value={optIndex}
-                        checked={isSelected}
-                        onChange={() => handleAnswerChange(currentQuestion._id, optIndex)}
-                        style={{
-                          marginRight: '0.75rem',
-                          width: '1.25rem',
-                          height: '1.25rem'
-                        }}
-                      />
-                      <span style={{
-                        fontSize: '1rem',
-                        color: '#374151',
-                        lineHeight: '1.5'
-                      }}>
-                        {option.text || option}
-                      </span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <button
-                onClick={handlePreviousQuestion}
-                disabled={currentQuestionIndex === 0}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: currentQuestionIndex === 0 ? '#f3f4f6' : '#6b7280',
-                  color: currentQuestionIndex === 0 ? '#9ca3af' : '#ffffff',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                <ArrowLeft style={{ width: '1rem', height: '1rem', marginRight: '0.5rem' }} />
-                Previous
-              </button>
-
-              <button
-                onClick={handleNextQuestion}
-                disabled={currentQuestionIndex === exam.questions.length - 1}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: currentQuestionIndex === exam.questions.length - 1 ? '#f3f4f6' : '#3b82f6',
-                  color: currentQuestionIndex === exam.questions.length - 1 ? '#9ca3af' : '#ffffff',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  cursor: currentQuestionIndex === exam.questions.length - 1 ? 'not-allowed' : 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '500'
-                }}
-              >
-                Next
-                <ArrowRight style={{ width: '1rem', height: '1rem', marginLeft: '0.5rem' }} />
-              </button>
-            </div>
-          </div>
+          </ActiveExamWatermark>
         </div>
 
         {/* Sidebar */}
@@ -1135,12 +1144,12 @@ const ExamAttempt = () => {
                     height: '2.5rem',
                     borderRadius: '0.375rem',
                     border: '2px solid',
-                    borderColor: index === currentQuestionIndex ? '#3b82f6' : 
-                                answers[exam.questions[index]._id] !== undefined ? '#059669' : '#e5e7eb',
+                    borderColor: index === currentQuestionIndex ? '#3b82f6' :
+                      answers[exam.questions[index]._id] !== undefined ? '#059669' : '#e5e7eb',
                     backgroundColor: index === currentQuestionIndex ? '#3b82f6' :
-                                   answers[exam.questions[index]._id] !== undefined ? '#059669' : '#ffffff',
-                    color: index === currentQuestionIndex || answers[exam.questions[index]._id] !== undefined ? 
-                          '#ffffff' : '#6b7280',
+                      answers[exam.questions[index]._id] !== undefined ? '#059669' : '#ffffff',
+                    color: index === currentQuestionIndex || answers[exam.questions[index]._id] !== undefined ?
+                      '#ffffff' : '#6b7280',
                     fontSize: '0.875rem',
                     fontWeight: '500',
                     cursor: 'pointer',
@@ -1220,7 +1229,7 @@ const ExamAttempt = () => {
                 Remaining: {exam.questions.length - getAnsweredCount()}
               </div>
             </div>
-            
+
             <button
               onClick={() => setShowSubmitConfirm(true)}
               disabled={submitting}
@@ -1297,7 +1306,7 @@ const ExamAttempt = () => {
                 Are you sure you want to submit your exam? You have answered {getAnsweredCount()} out of {exam.questions.length} questions. This action cannot be undone.
               </p>
             </div>
-            
+
             <div style={{
               display: 'flex',
               gap: '0.75rem'

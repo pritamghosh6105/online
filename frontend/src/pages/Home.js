@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import ExaminLogo from '../components/ExaminLogo';
 import { scheduleAPI } from '../api';
 import {
-  Shield,
   ShieldCheck,
   Clock,
   Lock,
@@ -15,16 +14,15 @@ import {
   Monitor,
   UserCheck,
   UserPlus,
+  Zap,
+  Sparkles,
+  BarChart3,
+  ChevronRight,
   Award,
   X,
   Send,
-  Zap,
-  ChevronRight,
-  Linkedin,
   Mail,
-  Sparkles,
-  Building2,
-  BarChart3
+  Linkedin
 } from 'lucide-react';
 
 const Home = () => {
@@ -280,7 +278,6 @@ const Home = () => {
               }}
             >
               Start Exam
-              <ArrowRight style={{ width: '1.15rem', height: '1.15rem' }} />
             </button>
 
             <button
@@ -720,8 +717,8 @@ const Home = () => {
         {/* 6 High-Impact Glassmorphism Feature Bento Cards */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '2rem'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+          gap: '1.5rem'
         }}>
           {/* Card 1: Gemini AI Question Generator & Bank */}
           <div className="glass-card" style={{ padding: '2.25rem 2rem', position: 'relative', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '1.25rem' }}>
@@ -757,6 +754,44 @@ const Home = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
                 <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#7E22CE' }} /> Self-Paced Student Study Portal
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Machine-Readable AI Exam Watermarks & Vision AI Defense */}
+          <div className="glass-card" style={{ padding: '2.25rem 2rem', position: 'relative', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '1.25rem' }}>
+            <div style={{
+              width: '3.5rem',
+              height: '3.5rem',
+              borderRadius: '1rem',
+              backgroundColor: '#E0F2FE',
+              border: '1px solid #7DD3FC',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#0284C7',
+              marginBottom: '1.5rem'
+            }}>
+              <ShieldCheck style={{ width: '1.8rem', height: '1.8rem' }} />
+            </div>
+
+            <h3 style={{ fontSize: '1.35rem', fontWeight: '800', color: '#0F172A', marginBottom: '0.75rem' }}>
+              Machine-Readable Watermarks & Vision AI Defense
+            </h3>
+
+            <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.65', marginBottom: '1.5rem' }}>
+              Embeds machine-readable warning banners, unique exam IDs, session tokens, and repeating low-opacity watermarks onto active questions so vision AI models (ChatGPT, Gemini Vision) recognize active exams and refuse assistance.
+            </p>
+
+            <div style={{ display: 'grid', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#0284C7' }} /> Server-Validated Active Exam Verification
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#0284C7' }} /> Multi-Tile Low-Opacity Security Watermarks
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#334155', fontWeight: '600' }}>
+                <CheckCircle2 style={{ width: '1rem', height: '1rem', color: '#0284C7' }} /> Vision AI Refusal Policy & Audit Logs
               </div>
             </div>
           </div>
@@ -1019,10 +1054,37 @@ const Home = () => {
 
       {/* Start Exam Quick Modal */}
       {showStartModal && (
-        <div className="modal-overlay-backdrop" onClick={() => setShowStartModal(false)}>
+        <div 
+          className="modal-overlay-backdrop" 
+          onClick={() => setShowStartModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1.5rem'
+          }}
+        >
           <div
-            className="glass-card"
-            style={{ width: '100%', maxWidth: '480px', padding: '2.5rem', position: 'relative', backgroundColor: '#FFFFFF' }}
+            style={{ 
+              width: '100%', 
+              maxWidth: '480px', 
+              padding: '2.5rem', 
+              position: 'relative', 
+              backgroundColor: '#FFFFFF',
+              borderRadius: '1.5rem',
+              border: '1px solid rgba(226, 232, 240, 0.9)',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+              animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1031,30 +1093,35 @@ const Home = () => {
                 position: 'absolute',
                 top: '1.25rem',
                 right: '1.25rem',
-                background: 'none',
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                backgroundColor: '#F1F5F9',
                 border: 'none',
                 color: '#64748B',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#E2E8F0';
+                e.currentTarget.style.color = '#0F172A';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#F1F5F9';
+                e.currentTarget.style.color = '#64748B';
               }}
             >
-              <X style={{ width: '1.25rem', height: '1.25rem' }} />
+              <X style={{ width: '1.1rem', height: '1.1rem' }} />
             </button>
 
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{
-                width: '3.5rem',
-                height: '3.5rem',
-                borderRadius: '1rem',
-                background: 'linear-gradient(135deg, #2563EB, #0284C7)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#FFFFFF',
-                marginBottom: '1rem'
-              }}>
-                <GraduationCap style={{ width: '2rem', height: '2rem' }} />
+              <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                <ExaminLogo size={34} showSubtext={true} to="#" />
               </div>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0F172A' }}>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em' }}>
                 Launch Examination
               </h3>
               <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: '0.35rem' }}>
@@ -1068,20 +1135,33 @@ const Home = () => {
                   setShowStartModal(false);
                   navigate('/student-login');
                 }}
-                className="cta-magnetic-btn"
                 style={{
                   width: '100%',
-                  padding: '0.9rem',
-                  borderRadius: '0.625rem',
-                  fontSize: '0.95rem',
-                  fontWeight: '700',
+                  padding: '0.95rem',
+                  borderRadius: '0.875rem',
+                  fontSize: '1rem',
+                  fontWeight: '800',
+                  color: '#FFFFFF',
+                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                  border: 'none',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.5rem'
+                  gap: '0.65rem',
+                  boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.4)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 14px 30px -5px rgba(37, 99, 235, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(37, 99, 235, 0.4)';
                 }}
               >
-                Sign In with Student ID <ArrowRight style={{ width: '1rem', height: '1rem' }} />
+                Sign In with Student ID <ArrowRight style={{ width: '1.1rem', height: '1.1rem' }} />
               </button>
 
               <button
@@ -1089,17 +1169,29 @@ const Home = () => {
                   setShowStartModal(false);
                   navigate('/register');
                 }}
-                className="cta-outline-fill-btn"
                 style={{
                   width: '100%',
-                  padding: '0.9rem',
-                  borderRadius: '0.625rem',
+                  padding: '0.95rem',
+                  borderRadius: '0.875rem',
                   fontSize: '0.95rem',
                   fontWeight: '700',
+                  color: '#1E293B',
+                  backgroundColor: '#F8FAFC',
+                  border: '1.5px solid #CBD5E1',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.5rem'
+                  gap: '0.5rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F1F5F9';
+                  e.currentTarget.style.borderColor = '#94A3B8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#F8FAFC';
+                  e.currentTarget.style.borderColor = '#CBD5E1';
                 }}
               >
                 Create New Student Account
@@ -1111,10 +1203,37 @@ const Home = () => {
 
       {/* Schedule Test Modal */}
       {showScheduleModal && (
-        <div className="modal-overlay-backdrop" onClick={() => setShowScheduleModal(false)}>
+        <div 
+          className="modal-overlay-backdrop" 
+          onClick={() => setShowScheduleModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1.5rem'
+          }}
+        >
           <div
-            className="glass-card"
-            style={{ width: '100%', maxWidth: '520px', padding: '2.5rem', position: 'relative', backgroundColor: '#FFFFFF' }}
+            style={{ 
+              width: '100%', 
+              maxWidth: '520px', 
+              padding: '2.5rem', 
+              position: 'relative', 
+              backgroundColor: '#FFFFFF',
+              borderRadius: '1.5rem',
+              border: '1px solid rgba(226, 232, 240, 0.9)',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+              animation: 'fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1123,63 +1242,71 @@ const Home = () => {
                 position: 'absolute',
                 top: '1.25rem',
                 right: '1.25rem',
-                background: 'none',
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                backgroundColor: '#F1F5F9',
                 border: 'none',
                 color: '#64748B',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#E2E8F0';
+                e.currentTarget.style.color = '#0F172A';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#F1F5F9';
+                e.currentTarget.style.color = '#64748B';
               }}
             >
-              <X style={{ width: '1.25rem', height: '1.25rem' }} />
+              <X style={{ width: '1.1rem', height: '1.1rem' }} />
             </button>
 
             {scheduleSuccess ? (
               <div style={{ textAlign: 'center', padding: '2rem 0' }}>
                 <div className="pulse-green-checkmark" style={{
-                  width: '4rem',
-                  height: '4rem',
+                  width: '4.5rem',
+                  height: '4.5rem',
+                  borderRadius: '50%',
                   backgroundColor: '#ECFDF5',
+                  border: '2px solid #a7f3d0',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#059669',
-                  marginBottom: '1rem'
+                  marginBottom: '1.25rem',
+                  boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.3)'
                 }}>
-                  <CheckCircle2 style={{ width: '2.5rem', height: '2.5rem' }} />
+                  <CheckCircle2 style={{ width: '2.75rem', height: '2.75rem' }} />
                 </div>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0F172A' }}>
+                <h3 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em' }}>
                   Session Scheduled!
                 </h3>
-                <p style={{ color: '#475569', marginTop: '0.5rem' }}>
-                  Our team has booked your proctored testing demo slot. Confirmation sent to email!
+                <p style={{ color: '#475569', marginTop: '0.5rem', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                  Our institutional team has booked your proctored testing demo slot. Confirmation has been sent to your email!
                 </p>
               </div>
             ) : (
               <form onSubmit={handleScheduleSubmit}>
-                <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-                  <div style={{
-                    width: '3rem',
-                    height: '3rem',
-                    borderRadius: '0.875rem',
-                    background: 'linear-gradient(135deg, #4F46E5, #0284C7)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    marginBottom: '0.75rem'
-                  }}>
-                    <Calendar style={{ width: '1.6rem', height: '1.6rem' }} />
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                  <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+                    <ExaminLogo size={34} showSubtext={true} to="#" />
                   </div>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0F172A' }}>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em' }}>
                     Schedule Proctored Examination
                   </h3>
-                  <p style={{ color: '#64748B', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: '0.35rem' }}>
                     Book an institutional test session or live demo for your organization.
                   </p>
                 </div>
 
-                <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gap: '1.15rem', marginBottom: '1.75rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.825rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                       Full Name
                     </label>
                     <input
@@ -1190,18 +1317,31 @@ const Home = () => {
                       onChange={(e) => setScheduleData({ ...scheduleData, name: e.target.value })}
                       style={{
                         width: '100%',
-                        padding: '0.75rem 1rem',
+                        padding: '0.8rem 1rem',
                         backgroundColor: '#F8FAFC',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '0.5rem',
+                        border: '1.5px solid #CBD5E1',
+                        borderRadius: '0.75rem',
                         color: '#0F172A',
-                        outline: 'none'
+                        fontSize: '0.925rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#2563EB';
+                        e.target.style.backgroundColor = '#FFFFFF';
+                        e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#CBD5E1';
+                        e.target.style.backgroundColor = '#F8FAFC';
+                        e.target.style.boxShadow = 'none';
                       }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.825rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                       Institutional Email
                     </label>
                     <input
@@ -1212,18 +1352,31 @@ const Home = () => {
                       onChange={(e) => setScheduleData({ ...scheduleData, email: e.target.value })}
                       style={{
                         width: '100%',
-                        padding: '0.75rem 1rem',
+                        padding: '0.8rem 1rem',
                         backgroundColor: '#F8FAFC',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '0.5rem',
+                        border: '1.5px solid #CBD5E1',
+                        borderRadius: '0.75rem',
                         color: '#0F172A',
-                        outline: 'none'
+                        fontSize: '0.925rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#2563EB';
+                        e.target.style.backgroundColor = '#FFFFFF';
+                        e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#CBD5E1';
+                        e.target.style.backgroundColor = '#F8FAFC';
+                        e.target.style.boxShadow = 'none';
                       }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.825rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                       Institution / School Name
                     </label>
                     <input
@@ -1234,19 +1387,32 @@ const Home = () => {
                       onChange={(e) => setScheduleData({ ...scheduleData, institution: e.target.value })}
                       style={{
                         width: '100%',
-                        padding: '0.75rem 1rem',
+                        padding: '0.8rem 1rem',
                         backgroundColor: '#F8FAFC',
-                        border: '1px solid #CBD5E1',
-                        borderRadius: '0.5rem',
+                        border: '1.5px solid #CBD5E1',
+                        borderRadius: '0.75rem',
                         color: '#0F172A',
-                        outline: 'none'
+                        fontSize: '0.925rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 0.2s'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#2563EB';
+                        e.target.style.backgroundColor = '#FFFFFF';
+                        e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#CBD5E1';
+                        e.target.style.backgroundColor = '#F8FAFC';
+                        e.target.style.boxShadow = 'none';
                       }}
                     />
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                      <label style={{ fontSize: '0.825rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                         Preferred Date
                       </label>
                       <input
@@ -1256,18 +1422,31 @@ const Home = () => {
                         onChange={(e) => setScheduleData({ ...scheduleData, date: e.target.value })}
                         style={{
                           width: '100%',
-                          padding: '0.75rem 0.75rem',
+                          padding: '0.8rem 0.85rem',
                           backgroundColor: '#F8FAFC',
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '0.5rem',
+                          border: '1.5px solid #CBD5E1',
+                          borderRadius: '0.75rem',
                           color: '#0F172A',
-                          outline: 'none'
+                          fontSize: '0.925rem',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          transition: 'all 0.2s'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#2563EB';
+                          e.target.style.backgroundColor = '#FFFFFF';
+                          e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#CBD5E1';
+                          e.target.style.backgroundColor = '#F8FAFC';
+                          e.target.style.boxShadow = 'none';
                         }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.35rem' }}>
+                      <label style={{ fontSize: '0.825rem', fontWeight: '700', color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                         Test Type
                       </label>
                       <select
@@ -1275,12 +1454,26 @@ const Home = () => {
                         onChange={(e) => setScheduleData({ ...scheduleData, testType: e.target.value })}
                         style={{
                           width: '100%',
-                          padding: '0.75rem 0.75rem',
+                          padding: '0.8rem 0.85rem',
                           backgroundColor: '#F8FAFC',
-                          border: '1px solid #CBD5E1',
-                          borderRadius: '0.5rem',
+                          border: '1.5px solid #CBD5E1',
+                          borderRadius: '0.75rem',
                           color: '#0F172A',
-                          outline: 'none'
+                          fontSize: '0.925rem',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#2563EB';
+                          e.target.style.backgroundColor = '#FFFFFF';
+                          e.target.style.boxShadow = '0 0 0 4px rgba(37, 99, 235, 0.12)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#CBD5E1';
+                          e.target.style.backgroundColor = '#F8FAFC';
+                          e.target.style.boxShadow = 'none';
                         }}
                       >
                         <option value="university">University Final Exam</option>
@@ -1293,20 +1486,33 @@ const Home = () => {
 
                 <button
                   type="submit"
-                  className="cta-magnetic-btn"
                   style={{
                     width: '100%',
-                    padding: '0.9rem',
-                    borderRadius: '0.625rem',
-                    fontSize: '0.95rem',
-                    fontWeight: '700',
+                    padding: '1rem',
+                    borderRadius: '0.875rem',
+                    fontSize: '1rem',
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    border: 'none',
+                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '0.5rem'
+                    gap: '0.65rem',
+                    boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.4)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 14px 30px -5px rgba(37, 99, 235, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(37, 99, 235, 0.4)';
                   }}
                 >
-                  Confirm Schedule Booking <Send style={{ width: '1rem', height: '1rem' }} />
+                  Confirm Schedule Booking <Send style={{ width: '1.1rem', height: '1.1rem' }} />
                 </button>
               </form>
             )}

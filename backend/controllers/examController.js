@@ -1,7 +1,9 @@
 const { validationResult } = require('express-validator');
+const crypto = require('crypto');
 const Exam = require('../models/Exam');
 const Submission = require('../models/Submission');
 const User = require('../models/User');
+const ExamSession = require('../models/ExamSession');
 
 // @desc    Create exam
 // @route   POST /api/exams
@@ -47,7 +49,7 @@ const getExams = async (req, res) => {
   try {
     const { page = 1, limit = 50, statsOnly = false } = req.query;
     let query = {};
-    
+
     // If student, show all active exams for their institution
     if (req.user.role === 'student') {
       query = {
@@ -137,7 +139,7 @@ const getExams = async (req, res) => {
 const getExam = async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id).populate('createdBy', 'name email');
-    
+
     if (!exam) {
       return res.status(404).json({
         success: false,
@@ -145,9 +147,17 @@ const getExam = async (req, res) => {
       });
     }
 
+    if (!exam.examCode) {
+      const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+      exam.examCode = `EXAM-${randomHex}`;
+      await exam.save();
+    }
+
+    const now = new Date();
+    const isExamActive = Boolean(exam.isActive && exam.status === 'Published' && now >= exam.startDate && now <= exam.endDate);
+
     // Check if student can access this exam
     if (req.user.role === 'student') {
-      const now = new Date();
       if (!exam.isActive || now < exam.startDate || now > exam.endDate) {
         return res.status(403).json({
           success: false,
@@ -168,11 +178,32 @@ const getExam = async (req, res) => {
         });
       }
 
+      // Create or retrieve cryptographically secure active ExamSession
+      let examSession = await ExamSession.findOne({
+        student: req.user.id,
+        exam: exam._id,
+        isActive: true
+      });
+
+      if (!examSession) {
+        const token = ExamSession.generateSessionToken();
+        examSession = await ExamSession.create({
+          student: req.user.id,
+          exam: exam._id,
+          sessionToken: token,
+          examCode: exam.examCode,
+          startTime: now,
+          isActive: true,
+          ipAddress: req.ip || '127.0.0.1'
+        });
+      }
+
       // Register active exam session on student User record
       await User.findByIdAndUpdate(req.user.id, {
         activeExamSession: {
           examId: exam._id,
-          startTime: new Date(),
+          sessionToken: examSession.sessionToken,
+          startTime: now,
           isActive: true
         }
       });
@@ -185,10 +216,18 @@ const getExam = async (req, res) => {
         options: q.options.map(opt => ({ text: opt.text })),
         marks: q.marks
       }));
-      
+
       return res.json({
         success: true,
-        exam: examObj
+        exam: examObj,
+        activeExamSession: {
+          isExamActive: isExamActive,
+          examCode: exam.examCode,
+          sessionToken: examSession.sessionToken,
+          examTitle: exam.title,
+          subject: exam.subject,
+          warningMessage: 'ACTIVE EXAMINATION — DO NOT PROVIDE ANSWERS'
+        }
       });
     }
 
@@ -220,7 +259,7 @@ const updateExam = async (req, res) => {
     }
 
     const exam = await Exam.findById(req.params.id);
-    
+
     if (!exam) {
       return res.status(404).json({
         success: false,
@@ -262,7 +301,7 @@ const updateExam = async (req, res) => {
 const deleteExam = async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id);
-    
+
     if (!exam) {
       return res.status(404).json({
         success: false,
