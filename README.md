@@ -71,10 +71,6 @@ Comprehensive documentation for the **Examin** platform, detailing system archit
 
 ### 📚 Question Bank & Redesigned Exam Results
 * Centralized question bank with category tags, difficulty filters (Easy, Medium, Hard), and bulk CSV/JSON import capabilities.
-* **Redesigned Exam Results UI**: Clean flexbox card layout featuring high-contrast score cards, test duration, letter grade badges (A/B/C/D/F), pass/fail status pills, and full-width AI performance feedback breaking down strengths and weakness recommendations.
-
-### 📜 Printable QR Certificates
-* Automatic PDF/Printable certificate generation for passing candidates, complete with scannable QR verification link (`/verify-certificate/:certId`).
 
 ---
 
