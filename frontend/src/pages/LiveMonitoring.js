@@ -83,17 +83,17 @@ const LiveMonitoring = () => {
     }
   };
 
-  // Filter submissions to strictly ONLY show candidates with actual reported violations
+  // Filter submissions to strictly ONLY show candidates who violated instructions and got TERMINATED
   const violationSubmissions = submissions.filter((sub) => {
     const tabSwitches = sub.proctorLogs?.tabSwitches || 0;
-    const copyPaste = sub.proctorLogs?.copyPasteAttempts || 0;
     const fullscreenExits = sub.proctorLogs?.fullscreenViolations || 0;
-    const devTools = sub.proctorLogs?.devToolsAttempts || 0;
-    const audioViolations = sub.proctorLogs?.audioViolations || 0;
-    const multiMonitor = sub.proctorLogs?.multiMonitorDetected || false;
-    const isTerminated = Boolean(sub.proctorLogs?.isTerminatedForCheating);
-    const faceUnverified = sub.proctorLogs?.faceVerified === false;
-    const hasFlags = Array.isArray(sub.proctorLogs?.suspiciousFlags) && sub.proctorLogs.suspiciousFlags.length > 0;
+    
+    // Candidate must be officially terminated for cheating / instruction violations
+    const isTerminated = Boolean(sub.proctorLogs?.isTerminatedForCheating) ||
+      sub.status === 'terminated' ||
+      sub.status === 'auto-terminated' ||
+      tabSwitches >= 3 ||
+      fullscreenExits >= 3;
 
     // Institution filter check (frontend fallback)
     if (selectedInstitution && selectedInstitution !== 'all') {
@@ -103,22 +103,11 @@ const LiveMonitoring = () => {
       }
     }
 
-    // Must have at least 1 violation to be displayed in Violation Reported feed
-    return (
-      tabSwitches > 0 ||
-      copyPaste > 0 ||
-      fullscreenExits > 0 ||
-      devTools > 0 ||
-      audioViolations > 0 ||
-      multiMonitor ||
-      isTerminated ||
-      faceUnverified ||
-      hasFlags
-    );
+    return isTerminated;
   });
 
   if (loading) {
-    return <LoadingSpinner text="Loading Violation Reports & Proctoring Feed..." />;
+    return <LoadingSpinner text="Loading Terminated Candidates & Proctoring Feed..." />;
   }
 
   return (
@@ -127,10 +116,10 @@ const LiveMonitoring = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.6rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <Eye style={{ color: '#ef4444', flexShrink: 0 }} /> Violation Reported & Proctoring Feed
+            <Eye style={{ color: '#ef4444', flexShrink: 0 }} /> Terminated Candidates Feed
           </h1>
           <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: '0.9rem', lineHeight: '1.4' }}>
-            Real-time monitoring of flagged candidate webcams, tab switches, and rule violations.
+            Real-time monitoring of students who violated exam instructions and were terminated.
           </p>
         </div>
 
@@ -224,7 +213,25 @@ const LiveMonitoring = () => {
             const devTools = sub.proctorLogs?.devToolsAttempts || 0;
             const audioViolations = sub.proctorLogs?.audioViolations || 0;
             const multiMonitor = sub.proctorLogs?.multiMonitorDetected || false;
-            const isTerminated = Boolean(sub.proctorLogs?.isTerminatedForCheating);
+            const isTerminated = Boolean(sub.proctorLogs?.isTerminatedForCheating) || sub.status === 'terminated' || sub.status === 'auto-terminated';
+
+            let violationReason = 'Rule Violation';
+            if (fullscreenExits >= 3) {
+              violationReason = '3 Fullscreen Exits';
+            } else if (tabSwitches >= 3) {
+              violationReason = '3 Tab Switches';
+            } else if (copyPaste >= 5) {
+              violationReason = '5 Copy/Paste Attempts';
+            } else if (devTools >= 2) {
+              violationReason = 'DevTools Violation';
+            } else if (audioViolations >= 5) {
+              violationReason = '5 Audio Violations';
+            } else if (fullscreenExits > 0) {
+              violationReason = `${fullscreenExits} Fullscreen Exit${fullscreenExits > 1 ? 's' : ''}`;
+            } else if (tabSwitches > 0) {
+              violationReason = `${tabSwitches} Tab Switch${tabSwitches > 1 ? 'es' : ''}`;
+            }
+
             const studentId = sub.student?.studentId || sub.student?._id?.slice(-8) || 'N/A';
             const studentName = sub.student?.name || 'Candidate Student';
             const studentEmail = sub.student?.email || '';
@@ -279,19 +286,37 @@ const LiveMonitoring = () => {
                   </span>
 
                   {isTerminated ? (
-                    <span style={{
+                    <div style={{
                       position: 'absolute',
                       top: '10px',
                       right: '10px',
-                      backgroundColor: '#7f1d1d',
-                      color: '#ffffff',
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '4px'
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                      gap: '3px'
                     }}>
-                      TERMINATED
-                    </span>
+                      <span style={{
+                        backgroundColor: '#7f1d1d',
+                        color: '#ffffff',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '3px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        TERMINATED
+                      </span>
+                      <span style={{
+                        backgroundColor: '#fee2e2',
+                        color: '#991b1b',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        border: '1px solid #fca5a5'
+                      }}>
+                        Reason: {violationReason}
+                      </span>
+                    </div>
                   ) : (
                     <span style={{
                       position: 'absolute',

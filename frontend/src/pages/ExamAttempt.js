@@ -13,7 +13,9 @@ import {
   User,
   Award,
   CheckCircle,
-  ShieldAlert
+  ShieldAlert,
+  Maximize2,
+  Shield
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -48,6 +50,17 @@ const ExamAttempt = () => {
   const [audioViolations, setAudioViolations] = useState(0);
   const [devToolsAttempts, setDevToolsAttempts] = useState(0);
   const [faceVerified, setFaceVerified] = useState(true);
+
+  // Synchronous Ref to prevent React async state batching lags during auto-submission
+  const proctorLogsRef = useRef({
+    tabSwitches: 0,
+    copyPasteAttempts: 0,
+    fullscreenViolations: 0,
+    multiMonitorDetected: false,
+    audioViolations: 0,
+    devToolsAttempts: 0,
+    faceVerified: true
+  });
 
   // Helper for Fisher-Yates array shuffling
   const shuffleArray = (arr) => {
@@ -106,6 +119,7 @@ const ExamAttempt = () => {
         debounceTimer = setTimeout(() => {
           setFullscreenViolations(prev => {
             const updated = prev + 1;
+            proctorLogsRef.current.fullscreenViolations = updated;
             if (updated >= 3) {
               toast.error('❌ Security Termination: 3 Fullscreen violations reached. Auto-terminating exam NOW!', { autoClose: 7000 });
               terminatedTriggeredRef.current = true;
@@ -213,6 +227,7 @@ const ExamAttempt = () => {
 
         setTabSwitches(prev => {
           const updated = prev + 1;
+          proctorLogsRef.current.tabSwitches = updated;
           toast.warn(`Proctor Warning: ${reason}! (Violation ${updated}/3)`, { autoClose: 4000 });
           return updated;
         });
@@ -342,12 +357,19 @@ const ExamAttempt = () => {
   }, [tabSwitches, fullscreenViolations, devToolsAttempts, copyPasteAttempts, audioViolations, exam]);
 
   const handleSubmit = async (isTerminated = false) => {
+    const refLogs = proctorLogsRef.current;
+    const currentTabSwitches = Math.max(tabSwitches, refLogs.tabSwitches);
+    const currentFsViolations = Math.max(fullscreenViolations, refLogs.fullscreenViolations);
+    const currentCopyPaste = Math.max(copyPasteAttempts, refLogs.copyPasteAttempts);
+    const currentAudio = Math.max(audioViolations, refLogs.audioViolations);
+    const currentDevTools = Math.max(devToolsAttempts, refLogs.devToolsAttempts);
+
     const isViolationLimitExceeded = (
-      tabSwitches >= 3 ||
-      fullscreenViolations >= 3 ||
-      devToolsAttempts >= 2 ||
-      copyPasteAttempts >= 5 ||
-      audioViolations >= 5
+      currentTabSwitches >= 3 ||
+      currentFsViolations >= 3 ||
+      currentDevTools >= 2 ||
+      currentCopyPaste >= 5 ||
+      currentAudio >= 5
     );
 
     const isTerminatedBool = isTerminated === true || isViolationLimitExceeded;
@@ -371,6 +393,10 @@ const ExamAttempt = () => {
       // Validate exam start time
       const startTimeISO = examStartTime ? examStartTime.toISOString() : new Date().toISOString();
 
+      // If terminated for cheating, ensure metrics reflect the minimum threshold (3)
+      const finalTabSwitches = isTerminatedBool ? Math.max(3, currentTabSwitches) : currentTabSwitches;
+      const finalFsViolations = isTerminatedBool ? Math.max(3, currentFsViolations) : currentFsViolations;
+
       const submissionData = {
         examId: exam._id,
         answers: Object.keys(answers).map(questionId => ({
@@ -380,12 +406,12 @@ const ExamAttempt = () => {
         startTime: startTimeISO,
         endTime: endTime.toISOString(),
         proctorLogs: {
-          tabSwitches,
-          copyPasteAttempts,
-          fullscreenViolations,
-          multiMonitorDetected,
-          audioViolations,
-          devToolsAttempts,
+          tabSwitches: finalTabSwitches,
+          copyPasteAttempts: currentCopyPaste,
+          fullscreenViolations: finalFsViolations,
+          multiMonitorDetected: multiMonitorDetected || refLogs.multiMonitorDetected,
+          audioViolations: currentAudio,
+          devToolsAttempts: currentDevTools,
           isTerminatedForCheating: isTerminatedBool,
           faceVerified
         }
@@ -931,22 +957,37 @@ const ExamAttempt = () => {
             alignItems: 'center',
             gap: '1rem'
           }}>
-            {tabSwitches > 0 && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: tabSwitches >= 3 ? '#fee2e2' : '#fef3c7',
-                color: tabSwitches >= 3 ? '#dc2626' : '#b45309',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '0.375rem',
-                fontSize: '0.8rem',
-                fontWeight: '700',
-                border: `1px solid ${tabSwitches >= 3 ? '#fecaca' : '#fde68a'}`
-              }}>
-                <AlertTriangle style={{ width: '0.9rem', height: '0.9rem', marginRight: '0.35rem' }} />
-                Tab Switches: {tabSwitches}/3
-              </div>
-            )}
+            {/* Header Tab Switches Counter Badge */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: tabSwitches >= 3 ? '#fee2e2' : tabSwitches > 0 ? '#fef3c7' : '#f8fafc',
+              color: tabSwitches >= 3 ? '#dc2626' : tabSwitches > 0 ? '#92400e' : '#475569',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              border: `1px solid ${tabSwitches >= 3 ? '#fecaca' : tabSwitches > 0 ? '#fde68a' : '#e2e8f0'}`
+            }}>
+              <AlertTriangle style={{ width: '0.85rem', height: '0.85rem', marginRight: '0.3rem', color: tabSwitches > 0 ? 'inherit' : '#94a3b8' }} />
+              Tab Switches: {tabSwitches}/3
+            </div>
+
+            {/* Header Fullscreen Exits Counter Badge */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              backgroundColor: fullscreenViolations >= 3 ? '#fee2e2' : fullscreenViolations > 0 ? '#fef3c7' : '#f8fafc',
+              color: fullscreenViolations >= 3 ? '#dc2626' : fullscreenViolations > 0 ? '#92400e' : '#475569',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '0.375rem',
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              border: `1px solid ${fullscreenViolations >= 3 ? '#fecaca' : fullscreenViolations > 0 ? '#fde68a' : '#e2e8f0'}`
+            }}>
+              <Maximize2 style={{ width: '0.85rem', height: '0.85rem', marginRight: '0.3rem', color: fullscreenViolations > 0 ? 'inherit' : '#94a3b8' }} />
+              Fullscreen Exits: {fullscreenViolations}/3
+            </div>
 
             <div style={{
               display: 'flex',
@@ -1419,58 +1460,135 @@ const ExamAttempt = () => {
         </div>
       )}
 
-      {/* Fullscreen Mode Re-entry Overlay Modal */}
+      {/* Fullscreen Mode Re-entry Overlay Modal - Modern Clean Redesign */}
       {examStep === 'active' && !getFullscreenElement() && !submitting && (
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.94)',
-          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(30, 41, 59, 0.82)',
+          backdropFilter: 'blur(6px)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 99999,
-          color: '#ffffff',
-          textAlign: 'center',
-          padding: '2rem'
+          padding: '1.5rem'
         }}>
           <div style={{
-            backgroundColor: '#1e293b',
-            padding: '2.5rem',
-            borderRadius: '1rem',
-            border: '2px solid #ef4444',
-            boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.4)',
-            maxWidth: '520px',
-            width: '100%'
+            backgroundColor: '#ffffff',
+            padding: '2.5rem 2.25rem 1.75rem 2.25rem',
+            borderRadius: '1.25rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            maxWidth: '560px',
+            width: '100%',
+            textAlign: 'center',
+            border: '1px solid #e2e8f0',
+            animation: 'fadeIn 0.2s ease-out'
           }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: '0.75rem' }}>🚨</div>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#f87171', marginBottom: '0.75rem' }}>
-              FULLSCREEN MODE REQUIRED
+            {/* Top Red-Tinted Icon Badge */}
+            <div style={{
+              width: '90px',
+              height: '90px',
+              borderRadius: '50%',
+              backgroundColor: '#fee2e2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem auto'
+            }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="3" width="20" height="13" rx="2" />
+                <path d="M8 21h8" />
+                <path d="M12 16v5" />
+                <circle cx="18" cy="15" r="3.5" fill="#fee2e2" stroke="#ef4444" strokeWidth="1.8" />
+                <path d="M18 13.4v1.8" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="18" cy="16.4" r="0.4" fill="#ef4444" stroke="none" />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h2 style={{
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              color: '#0f172a',
+              margin: '0 0 0.5rem 0',
+              letterSpacing: '-0.02em'
+            }}>
+              Fullscreen Mode Required
             </h2>
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: '1.6' }}>
-              You have exited full-screen mode or window focus. Exiting fullscreen mode registers an automatic proctoring violation. Return to fullscreen immediately to continue your exam.
+
+            {/* Accent Line */}
+            <div style={{
+              width: '28px',
+              height: '3px',
+              backgroundColor: '#2563eb',
+              borderRadius: '2px',
+              margin: '0.2rem auto 1.25rem auto'
+            }} />
+
+            {/* Subtitle / Paragraph */}
+            <p style={{
+              color: '#475569',
+              fontSize: '0.925rem',
+              lineHeight: '1.55',
+              margin: '0 auto 1.75rem auto',
+              maxWidth: '460px',
+              fontWeight: '400'
+            }}>
+              You have exited full-screen mode or window focus.<br />
+              Exiting full-screen mode registers an automatic proctoring violation.<br />
+              Return to full-screen immediately to continue your exam.
             </p>
+
+            {/* Primary Blue Button */}
             <button
               onClick={requestFullscreenMode}
               style={{
-                backgroundColor: '#ef4444',
+                width: '100%',
+                backgroundColor: '#1d4ed8',
                 color: '#ffffff',
                 border: 'none',
-                padding: '0.9rem 2rem',
-                borderRadius: '0.5rem',
-                fontWeight: '800',
-                fontSize: '1.05rem',
+                padding: '0.85rem 1.5rem',
+                borderRadius: '0.6rem',
+                fontWeight: '600',
+                fontSize: '0.975rem',
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(239, 68, 68, 0.5)',
-                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(29, 78, 216, 0.25)',
+                transition: 'all 0.15s ease-in-out',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.5rem'
+                justifyContent: 'center',
+                gap: '0.6rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#1e40af';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(29, 78, 216, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#1d4ed8';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 78, 216, 0.25)';
               }}
             >
-              🖥️ Click Here to Re-enter Fullscreen Mode
+              <Maximize2 size={18} />
+              <span>Return to Fullscreen Mode</span>
             </button>
+
+            {/* Footer Divider & Mandatory Notice */}
+            <div style={{
+              marginTop: '1.75rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid #f1f5f9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              fontSize: '0.8rem',
+              color: '#64748b'
+            }}>
+              <Shield size={15} style={{ color: '#2563eb' }} />
+              <span>This action is mandatory to ensure a fair and secure examination environment.</span>
+            </div>
+
           </div>
         </div>
       )}

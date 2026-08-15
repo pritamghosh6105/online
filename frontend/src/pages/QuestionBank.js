@@ -5,7 +5,10 @@ import {
   BookOpen, 
   Plus, 
   Upload, 
-  Sparkles, 
+  Sparkles,
+  Wand2,
+  Clock,
+  FileText, 
   Trash2, 
   Search, 
   CheckCircle,
@@ -850,94 +853,331 @@ const QuestionBank = () => {
         </div>
       )}
 
-      {/* AI Generator Modal */}
+      {/* AI Generator Modal - Enterprise EdTech Navy & Slate System */}
       {showAIModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '28px', maxWidth: '560px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '8px', color: '#7c3aed' }}>
-                <Sparkles /> Gemini AI Question Generator
-              </h2>
-              <button onClick={() => setShowAIModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer' }}><X /></button>
-            </div>
-            <form onSubmit={handleAIGenerate}>
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>
-                  Topic / Subject <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input 
-                  type="text" 
-                  placeholder="e.g., Data Structures & Algorithms, Organic Chemistry, Indian Polity"
-                  value={aiTopic}
-                  onChange={(e) => setAiTopic(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none' }}
-                  required
-                />
-              </div>
-
-              {/* Optional Syllabus Input */}
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>
-                  Syllabus / Curriculum Guidelines <span style={{ fontWeight: 400, color: '#64748b', fontSize: '0.8rem' }}>(Optional)</span>
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="e.g. Module 1: Binary Search Trees, AVL Trees & Heaps&#10;Module 2: Graph Algorithms (BFS, DFS, Shortest Path)&#10;Module 3: Dynamic Programming & Recursion"
-                  value={aiSyllabus}
-                  onChange={(e) => setAiSyllabus(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', outline: 'none', fontFamily: 'inherit' }}
-                />
-                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Info style={{ width: '14px', height: '14px' }} /> Paste your syllabus modules to generate targeted MCQs matching your exact curriculum.
-                </p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>Difficulty</label>
-                  <select value={aiDifficulty} onChange={(e) => setAiDifficulty(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}>
-                    <option value="Easy">Easy (1 Mark)</option>
-                    <option value="Medium">Medium (2 Marks)</option>
-                    <option value="Hard">Hard (3 Marks)</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '6px', color: '#1e293b' }}>Question Count (Up to 50)</label>
-                  <input 
-                    type="number" 
-                    min="1" 
-                    max="50" 
-                    value={aiCount} 
-                    onChange={(e) => setAiCount(e.target.value)} 
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }} 
-                  />
-                </div>
-              </div>
-              <button 
-                type="submit" 
-                disabled={aiGenerating} 
-                style={{ 
-                  width: '100%', 
-                  backgroundColor: aiGenerating ? '#a78bfa' : '#7c3aed', 
-                  color: '#ffffff', 
-                  border: 'none', 
-                  padding: '12px', 
-                  borderRadius: '8px', 
-                  fontWeight: 700, 
-                  fontSize: '0.95rem',
-                  cursor: aiGenerating ? 'not-allowed' : 'pointer',
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1.25rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '580px',
+            width: '100%',
+            overflow: 'hidden',
+            boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+            border: '1px solid #e2e8f0'
+          }}>
+            {/* Header - Solid Deep Navy (#1E3A5F) */}
+            <div style={{
+              backgroundColor: '#1e3a5f',
+              color: '#ffffff',
+              padding: '1.15rem 1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+            }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '8px'
+                  flexShrink: 0
+                }}>
+                  <Sparkles size={18} style={{ color: '#ffffff' }} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                    AI Exam & Question Builder
+                  </h2>
+                  <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', margin: '0.15rem 0 0', fontWeight: '400' }}>
+                    Generate structured, syllabus-aligned assessments in seconds.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAIModal(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: 'none',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'background-color 0.15s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
               >
-                {aiGenerating ? (
-                  <><Sparkles style={{ width: '18px', height: '18px' }} /> Generating up to {aiCount} Questions with Gemini AI...</>
-                ) : (
-                  <><Sparkles style={{ width: '18px', height: '18px' }} /> Generate & Add {aiCount} Questions to Question Bank</>
-                )}
+                <X size={16} />
               </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleAIGenerate} style={{ padding: '1.5rem', backgroundColor: '#ffffff' }}>
+              
+              {/* 1. Exam Topic / Subject */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.4rem' }}>
+                  Exam Topic / Subject <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="e.g. Python Basics, Machine Learning, Data Structures…"
+                  value={aiTopic}
+                  onChange={(e) => setAiTopic(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.875rem',
+                    fontWeight: '400',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                    transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#cbd5e1';
+                    e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)';
+                  }}
+                />
+
+                {/* Suggestion Chips */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginRight: '0.1rem' }}>Suggestions:</span>
+                  {['Python', 'JavaScript', 'Data Structures', 'Mathematics', 'General Science', 'Java'].map(item => {
+                    const isActive = aiTopic === item;
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setAiTopic(item)}
+                        style={{
+                          backgroundColor: isActive ? '#eff6ff' : '#f1f5f9',
+                          color: isActive ? '#1e40af' : '#475569',
+                          border: isActive ? '1px solid #93c5fd' : '1px solid #e2e8f0',
+                          padding: '0.2rem 0.6rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem',
+                          fontWeight: isActive ? '600' : '500',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = '#eff6ff';
+                            e.currentTarget.style.borderColor = '#bfdbfe';
+                            e.currentTarget.style.color = '#1e40af';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = '#f1f5f9';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                            e.currentTarget.style.color = '#475569';
+                          }
+                        }}
+                      >
+                        <span style={{ color: isActive ? '#2563eb' : '#94a3b8' }}>•</span> {item}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 2. Course Syllabus / Study Material */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', fontWeight: '600', color: '#0f172a' }}>
+                    <FileText size={15} style={{ color: '#2563eb' }} />
+                    Course Syllabus / Study Material
+                    <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#64748b', marginLeft: '0.2rem' }}>(Optional)</span>
+                  </label>
+                </div>
+                <textarea
+                  rows={4}
+                  value={aiSyllabus}
+                  onChange={(e) => setAiSyllabus(e.target.value)}
+                  placeholder="Paste your syllabus, chapters, notes, or unit-wise topics here. The AI will generate questions directly from your study material."
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.85rem',
+                    fontWeight: '400',
+                    color: '#0f172a',
+                    backgroundColor: '#f8fafc',
+                    outline: 'none',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.5',
+                    transition: 'border-color 0.15s ease, background-color 0.15s ease'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#2563eb';
+                    e.target.style.backgroundColor = '#ffffff';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#cbd5e1';
+                    e.target.style.backgroundColor = '#f8fafc';
+                    e.target.style.boxShadow = 'none';
+                  }}
+                />
+              </div>
+
+              {/* 3. Assessment Settings */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '0.9rem 1rem',
+                marginBottom: '1.25rem'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e3a5f', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                      Difficulty Level
+                    </label>
+                    <select
+                      value={aiDifficulty}
+                      onChange={(e) => setAiDifficulty(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem 0.65rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        color: '#0f172a',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="Easy">Easy (1 Mark)</option>
+                      <option value="Medium">Medium (2 Marks)</option>
+                      <option value="Hard">Hard (3 Marks)</option>
+                      <option value="Mixed">Mixed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e3a5f', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                      Number of Questions
+                    </label>
+                    <input 
+                      type="number" 
+                      min="1" 
+                      max="50" 
+                      value={aiCount} 
+                      onChange={(e) => setAiCount(e.target.value)} 
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem 0.65rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        color: '#0f172a',
+                        outline: 'none'
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                {/* Estimated Duration Notice */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.65rem', paddingTop: '0.55rem', borderTop: '1px solid #e2e8f0', fontSize: '0.775rem', color: '#64748b' }}>
+                  <Clock size={13} style={{ color: '#2563eb' }} />
+                  <span>Estimated Exam Duration · <strong style={{ color: '#0f172a' }}>~{Math.round((parseInt(aiCount) || 10) * 2.5)} mins</strong></span>
+                </div>
+              </div>
+
+              {/* Footer Action Buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAIModal(false)}
+                  style={{
+                    padding: '0.6rem 1.25rem',
+                    backgroundColor: '#ffffff',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                >
+                  Cancel
+                </button>
+
+                <button 
+                  type="submit" 
+                  disabled={aiGenerating} 
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.6rem 1.4rem',
+                    backgroundColor: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    fontSize: '0.875rem',
+                    cursor: aiGenerating ? 'not-allowed' : 'pointer',
+                    opacity: aiGenerating ? 0.75 : 1,
+                    transition: 'background-color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!aiGenerating) {
+                      e.currentTarget.style.backgroundColor = '#1d4ed8';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!aiGenerating) {
+                      e.currentTarget.style.backgroundColor = '#2563eb';
+                    }
+                  }}
+                >
+                  <Wand2 size={16} />
+                  {aiGenerating ? `Generating ${aiCount} Questions...` : `Generate & Add ${aiCount} Questions`}
+                </button>
+              </div>
+
             </form>
           </div>
         </div>

@@ -144,20 +144,32 @@ const questionTemplates = {
 };
 
 // @route   POST /api/ai-exam/generate
-// @desc    Generate AI exam questions based on topic, subject & difficulty (using Gemini API or built-in engine)
+// @desc    Generate AI exam questions based on topic, subject, difficulty & syllabus (using Gemini API or built-in engine)
 // @access  Private (Admin / Student)
 router.post('/generate', protect, async (req, res) => {
   try {
-    const { topic = '', subject = '', count = 5, difficulty = 'Medium' } = req.body;
+    const { topic = '', subject = '', count = 5, difficulty = 'Medium', syllabus = '', questionType = 'MCQ' } = req.body;
 
     const targetCount = Math.min(Math.max(parseInt(count) || 5, 1), 20);
     const cleanTopic = topic.trim() || subject.trim() || 'General Knowledge';
+    const cleanSyllabus = (syllabus || '').trim();
+    const hasSyllabus = cleanSyllabus.length > 0;
+    const formatInstruction = questionType === 'TrueFalse' 
+      ? 'All questions MUST be True/False format with exactly 2 options ("True" and "False").' 
+      : questionType === 'Mixed' 
+      ? 'Include a mix of 4-option Multiple Choice (MCQ) and True/False questions.' 
+      : 'All questions MUST be Multiple Choice (MCQ) format with exactly 4 options per question.';
+
+    let syllabusPromptSection = '';
+    if (hasSyllabus) {
+      syllabusPromptSection = `\n\nPROVIDED COURSE SYLLABUS / STUDY MATERIAL:\n"""\n${cleanSyllabus}\n"""\nCRITICAL INSTRUCTION: All generated questions MUST be directly extracted from or specifically testing concepts, topics, or chapters in the above syllabus material. Do not generate questions outside this syllabus scope.`;
+    }
 
     // 1. Check if Gemini API key is configured
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey && apiKey.trim() && !apiKey.startsWith('AQ.')) {
       const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-pro'];
-      const prompt = `You are an expert academic exam creator. Generate ${targetCount} high-quality multiple choice questions for the topic "${cleanTopic}" (Subject: ${subject || cleanTopic}) at ${difficulty} difficulty level.
+      const prompt = `You are an expert academic exam creator. Generate ${targetCount} high-quality questions for the topic "${cleanTopic}" (Subject: ${subject || cleanTopic}) at ${difficulty} difficulty level. ${formatInstruction}${syllabusPromptSection}
 Return STRICTLY a JSON object with no markdown backticks, no commentary, matching this structure:
 {
   "title": "${cleanTopic} ${difficulty} Assessment",
@@ -167,10 +179,8 @@ Return STRICTLY a JSON object with no markdown backticks, no commentary, matchin
     {
       "question": "Clear and detailed question text?",
       "options": [
-        { "text": "Correct Option", "isCorrect": true },
-        { "text": "Incorrect Option 1", "isCorrect": false },
-        { "text": "Incorrect Option 2", "isCorrect": false },
-        { "text": "Incorrect Option 3", "isCorrect": false }
+        { "text": "Option 1", "isCorrect": true },
+        { "text": "Option 2", "isCorrect": false }
       ],
       "marks": 1
     }
@@ -179,7 +189,7 @@ Return STRICTLY a JSON object with no markdown backticks, no commentary, matchin
 
       for (const model of models) {
         try {
-          console.log(`🤖 Invoking Gemini API model (${model}) for topic "${cleanTopic}"...`);
+          console.log(`🤖 Invoking Gemini API model (${model}) for topic "${cleanTopic}" ${hasSyllabus ? 'with syllabus' : ''}...`);
           const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -220,19 +230,29 @@ Return STRICTLY a JSON object with no markdown backticks, no commentary, matchin
     const searchTerm = (topic + ' ' + subject).toLowerCase();
     let baseQuestions = [];
 
-    if (searchTerm.includes('python')) {
-      baseQuestions = questionTemplates.python;
-    } else if (searchTerm.includes('javascript') || searchTerm.includes('js') || searchTerm.includes('web')) {
-      baseQuestions = questionTemplates.javascript;
-    } else if (searchTerm.includes('java')) {
-      baseQuestions = questionTemplates.java;
-    } else if (searchTerm.includes('data structure') || searchTerm.includes('algorithm') || searchTerm.includes('dsa')) {
-      baseQuestions = questionTemplates.data_structures;
-    } else if (searchTerm.includes('math') || searchTerm.includes('calculus') || searchTerm.includes('algebra')) {
-      baseQuestions = questionTemplates.math;
-    } else if (searchTerm.includes('science') || searchTerm.includes('physics') || searchTerm.includes('chemistry') || searchTerm.includes('biology')) {
-      baseQuestions = questionTemplates.general_science;
+    if (!hasSyllabus) {
+      if (searchTerm.includes('python')) {
+        baseQuestions = questionTemplates.python;
+      } else if (searchTerm.includes('javascript') || searchTerm.includes('js') || searchTerm.includes('web')) {
+        baseQuestions = questionTemplates.javascript;
+      } else if (searchTerm.includes('java')) {
+        baseQuestions = questionTemplates.java;
+      } else if (searchTerm.includes('data structure') || searchTerm.includes('algorithm') || searchTerm.includes('dsa')) {
+        baseQuestions = questionTemplates.data_structures;
+      } else if (searchTerm.includes('math') || searchTerm.includes('calculus') || searchTerm.includes('algebra')) {
+        baseQuestions = questionTemplates.math;
+      } else if (searchTerm.includes('science') || searchTerm.includes('physics') || searchTerm.includes('chemistry') || searchTerm.includes('biology')) {
+        baseQuestions = questionTemplates.general_science;
+      }
     }
+
+    // Extract syllabus lines/modules if provided
+    const syllabusTopics = hasSyllabus
+      ? cleanSyllabus
+          .split(/\r?\n|;|\./)
+          .map(line => line.replace(/^[-*•\d.\s]+/, '').trim())
+          .filter(line => line.length > 3)
+      : [];
 
     const generatedQuestions = [];
 
@@ -252,7 +272,16 @@ Return STRICTLY a JSON object with no markdown backticks, no commentary, matchin
         let questionText = ``;
         let opts = [];
 
-        if (qNum === 1) {
+        if (hasSyllabus && syllabusTopics.length > 0) {
+          const currentSyllabusTopic = syllabusTopics[i % syllabusTopics.length];
+          questionText = `According to the syllabus topic "${currentSyllabusTopic}", which of the following is the key foundational concept?`;
+          opts = [
+            { text: `Primary core principle of ${currentSyllabusTopic}`, isCorrect: true },
+            { text: `Auxiliary unrelated method`, isCorrect: false },
+            { text: `Deprecated legacy parameter`, isCorrect: false },
+            { text: `Incorrect assumption regarding ${currentSyllabusTopic}`, isCorrect: false }
+          ];
+        } else if (qNum === 1) {
           questionText = `Which of the following is a fundamental core concept of ${cleanTopic}?`;
           opts = [
             { text: `Primary Principles of ${cleanTopic}`, isCorrect: true },
@@ -308,7 +337,7 @@ Return STRICTLY a JSON object with no markdown backticks, no commentary, matchin
       subject: subject.trim() || cleanTopic,
       duration: Math.min(targetCount * 5, 120),
       questions: generatedQuestions,
-      source: 'Internal AI Engine'
+      source: hasSyllabus ? 'Internal AI Engine (Syllabus Driven)' : 'Internal AI Engine'
     });
   } catch (error) {
     console.error('AI Exam Generation error:', error);

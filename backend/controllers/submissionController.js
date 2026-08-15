@@ -291,7 +291,7 @@ const getAllSubmissions = async (req, res) => {
       .limit(parseInt(limit))
       .lean();
 
-    // Filter out submissions with missing student or exam (deleted references)
+    // Filter out submissions with missing student or exam
     const validSubmissions = submissions.filter(sub => sub.student && sub.exam);
 
     res.json({

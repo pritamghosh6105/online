@@ -13,7 +13,9 @@ import {
   Sparkles,
   Wand2,
   RefreshCw,
-  Edit3
+  Edit3,
+  Upload,
+  Clock
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -86,12 +88,34 @@ const CreateExam = () => {
     topic: '',
     subject: '',
     difficulty: 'Medium',
-    count: 5
+    count: 5,
+    syllabus: ''
   });
+
+  const handleSyllabusFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('File size exceeds 2MB limit');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target.result;
+      setAiForm(prev => ({ ...prev, syllabus: content }));
+      toast.success(`Loaded syllabus from "${file.name}"!`);
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file contents');
+    };
+    reader.readAsText(file);
+  };
 
   const handleGenerateAiExam = async (e) => {
     if (e) e.preventDefault();
-    const topicToUse = aiForm.topic || examData.subject || examData.title || 'General Knowledge';
+    const topicToUse = aiForm.topic || (aiForm.syllabus ? aiForm.syllabus.slice(0, 30) + '...' : '') || examData.subject || examData.title || 'General Knowledge';
     
     setAiLoading(true);
     try {
@@ -99,7 +123,9 @@ const CreateExam = () => {
         topic: topicToUse,
         subject: aiForm.subject || examData.subject || topicToUse,
         difficulty: aiForm.difficulty,
-        count: aiForm.count
+        count: aiForm.count,
+        syllabus: aiForm.syllabus,
+        questionType: aiForm.questionType || 'MCQ'
       });
 
       if (res.data?.success) {
@@ -393,183 +419,375 @@ const CreateExam = () => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.5rem',
-              background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+              backgroundColor: '#4f46e5',
               color: '#ffffff',
-              padding: '0.75rem 1.25rem',
+              padding: '0.65rem 1.25rem',
               borderRadius: '0.5rem',
-              fontWeight: '700',
-              fontSize: '0.925rem',
+              fontWeight: '600',
+              fontSize: '0.9rem',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
-              transition: 'all 0.2s'
+              boxShadow: '0 2px 6px rgba(79, 70, 229, 0.25)',
+              transition: 'background-color 0.15s ease, box-shadow 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#4338ca';
+              e.currentTarget.style.boxShadow = '0 4px 10px rgba(79, 70, 229, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#4f46e5';
+              e.currentTarget.style.boxShadow = '0 2px 6px rgba(79, 70, 229, 0.25)';
             }}
           >
-            <Sparkles size={18} /> Build Exam with AI
+            <Sparkles size={18} />
+            <span>Build Exam with AI</span>
           </button>
         </div>
 
-        {/* AI Generator Modal */}
+        {/* AI Generator Modal - Enterprise EdTech Navy & Slate System */}
         {showAiModal && (
           <div style={{
             position: 'fixed',
             top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.7)',
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            padding: '1rem'
+            padding: '1.25rem'
           }}>
             <div style={{
               backgroundColor: '#ffffff',
-              borderRadius: '1rem',
-              maxWidth: '520px',
+              borderRadius: '14px',
+              maxWidth: '580px',
               width: '100%',
               overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-              border: '1px solid #e2e8f0'
+              boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+              border: '1px solid #e2e8f0',
+              animation: 'fadeIn 0.2s ease-out'
             }}>
-              {/* Modal Header */}
+              {/* Header - Solid Deep Navy (#1E3A5F) */}
               <div style={{
-                background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                backgroundColor: '#1e3a5f',
                 color: '#ffffff',
-                padding: '1.25rem 1.5rem',
+                padding: '1.15rem 1.5rem',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <Sparkles size={22} />
-                  <h2 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>
-                    AI Exam & Question Builder
-                  </h2>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Sparkles size={18} style={{ color: '#ffffff' }} />
+                  </div>
+                  <div>
+                    <h2 style={{ fontSize: '1.1rem', fontWeight: '700', margin: 0, color: '#ffffff', letterSpacing: '-0.01em' }}>
+                      AI Exam & Question Builder
+                    </h2>
+                    <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', margin: '0.15rem 0 0', fontWeight: '400' }}>
+                      Generate structured, syllabus-aligned assessments in seconds.
+                    </p>
+                  </div>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => setShowAiModal(false)}
-                  style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer' }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
                 >
-                  <X size={20} />
+                  <X size={16} />
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <form onSubmit={handleGenerateAiExam} style={{ padding: '1.5rem' }}>
-                <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: 0, marginBottom: '1.25rem' }}>
-                  Enter any topic or subject below. AI will automatically generate structured questions, options, and duration for your exam!
-                </p>
-
-                {/* Topic Field */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
-                    Exam Topic / Subject *
+              {/* Form Body */}
+              <form onSubmit={handleGenerateAiExam} style={{ padding: '1.5rem', backgroundColor: '#ffffff' }}>
+                
+                {/* 1. Exam Topic / Subject */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.4rem' }}>
+                    Exam Topic / Subject <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
-                    required
+                    required={!aiForm.syllabus}
                     value={aiForm.topic}
                     onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
-                    placeholder="e.g. Python Basics, Machine Learning, World History..."
+                    placeholder="e.g. Python Basics, Machine Learning, Data Structures…"
                     style={{
                       width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
                       border: '1px solid #cbd5e1',
-                      fontSize: '0.9rem',
-                      fontWeight: '500',
-                      outline: 'none'
+                      fontSize: '0.875rem',
+                      fontWeight: '400',
+                      color: '#0f172a',
+                      backgroundColor: '#ffffff',
+                      outline: 'none',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                      transition: 'border-color 0.15s ease, box-shadow 0.15s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#2563eb';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#cbd5e1';
+                      e.target.style.boxShadow = '0 1px 2px rgba(0,0,0,0.02)';
                     }}
                   />
-                </div>
 
-                {/* Quick Topic Badges */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.25rem' }}>
-                  {['Python', 'JavaScript', 'Data Structures', 'Mathematics', 'General Science', 'Java'].map(item => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setAiForm({ ...aiForm, topic: item, subject: item })}
-                      style={{
-                        backgroundColor: aiForm.topic === item ? '#7c3aed' : '#f1f5f9',
-                        color: aiForm.topic === item ? '#ffffff' : '#475569',
-                        border: 'none',
-                        padding: '0.25rem 0.65rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.775rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      + {item}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Difficulty & Count */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
-                      Difficulty Level
-                    </label>
-                    <select
-                      value={aiForm.difficulty}
-                      onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.7rem',
-                        borderRadius: '0.5rem',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.875rem',
-                        fontWeight: '600'
-                      }}
-                    >
-                      <option value="Easy">Easy</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                      <option value="Mixed">Mixed</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
-                      Number of Questions
-                    </label>
-                    <select
-                      value={aiForm.count}
-                      onChange={(e) => setAiForm({ ...aiForm, count: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '0.7rem',
-                        borderRadius: '0.5rem',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.875rem',
-                        fontWeight: '600'
-                      }}
-                    >
-                      <option value="5">5 Questions</option>
-                      <option value="10">10 Questions</option>
-                      <option value="15">15 Questions</option>
-                      <option value="20">20 Questions</option>
-                    </select>
+                  {/* Suggestion Chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginRight: '0.1rem' }}>Suggestions:</span>
+                    {['Python', 'JavaScript', 'Data Structures', 'Mathematics', 'General Science', 'Java'].map(item => {
+                      const isActive = aiForm.topic === item;
+                      return (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => setAiForm({ ...aiForm, topic: item, subject: item })}
+                          style={{
+                            backgroundColor: isActive ? '#eff6ff' : '#f1f5f9',
+                            color: isActive ? '#1e40af' : '#475569',
+                            border: isActive ? '1px solid #93c5fd' : '1px solid #e2e8f0',
+                            padding: '0.2rem 0.6rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: isActive ? '600' : '500',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.backgroundColor = '#eff6ff';
+                              e.currentTarget.style.borderColor = '#bfdbfe';
+                              e.currentTarget.style.color = '#1e40af';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.backgroundColor = '#f1f5f9';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
+                              e.currentTarget.style.color = '#475569';
+                            }
+                          }}
+                        >
+                          <span style={{ color: isActive ? '#2563eb' : '#94a3b8' }}>•</span> {item}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                {/* 2. Course Syllabus / Study Material */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', fontWeight: '600', color: '#0f172a' }}>
+                      <FileText size={15} style={{ color: '#2563eb' }} />
+                      Course Syllabus / Study Material
+                      <span style={{ fontSize: '0.75rem', fontWeight: '500', color: '#64748b', marginLeft: '0.2rem' }}>(Optional)</span>
+                    </label>
+
+                    {/* Upload File Control - Clean Blue Border Secondary Button */}
+                    <label style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      color: '#2563eb',
+                      backgroundColor: '#ffffff',
+                      padding: '0.25rem 0.65rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      border: '1px solid #2563eb',
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                    >
+                      <Upload size={13} />
+                      <span>Upload File</span>
+                      <span style={{ fontSize: '0.675rem', color: '#64748b' }}>(TXT, MD, PDF, DOCX)</span>
+                      <input
+                        type="file"
+                        accept=".txt,.md,.pdf,.doc,.docx,.json"
+                        onChange={handleSyllabusFileUpload}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
+                  <textarea
+                    rows={4}
+                    value={aiForm.syllabus}
+                    onChange={(e) => setAiForm({ ...aiForm, syllabus: e.target.value })}
+                    placeholder="Paste your syllabus, chapters, notes, or unit-wise topics here. The AI will generate questions directly from your study material."
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.85rem',
+                      fontWeight: '400',
+                      color: '#0f172a',
+                      backgroundColor: '#f8fafc',
+                      outline: 'none',
+                      resize: 'vertical',
+                      fontFamily: 'inherit',
+                      lineHeight: '1.5',
+                      transition: 'border-color 0.15s ease, background-color 0.15s ease'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#2563eb';
+                      e.target.style.backgroundColor = '#ffffff';
+                      e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#cbd5e1';
+                      e.target.style.backgroundColor = '#f8fafc';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+
+                  {aiForm.syllabus && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.3rem', padding: '0 0.1rem' }}>
+                      <span style={{ fontSize: '0.725rem', color: '#16a34a', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Check size={12} /> {aiForm.syllabus.length} characters loaded • Questions will be syllabus-aligned
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAiForm({ ...aiForm, syllabus: '' })}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.725rem', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        Clear Syllabus
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Assessment Settings */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  padding: '0.9rem 1rem',
+                  marginBottom: '1.25rem'
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                    
+                    {/* Difficulty */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e3a5f', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        Difficulty Level
+                      </label>
+                      <select
+                        value={aiForm.difficulty}
+                        onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.65rem',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: '#ffffff',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          color: '#0f172a',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                        <option value="Mixed">Mixed</option>
+                      </select>
+                    </div>
+
+                    {/* Question Count */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', color: '#1e3a5f', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        Number of Questions
+                      </label>
+                      <select
+                        value={aiForm.count}
+                        onChange={(e) => setAiForm({ ...aiForm, count: parseInt(e.target.value) || 10 })}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem 0.65rem',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: '#ffffff',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          color: '#0f172a',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="5">5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="15">15 Questions</option>
+                        <option value="20">20 Questions</option>
+                        <option value="30">30 Questions</option>
+                        <option value="50">50 Questions</option>
+                      </select>
+                    </div>
+
+                  </div>
+
+                  {/* Estimated Duration Notice */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.65rem', paddingTop: '0.55rem', borderTop: '1px solid #e2e8f0', fontSize: '0.775rem', color: '#64748b' }}>
+                    <Clock size={13} style={{ color: '#2563eb' }} />
+                    <span>Estimated Exam Duration · <strong style={{ color: '#0f172a' }}>~{Math.round((parseInt(aiForm.count) || 10) * 2.5)} mins</strong></span>
+                  </div>
+                </div>
+
+                {/* Footer Action Buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9' }}>
                   <button
                     type="button"
                     onClick={() => setShowAiModal(false)}
                     style={{
-                      padding: '0.65rem 1.25rem',
-                      backgroundColor: '#f1f5f9',
-                      color: '#475569',
-                      border: 'none',
-                      borderRadius: '0.5rem',
+                      padding: '0.6rem 1.25rem',
+                      backgroundColor: '#ffffff',
+                      color: '#334155',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
                       fontWeight: '600',
-                      cursor: 'pointer'
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.15s ease'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
                   >
                     Cancel
                   </button>
@@ -578,23 +796,45 @@ const CreateExam = () => {
                     type="submit"
                     disabled={aiLoading}
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      padding: '0.65rem 1.4rem',
-                      background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+                      padding: '0.6rem 1.4rem',
+                      backgroundColor: '#2563eb',
                       color: '#ffffff',
                       border: 'none',
-                      borderRadius: '0.5rem',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      opacity: aiLoading ? 0.7 : 1
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      fontSize: '0.875rem',
+                      cursor: aiLoading ? 'not-allowed' : 'pointer',
+                      opacity: aiLoading ? 0.75 : 1,
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!aiLoading) {
+                        e.currentTarget.style.backgroundColor = '#1d4ed8';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!aiLoading) {
+                        e.currentTarget.style.backgroundColor = '#2563eb';
+                      }
                     }}
                   >
-                    {aiLoading ? <RefreshCw size={18} className="animate-spin" /> : <Wand2 size={18} />}
-                    {aiLoading ? 'Generating AI Questions...' : 'Generate Questions'}
+                    {aiLoading ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        <span>Generating Questions...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 size={16} />
+                        <span>Generate Questions</span>
+                      </>
+                    )}
                   </button>
                 </div>
+
               </form>
             </div>
           </div>
