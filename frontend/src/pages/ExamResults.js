@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { submissionAPI, examAPI, certificateAPI } from '../api';
+import { submissionAPI, examAPI } from '../api';
 import {
   Calendar,
   Clock,
@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { formatDate, getGradeColor, getGradeLetter } from '../utils/helpers';
 import LoadingSpinner from '../components/LoadingSpinner';
-import CertificateModal from '../components/CertificateModal';
 
 const ExamResults = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -31,8 +30,6 @@ const ExamResults = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [selectedCert, setSelectedCert] = useState(null);
-  const [certLoading, setCertLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -842,11 +839,6 @@ const ExamResults = () => {
           </Link>
         </div>
       </div>
-
-      {/* Certificate Modal */}
-      {selectedCert && (
-        <CertificateModal certificate={selectedCert} onClose={() => setSelectedCert(null)} />
-      )}
     </div>
   );
 };

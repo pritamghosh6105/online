@@ -81,10 +81,6 @@ const submissionSchema = new mongoose.Schema({
     type: Number,
     default: null
   },
-  certificateId: {
-    type: String,
-    default: null
-  },
   aiPerformanceSummary: {
     strengths: [String],
     weaknesses: [String],

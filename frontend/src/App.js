@@ -20,7 +20,6 @@ const ViewSubmissions = lazy(() => import('./pages/ViewSubmissions'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank'));
 const StudentQuestionBank = lazy(() => import('./pages/StudentQuestionBank'));
 const LiveMonitoring = lazy(() => import('./pages/LiveMonitoring'));
-const CertificateVerify = lazy(() => import('./pages/CertificateVerify'));
 
 // Check if user is admin or superadmin
 const isAdmin = (u) => u && (u.role === 'admin' || u.role === 'superadmin' || u.email === 'admin@examin.com');
@@ -43,9 +42,6 @@ function App() {
               path="/"
               element={!user ? <Home /> : <Navigate to="/dashboard" />}
             />
-
-            {/* Public Certificate Verification */}
-            <Route path="/verify-certificate/:certId" element={<CertificateVerify />} />
 
             {/* Public Auth Routes */}
             <Route

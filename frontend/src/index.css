@@ -32,20 +32,7 @@ body.dark-mode div, body.dark-mode section {
   color: inherit;
 }
 
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  .printable-certificate, .printable-certificate * {
-    visibility: visible;
-  }
-  .printable-certificate {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
+
 
 * {
   margin: 0;

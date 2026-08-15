@@ -72,12 +72,6 @@ export const aiExamAPI = {
   generateExam: (data) => api.post('/ai-exam/generate', data),
 };
 
-// Certificate API
-export const certificateAPI = {
-  getCertificate: (submissionId) => api.get(`/certificates/submission/${submissionId}`),
-  verifyCertificate: (certId) => api.get(`/certificates/verify/${certId}`)
-};
-
 // Notification API
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),

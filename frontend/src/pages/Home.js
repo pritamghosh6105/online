@@ -710,7 +710,7 @@ const Home = () => {
             Powerful Features Built for Modern Online Testing
           </h2>
           <p style={{ color: '#475569', fontSize: '1.1rem', maxWidth: '680px', margin: '0 auto' }}>
-            Everything your institution needs — from AI question authoring to multi-level proctoring and verifiable digital certificates.
+            Everything your institution needs — from AI question authoring to multi-level proctoring and real-time live monitoring.
           </p>
         </div>
 
@@ -996,7 +996,7 @@ const Home = () => {
               </h3>
 
               <p style={{ color: '#475569', fontSize: '1rem', lineHeight: '1.65', marginBottom: '2rem' }}>
-                Create exams, author question pools, track live submissions, manage admin roles, and issue certificates.
+                Create exams, author question pools, track live submissions, and manage admin roles.
               </p>
 
               <div style={{ display: 'grid', gap: '0.85rem', marginBottom: '2rem' }}>
