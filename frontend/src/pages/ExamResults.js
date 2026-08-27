@@ -57,19 +57,6 @@ const ExamResults = () => {
     }
   };
 
-  const handleViewCertificate = async (submissionId) => {
-    try {
-      setCertLoading(true);
-      const res = await certificateAPI.getCertificate(submissionId);
-      if (res.data.certificate) {
-        setSelectedCert(res.data.certificate);
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Certificate not available for this exam result.');
-    } finally {
-      setCertLoading(false);
-    }
-  };
 
   const filterAndSortSubmissions = () => {
     let filtered = [...submissions];
