@@ -24,6 +24,6 @@ router.get('/analytics', authorize('superadmin'), getPlatformAnalytics);
 router.get('/audit-logs', authorize('superadmin'), getAuditLogs);
 router.put('/institution-plan', authorize('superadmin'), updateInstitutionPlan);
 router.get('/backup', authorize('superadmin'), exportSystemBackup);
-router.delete('/institution/:name', authorize('superadmin'), deleteInstitution);
+router.delete('/institution/:name', authorize('superadmin', 'admin'), deleteInstitution);
 
 module.exports = router;

@@ -42,15 +42,18 @@ const loginValidation = [
 
 const changeCredentialsValidation = [
   body('oldAdminId')
-    .isLength({ min: 11, max: 11 })
-    .withMessage('Old Admin ID must be 11 digits'),
+    .notEmpty()
+    .withMessage('Current Admin ID is required'),
   body('currentPassword')
     .notEmpty()
     .withMessage('Current password is required'),
   body('newStudentId')
-    .isLength({ min: 11, max: 11 })
-    .withMessage('New Admin ID must be 11 digits'),
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 4, max: 30 })
+    .withMessage('New Admin ID must be between 4 and 30 characters'),
   body('newPassword')
+    .optional({ checkFalsy: true })
     .isLength({ min: 6 })
     .withMessage('New password must be at least 6 characters')
 ];
@@ -61,8 +64,9 @@ const addAdminValidation = [
     .isLength({ min: 2, max: 50 })
     .withMessage('Name must be between 2 and 50 characters'),
   body('adminId')
-    .isLength({ min: 11, max: 11 })
-    .withMessage('Admin ID must be 11 digits'),
+    .trim()
+    .isLength({ min: 4, max: 30 })
+    .withMessage('Admin ID must be between 4 and 30 characters'),
   body('email')
     .isEmail()
     .normalizeEmail()

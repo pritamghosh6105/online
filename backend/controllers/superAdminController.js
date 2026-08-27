@@ -218,10 +218,33 @@ exports.deleteInstitution = async (req, res) => {
     const institutionName = decodeURIComponent(req.params.name);
     const regex = new RegExp(`^${institutionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
 
-    await Institution.deleteMany({ name: regex });
-    await Schedule.deleteMany({ institution: regex });
-    await User.deleteMany({ institution: regex, role: 'admin' });
+    // 1. Find all users in this institution (students, admins, subadmins)
+    const institutionUsers = await User.find({ institution: regex }).select('_id');
+    const userIds = institutionUsers.map(u => u._id);
+
+    // 2. Find all exams for this institution
+    const institutionExams = await Exam.find({ institution: regex }).select('_id');
+    const examIds = institutionExams.map(e => e._id);
+
+    // 3. Delete submissions for these users and exams
+    await Submission.deleteMany({
+      $or: [
+        { student: { $in: userIds } },
+        { exam: { $in: examIds } }
+      ]
+    });
+
+    // 4. Delete all users (students, admins, subadmins) for this institution
+    await User.deleteMany({ institution: regex });
+
+    // 5. Delete exams for this institution
     await Exam.deleteMany({ institution: regex });
+
+    // 6. Delete schedules for this institution
+    await Schedule.deleteMany({ institution: regex });
+
+    // 7. Delete institution record itself
+    await Institution.deleteMany({ name: regex });
 
     if (AuditLog) {
       await AuditLog.create({
@@ -232,6 +255,8 @@ exports.deleteInstitution = async (req, res) => {
         details: `Deleted approved institution: ${institutionName}`
       }).catch(() => {});
     }
+
+    console.log(`✅ Approved school "${institutionName}" and all associated data deleted successfully.`);
 
     res.json({ success: true, message: `Approved school "${institutionName}" deleted successfully` });
   } catch (error) {

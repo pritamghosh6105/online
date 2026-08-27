@@ -153,23 +153,34 @@ const AdminDashboard = () => {
     setCredentialsError('');
 
     // Validation
-    if (!credentialsForm.currentAdminId || credentialsForm.currentAdminId.length !== 11) {
-      setCredentialsError('Current Admin ID must be 11 digits');
+    if (!credentialsForm.currentAdminId || credentialsForm.currentAdminId.trim().length < 4) {
+      setCredentialsError('Current Admin ID is required (min 4 characters)');
       return;
     }
     if (!credentialsForm.currentPassword) {
       setCredentialsError('Current password is required');
       return;
     }
-    if (!credentialsForm.newStudentId || credentialsForm.newStudentId.length !== 11) {
-      setCredentialsError('New Admin ID must be 11 digits');
+    
+    const hasNewId = Boolean(credentialsForm.newStudentId && credentialsForm.newStudentId.trim());
+    const hasNewPass = Boolean(credentialsForm.newPassword && credentialsForm.newPassword.trim());
+
+    if (!hasNewId && !hasNewPass) {
+      setCredentialsError('Please enter a new Admin ID or a new Password to update');
       return;
     }
-    if (!credentialsForm.newPassword || credentialsForm.newPassword.length < 6) {
+
+    if (hasNewId && credentialsForm.newStudentId.trim().length < 4) {
+      setCredentialsError('New Admin ID must be at least 4 characters');
+      return;
+    }
+
+    if (hasNewPass && credentialsForm.newPassword.length < 6) {
       setCredentialsError('New password must be at least 6 characters');
       return;
     }
-    if (credentialsForm.newPassword !== credentialsForm.confirmPassword) {
+    
+    if (hasNewPass && credentialsForm.newPassword !== credentialsForm.confirmPassword) {
       setCredentialsError('Passwords do not match');
       return;
     }
@@ -177,13 +188,13 @@ const AdminDashboard = () => {
     try {
       // API call to update credentials
       await authAPI.changeCredentials({
-        oldAdminId: credentialsForm.currentAdminId,
+        oldAdminId: credentialsForm.currentAdminId.trim(),
         currentPassword: credentialsForm.currentPassword,
-        newStudentId: credentialsForm.newStudentId,
-        newPassword: credentialsForm.newPassword
+        newStudentId: credentialsForm.newStudentId ? credentialsForm.newStudentId.trim() : undefined,
+        newPassword: credentialsForm.newPassword || undefined
       });
 
-      alert('Credentials updated successfully! Please login again with new credentials.');
+      alert('Credentials updated successfully! Please login again if you changed your Admin ID or password.');
       setShowCredentialsModal(false);
       setCredentialsForm({
         currentAdminId: '',
@@ -192,9 +203,6 @@ const AdminDashboard = () => {
         newPassword: '',
         confirmPassword: ''
       });
-
-      // Optionally logout user so they can login with new credentials
-      // logout();
     } catch (error) {
       setCredentialsError(error.response?.data?.message || 'Failed to update credentials');
     }
@@ -209,8 +217,8 @@ const AdminDashboard = () => {
       setAddAdminError('Name is required');
       return;
     }
-    if (!addAdminForm.adminId || addAdminForm.adminId.length !== 11) {
-      setAddAdminError('Admin ID must be 11 digits');
+    if (!addAdminForm.adminId || addAdminForm.adminId.trim().length < 4) {
+      setAddAdminError('Admin ID must be at least 4 characters');
       return;
     }
     if (!addAdminForm.email.trim() || !addAdminForm.email.includes('@')) {
@@ -1083,11 +1091,9 @@ const AdminDashboard = () => {
                     type="text"
                     value={credentialsForm.currentAdminId}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '').slice(0, 11);
-                      setCredentialsForm({ ...credentialsForm, currentAdminId: value });
+                      setCredentialsForm({ ...credentialsForm, currentAdminId: e.target.value });
                     }}
-                    placeholder="Enter your current 11-digit Admin ID"
-                    maxLength="11"
+                    placeholder="Enter your current Admin ID"
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1135,20 +1141,14 @@ const AdminDashboard = () => {
                     color: '#374151',
                     marginBottom: '0.5rem'
                   }}>
-                    New Admin ID (11 digits)
+                    New Admin ID (Optional)
                   </label>
                   <input
                     type="text"
                     value={credentialsForm.newStudentId}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      if (value.length <= 11) {
-                        setCredentialsForm({ ...credentialsForm, newStudentId: value });
-                      }
+                      setCredentialsForm({ ...credentialsForm, newStudentId: e.target.value });
                     }}
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength="11"
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -1157,7 +1157,7 @@ const AdminDashboard = () => {
                       fontSize: '0.875rem',
                       outline: 'none'
                     }}
-                    placeholder="Enter new 11-digit admin ID"
+                    placeholder="Enter new admin ID (leave blank if keeping current)"
                   />
                 </div>
 

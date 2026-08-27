@@ -496,9 +496,17 @@ const getAdmins = async (req, res) => {
 // @access  Private (Admin only)
 const changeCredentials = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg
+      });
+    }
+
     const { oldAdminId, currentPassword, newStudentId, newPassword } = req.body;
 
-    // Find admin by logged-in user ID, old student ID, or email
+    // Find admin by logged-in user ID or old student ID
     let admin = null;
     if (req.user?._id) {
       admin = await User.findById(req.user._id).select('+password');
@@ -514,6 +522,14 @@ const changeCredentials = async (req, res) => {
       });
     }
 
+    // Verify old Admin ID if account has a studentId
+    if (oldAdminId && admin.studentId && oldAdminId.trim() !== admin.studentId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current Admin ID does not match account'
+      });
+    }
+
     // Verify current password
     const isPasswordValid = await admin.comparePassword(currentPassword);
     if (!isPasswordValid) {
@@ -523,10 +539,13 @@ const changeCredentials = async (req, res) => {
       });
     }
 
+    let updatedAny = false;
+
     // If newStudentId provided and different, update it
-    if (newStudentId && newStudentId.length === 11 && newStudentId !== admin.studentId) {
+    if (newStudentId && newStudentId.trim() && newStudentId.trim() !== admin.studentId) {
+      const trimmedNewId = newStudentId.trim();
       const existingUser = await User.findOne({ 
-        studentId: newStudentId,
+        studentId: trimmedNewId,
         _id: { $ne: admin._id }
       });
       
@@ -536,12 +555,21 @@ const changeCredentials = async (req, res) => {
           message: 'This Admin ID is already in use'
         });
       }
-      admin.studentId = newStudentId;
+      admin.studentId = trimmedNewId;
+      updatedAny = true;
     }
 
     // Update password if provided
-    if (newPassword) {
+    if (newPassword && newPassword.trim()) {
       admin.password = newPassword;
+      updatedAny = true;
+    }
+
+    if (!updatedAny) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a new Admin ID or a new password to update'
+      });
     }
 
     await admin.save();
@@ -563,7 +591,7 @@ const changeCredentials = async (req, res) => {
     console.error('Change credentials error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error while updating credentials'
+      message: error.message || 'Server error while updating credentials'
     });
   }
 };
@@ -573,10 +601,20 @@ const changeCredentials = async (req, res) => {
 // @access  Private (Admin only)
 const addAdmin = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: errors.array()[0].msg
+      });
+    }
+
     const { name, adminId, email, password } = req.body;
 
+    const trimmedAdminId = adminId ? adminId.trim() : '';
+
     // Check if admin ID already exists
-    const existingById = await User.findOne({ studentId: adminId });
+    const existingById = await User.findOne({ studentId: trimmedAdminId });
     if (existingById) {
       return res.status(400).json({
         success: false,
@@ -599,13 +637,13 @@ const addAdmin = async (req, res) => {
       email,
       password,
       role: 'admin',
-      studentId: adminId
+      studentId: trimmedAdminId
     });
 
-    console.log(`✅ New admin created: ${name} (ID: ${adminId})`);
+    console.log(`✅ New admin created: ${name} (ID: ${trimmedAdminId})`);
 
     // Fire background email sending (non-blocking)
-    sendAdminCredentialsEmail(email, name, adminId, password).catch(err => {
+    sendAdminCredentialsEmail(email, name, trimmedAdminId, password).catch(err => {
       console.error('❌ Background email sending error:', err.message);
     });
 
@@ -625,7 +663,7 @@ const addAdmin = async (req, res) => {
     
     // Handle duplicate key errors
     if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
+      const field = Object.keys(error.keyPattern || {})[0];
       if (field === 'studentId') {
         return res.status(400).json({
           success: false,
